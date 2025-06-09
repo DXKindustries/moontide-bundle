@@ -1,0 +1,89 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+type MoonPhaseProps = {
+  phase: string;
+  illumination: number;
+  moonrise: string;
+  moonset: string;
+  date: string;
+  className?: string;
+}
+
+const MoonPhase = ({ 
+  phase, 
+  illumination, 
+  moonrise, 
+  moonset, 
+  date,
+  className 
+}: MoonPhaseProps) => {
+  // Calculate visual representation of moon phase
+  const getMoonPhaseVisual = () => {
+    switch (phase) {
+      case "New Moon":
+        return "bg-moon-dark border-2 border-moon-primary";
+      case "Waxing Crescent":
+        return "bg-gradient-to-r from-moon-primary to-moon-dark";
+      case "First Quarter":
+        return "bg-gradient-to-r from-moon-primary to-moon-dark [clip-path:inset(0_0_0_50%)]";
+      case "Waxing Gibbous":
+        return "bg-gradient-to-l from-moon-dark to-moon-primary [clip-path:inset(0_0_0_25%)]";
+      case "Full Moon":
+        return "moon-gradient";
+      case "Waning Gibbous":
+        return "bg-gradient-to-r from-moon-dark to-moon-primary [clip-path:inset(0_0_0_25%)]";
+      case "Last Quarter":
+        return "bg-gradient-to-l from-moon-primary to-moon-dark [clip-path:inset(0_0_0_50%)]";
+      case "Waning Crescent":
+        return "bg-gradient-to-l from-moon-primary to-moon-dark";
+      default:
+        return "moon-gradient";
+    }
+  };
+
+  return (
+    <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
+          <span>{phase}</span>
+          <span className="text-moon-primary text-sm">{date}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center">
+        <div className="relative">
+          <div className={`w-36 h-36 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
+        </div>
+        
+        <div className="mt-8 w-full">
+          <div className="flex justify-between text-sm mb-4">
+            <div>
+              <p className="text-muted-foreground">Illumination</p>
+              <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
+            </div>
+            <div className="text-right">
+              <p className="text-muted-foreground">Moonrise</p>
+              <p className="text-lg font-semibold">{moonrise}</p>
+            </div>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <div>
+              <p className="text-muted-foreground">Moonset</p>
+              <p className="text-lg font-semibold">{moonset}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-muted-foreground">Next Phase</p>
+              <p className="text-lg font-semibold">In 3 days</p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MoonPhase;

@@ -1,0 +1,84 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 225 30% 12%;
+    --foreground: 210 40% 98%;
+
+    --card: 228 24% 15%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 228 24% 15%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 252 83% 75%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 250 20% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 225 25% 25%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 248 39% 39%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 240 13% 20%;
+    --input: 240 13% 20%;
+    --ring: 252 83% 75%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .moon-gradient {
+    @apply bg-gradient-to-br from-moon-primary via-moon-secondary to-moon-tertiary;
+  }
+  
+  .tide-wave {
+    @apply animate-wave;
+  }
+  
+  .star {
+    @apply absolute rounded-full bg-white animate-pulse-subtle;
+  }
+  
+  /* Calendar day indicators */
+  .day-full-moon {
+    @apply font-bold !bg-yellow-400 text-gray-800 rounded-full !border-none;
+  }
+  
+  .day-new-moon {
+    @apply font-bold !bg-gray-500 text-white rounded-full !border-none;
+  }
+  
+  .day-optimal-fishing {
+    @apply border-2 !border-moon-primary;
+  }
+}
