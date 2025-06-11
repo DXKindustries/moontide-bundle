@@ -114,7 +114,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             const station = await getNearestStation(lat, lng);
             
             if (!station) {
-  setStationName("FORCED FALLBACK: San Francisco, CA");
+  setStationName("FORCED FALLBACK: Winchendon, CA");
   throw new Error('No nearby tide stations found');
 }
 
