@@ -1,13 +1,23 @@
+import { safeLocalStorage } from '@/utils/localStorage';
 import { NoaaStation } from './types';
+import { NOAA_API_BASE_URL, STATION_MAP_KEY } from './constants';
+import { haversineDistance } from './utils';
 
-// Modified to avoid CORS error: return null immediately instead of fetch
+/**
+ * Get the nearest NOAA station for given lat/lng.
+ * Due to CORS limitations, this version returns null to avoid failed fetch calls.
+ */
 export async function getNearestStation(lat: number, lng: number): Promise<NoaaStation | null> {
-  // Fetch is disabled due to CORS restrictions in frontend-only environment
-  // Return null to signal no station found; caller must handle gracefully
+  // Disabled fetch call due to browser CORS restrictions.
+  // The caller must handle null return gracefully.
   return null;
 }
 
-// Preserve saveStationForLocation if used elsewhere; no changes needed
+/**
+ * Save station info for a location in localStorage.
+ */
 export function saveStationForLocation(locationKey: string, station: NoaaStation): void {
-  // Implement as in original, or no-op if unused
+  const stationMap = safeLocalStorage.getItem(STATION_MAP_KEY, {});
+  stationMap[locationKey] = station;
+  safeLocalStorage.setItem(STATION_MAP_KEY, stationMap);
 }
