@@ -52,7 +52,10 @@ export const lookupZipCode = async (
   if (typeof (zipCode as any)?.then === 'function') {
     zipCode = await zipCode;
   }
-
+/* ✱ Add this directly below ✱ */
+if (typeof zipCode === 'object' && zipCode !== null) {
+  zipCode = (zipCode as any).zipCode ?? (zipCode as any).zip ?? '';
+}
   const cleanZip = String(zipCode).trim();
   if (!cleanZip) return null;
 
