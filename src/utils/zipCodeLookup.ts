@@ -1,11 +1,10 @@
-export const lookupZipCode = async (zipCode: string | number | Promise<any>) => {
-  console.log('DEBUG lookupZipCode param →', zipCode);
-  ...
-}
+//--------------------------------------------------------------
+// src/utils/zipCodeLookup.ts
+//--------------------------------------------------------------
 
 import { safeLocalStorage } from './localStorage';
 
-// Define the response type from zippopotam.us API
+/** Shape of the zippopotam.us API response we care about */
 interface ZipApiResponse {
   'post code': string;
   country: string;
@@ -13,132 +12,67 @@ interface ZipApiResponse {
   places: {
     'place name': string;
     state: string;
-    'state abbreviation': string;
-    longitude: string;
     latitude: string;
+    longitude: string;
   }[];
 }
 
-interface ZipCodeData {
-  city: string;
-  state: string;
-  stateAbbr: string;
-  country: string;
-  countryAbbr: string;
-  longitude?: string;
-  latitude?: string;
+//--------------------------------------------------------------
+// Local-storage helpers  (unchanged)
+//--------------------------------------------------------------
+
+const ZIP_CACHE_KEY = 'zipCache';
+
+function getZipCache(): Record<string, ZipApiResponse> {
+  return safeLocalStorage.get(ZIP_CACHE_KEY) ?? {};
 }
 
-// Local cache key
-const ZIP_CACHE_KEY = 'moontide-zipcode-cache';
+function saveZipCache(zip: string, data: ZipApiResponse) {
+  const cache = getZipCache();
+  cache[zip] = data;
+  safeLocalStorage.set(ZIP_CACHE_KEY, cache);
+}
 
-// Initialize cache from localStorage
-const getZipCache = (): Record<string, ZipCodeData> => {
-  return safeLocalStorage.getItem(ZIP_CACHE_KEY, {});
-};
-
-// Save cache to localStorage
-const saveZipCache = (cache: Record<string, ZipCodeData>) => {
-  safeLocalStorage.setItem(ZIP_CACHE_KEY, cache);
-};
+//--------------------------------------------------------------
+// Main function
+//--------------------------------------------------------------
 
 /**
- * Lookup ZIP code information using zippopotam.us API
- * Uses local cache first, then falls back to API call
+ * Look up a ZIP code.
+ * – First returns cached data if present
+ * – Otherwise calls https://api.zippopotam.us/us/{ZIP}
+ * – Returns null on 404 or network failure
  */
-export const lookupZipCode = async (zipCode: string | number) => {
-  // Always treat the input as a trimmed string
+export const lookupZipCode = async (
+  zipCode: string | number | Promise<any>
+): Promise<ZipApiResponse | null> => {
+  console.log('DEBUG lookupZipCode param →', zipCode);
+
+  // unwrap accidental Promise input
+  if (typeof (zipCode as any)?.then === 'function') {
+    zipCode = await zipCode;
+  }
+
   const cleanZip = String(zipCode).trim();
   if (!cleanZip) return null;
 
-  
-  
-  
-  // Check local cache first
+  //── 1. cache check ──────────────────────────────────────────
   const cache = getZipCache();
-  if (cache[cleanZip]) {
-    console.log(`Using cached data for ZIP: ${cleanZip}`);
-    return cache[cleanZip];
-  }
-  
-  // Not in cache, try API lookup
+  if (cache[cleanZip]) return cache[cleanZip];
+
+  //── 2. remote lookup ────────────────────────────────────────
   try {
-    console.log(`Looking up ZIP code: ${cleanZip}`);
-    // For US ZIP codes
-    const response = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+    const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+    if (!res.ok) {
+      console.warn(`ZIP lookup failed with status ${res.status}`);
+      return null; // graceful 404
+    }
 
-    
-    if (!response.ok) {
-      console.error(`ZIP lookup failed with status: ${response.status}`);
-      return null;
-    }
-    
-    const data: ZipApiResponse = await response.json();
-    
-    // API returns an array of places, but we just need the first one
-    if (data.places && data.places.length > 0) {
-      const place = data.places[0];
-      
-      const zipData: ZipCodeData = {
-        city: place['place name'],
-        state: place.state,
-        stateAbbr: place['state abbreviation'],
-        country: data.country,
-        countryAbbr: data['country abbreviation'],
-        longitude: place.longitude,
-        latitude: place.latitude
-      };
-      
-      // Update cache
-      cache[cleanZip] = zipData;
-      saveZipCache(cache);
-      
-      return zipData;
-    }
-  } catch (error) {
-    console.error('Error looking up ZIP code:', error);
+    const data = (await res.json()) as ZipApiResponse;
+    saveZipCache(cleanZip, data);
+    return data;
+  } catch (err) {
+    console.error('ZIP lookup network error:', err);
+    return null;
   }
-  
-  return null;
-};
-
-/**
- * Format a city, state string from ZIP code data
- */
-export const formatCityStateFromZip = (zipData: ZipCodeData): string => {
-  if (!zipData) return '';
-  return `${zipData.city}, ${zipData.stateAbbr}`;
-};
-
-/**
- * Add a custom entry to the ZIP code cache
- * Useful for user-contributed data
- */
-export const addCustomZipEntry = (
-  zipCode: string, 
-  city: string, 
-  state: string, 
-  stateAbbr: string
-): void => {
-  const cache = getZipCache();
-  
-  cache[zipCode] = {
-    city,
-    state,
-    stateAbbr,
-    country: 'United States of America',
-    countryAbbr: 'US'
-  };
-  
-  saveZipCache(cache);
-  console.log(`Added custom entry for ZIP ${zipCode}: ${city}, ${stateAbbr}`);
-};
-
-/**
- * Extract proper display name from location data
- * For consistency across the application
- */
-export const getLocationNameFromZipData = (zipData: ZipCodeData, zipCode: string): string => {
-  if (!zipData) return `Unknown (${zipCode})`;
-  return `${zipData.city}, ${zipData.state}`;
 };
