@@ -42,11 +42,13 @@ const saveZipCache = (cache: Record<string, ZipCodeData>) => {
  * Lookup ZIP code information using zippopotam.us API
  * Uses local cache first, then falls back to API call
  */
-export const lookupZipCode = async (zipCode: string): Promise<ZipCodeData | null> => {
-  if (!zipCode) return null;
+export const lookupZipCode = async (zipCode: string | number) => {
+  // Always treat the input as a trimmed string
+  const cleanZip = String(zipCode).trim();
+  if (!cleanZip) return null;
+
   
-  // Clean up zip code (remove spaces, etc)
-  const cleanZip = zipCode.trim();
+  
   
   // Check local cache first
   const cache = getZipCache();
