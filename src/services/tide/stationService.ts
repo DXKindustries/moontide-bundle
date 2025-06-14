@@ -1,112 +1,79 @@
-/* -------------------------------------------------------------------------- */
-/*  src/services/tide/stationService.ts                                       */
-/* -------------------------------------------------------------------------- */
-/*  Tide-station metadata helpers — returns all nearby stations and keeps     */
-/*  per-ZIP user preferences. Legacy URLs removed (no more redirect CORS).    */
+//--------------------------------------------------------------
+// src/services/tide/stationService.ts
+//--------------------------------------------------------------
+
+/**
+ * Helper functions for resolving a ZIP → NOAA station.
+ *
+ * Order of resolution
+ *   1. Hard-coded STATION_BY_ZIP map   (instant, never fails)
+ *   2. Cached match in safeLocalStorage
+ *   3. Live radius search (fetchNearbyStations)
+ */
 
 import { safeLocalStorage } from '@/utils/localStorage';
+import { STATION_BY_ZIP } from './stationMap';                // ← NEW
+import { fetchNearbyStations } from './tideService';          // your existing helper
+// If your NoaaStation type lives elsewhere, adjust this import:
+import type { NoaaStation } from './tideService';
 
-/* ----------------------------- Type guards -------------------------------- */
+const STATION_CACHE_KEY = 'stationCache';
 
-export interface NoaaStation {
-  id: string;        // "8452660"
-  name: string;      // "South Ferry, Narragansett Bay"
-  lat: number;
-  lng: number;
-  distance: number;  // km from query point (provided by NOAA MDAPI)
+/*───────────────────────────────────────────────────────────*/
+/*  Local cache helpers                                      */
+/*───────────────────────────────────────────────────────────*/
+
+function getStationCache(): Record<string, NoaaStation> {
+  return safeLocalStorage.get(STATION_CACHE_KEY) ?? {};
 }
 
-/* ----------------------------- Constants ---------------------------------- */
-
-const BASE =
-  'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi'; // cloud host — no 301
-
-const ZIP_STATION_KEY = 'zipToStation'; // localStorage map { zip: stationId }
-
-/* ------------------------- Fetch helpers ---------------------------------- */
-
-/**
- * Fetch every tide-prediction station within `radiusKm` of the given point.
- * Returns an empty array for inland ZIPs or out-of-coverage areas.
- */
-export async function fetchNearbyStations(
-  lat: number,
-  lng: number,
-  radiusKm = 10
-): Promise<NoaaStation[]> {
-  const url =
-    `${BASE}/stations.json?type=tidepredictions&lat=${lat}&lng=${lng}&radius=${radiusKm}`;
-
-  const res = await fetch(url);
-  if (!res.ok) {
-    // 404 / 400 / 204 mean “no station” – treat as empty list
-    if (res.status === 404 || res.status === 400 || res.status === 204) {
-      return [];
-    }
-    throw new Error(`noaaError:${res.status}`);
-  }
-
-  const json = await res.json();
-  if (!json?.stations?.length) return [];
-
-  return json.stations.map((s: any) => ({
-    id: s.id,
-    name: s.name,
-    lat: Number(s.lat),
-    lng: Number(s.lng),
-    distance: Number(s.distance),
-  }));
+function saveStationCache(zip: string, station: NoaaStation) {
+  const cache = getStationCache();
+  cache[zip] = station;
+  safeLocalStorage.set(STATION_CACHE_KEY, cache);
 }
 
-/**
- * Convenience: return the nearest station (first item) or throw 'noStation'.
- */
-console.log('DEBUG nearest station 02882 →', getNearestStation('02882'));
+/*───────────────────────────────────────────────────────────*/
+/*  Public API                                               */
+/*───────────────────────────────────────────────────────────*/
 
+/**
+ * Return the NOAA station for a given ZIP + lat/lng.
+ * • Checks hard-coded map first
+ * • Falls back to cache
+ * • Final attempt: radius search within `radiusKm`
+ */
 export async function getNearestStation(
+  zip: string,
   lat: number,
   lng: number,
-  radiusKm = 10
-): Promise<NoaaStation> {
-  const list = await fetchNearbyStations(lat, lng, radiusKm);
-  if (list.length === 0) throw new Error('noStation');
-  return list[0];
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Back-compat shim — keeps older imports working until we refactor          */
-/* -------------------------------------------------------------------------- */
-
-/**
- * @deprecated  Use `getNearestStation` or `fetchNearbyStations` instead.
- * Quickly forwards to `getNearestStation` so legacy code keeps working.
- */
-export const getStationForLocation = getNearestStation;
-
-/* ---------------------- Per-ZIP preference helpers ------------------------ */
-
-/**
- * Persist the station a user picks for a ZIP so the choice sticks on reload.
- */
-export function saveStationForLocation(zipCode: string, stationId: string) {
-  const raw = safeLocalStorage.getItem(ZIP_STATION_KEY);
-  const map: Record<string, string> = raw ? JSON.parse(raw) : {};
-  map[zipCode] = stationId;
-  safeLocalStorage.setItem(ZIP_STATION_KEY, JSON.stringify(map));
-}
-
-/**
- * Retrieve the previously saved stationId for a ZIP, if any.
- */
-export function getSavedStationForLocation(
-  zipCode: string
-): string | undefined {
-  const raw = safeLocalStorage.getItem(ZIP_STATION_KEY);
-  if (!raw) return undefined;
-  try {
-    const map: Record<string, string> = JSON.parse(raw);
-    return map[zipCode];
-  } catch {
-    return undefined;
+  radiusKm = 50
+): Promise<NoaaStation | null> {
+  // 1. Hard-coded fallback (guaranteed success for known ZIPs)
+  if (STATION_BY_ZIP[zip]) {
+    return STATION_BY_ZIP[zip] as unknown as NoaaStation;
   }
+
+  // 2. safeLocalStorage cache
+  const cache = getStationCache();
+  if (cache[zip]) return cache[zip];
+
+  // 3. Live radius search
+  try {
+    const list = await fetchNearbyStations(lat, lng, radiusKm);
+    if (list.length) {
+      saveStationCache(zip, list[0]);      // memoise for next time
+      return list[0];
+    }
+  } catch (err) {
+    console.error('station lookup error:', err);
+  }
+
+  return null; // graceful failure (UI will show “No tide data”)
 }
+
+/**
+ * Back-compat alias for older code that imported _getNearestStation.
+ * Remove once all callers migrate to getNearestStation().
+ */
+export const _getNearestStation = getNearestStation;

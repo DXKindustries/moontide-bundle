@@ -3,8 +3,9 @@
 //--------------------------------------------------------------
 
 import { safeLocalStorage } from '@/utils/localStorage';
+import { LOCAL_ZIP_DB } from '@/data/zipLocal';          //  ← new import
 
-/** zippopotam.us response shape (only the fields we use) */
+/** zippopotam.us response shape (minimal) */
 interface ZipApiResponse {
   'post code': string;
   country: string;
@@ -18,7 +19,7 @@ interface ZipApiResponse {
 }
 
 /*───────────────────────────────────────────────────────────*/
-/*  Local in-memory fallback cache                           */
+/*  Small cache stored in localStorage                       */
 /*───────────────────────────────────────────────────────────*/
 
 const ZIP_CACHE_KEY = 'zipCache';
@@ -37,25 +38,17 @@ function saveZipCache(zip: string, data: ZipApiResponse) {
 /*  Main function                                            */
 /*───────────────────────────────────────────────────────────*/
 
-/**
- * Look up a ZIP code → city/state + lat/lng.
- *
- * • First returns cached data if present
- * • Accepts string, number, Promise, or {zip: …}/{zipCode: …}
- * • Falls back to https://api.zippopotam.us/us/{ZIP}
- * • Returns null on 404 / network error / invalid ZIP
- */
 export const lookupZipCode = async (
   zipCode: string | number | Promise<any> | Record<string, unknown>
 ): Promise<ZipApiResponse | null> => {
   console.log('DEBUG lookupZipCode param →', zipCode);
 
-  // ── 1. unwrap Promise input ──────────────────────────────
+  // unwrap Promise
   if (typeof (zipCode as any)?.then === 'function') {
     zipCode = await zipCode;
   }
 
-  // ── 2. unwrap common object shapes ───────────────────────
+  // unwrap common object shapes
   if (typeof zipCode === 'object' && zipCode !== null) {
     zipCode =
       (zipCode as any).zip ??
@@ -64,24 +57,35 @@ export const lookupZipCode = async (
       '';
   }
 
-  // ── 3. ensure we now have a trimmed 5-digit string ───────
   const cleanZip = String(zipCode).trim();
-  if (!/^\d{5}$/.test(cleanZip)) {
-    console.warn('lookupZipCode: invalid ZIP →', zipCode);
-    return null;
+  if (!/^\d{5}$/.test(cleanZip)) return null;      // not a 5-digit ZIP
+
+  // ── 1. LOCAL FALLBACK TABLE ──────────────────────────────
+  if (LOCAL_ZIP_DB[cleanZip]) {
+    const z = LOCAL_ZIP_DB[cleanZip];
+    return {
+      'post code': cleanZip,
+      country: 'United States',
+      'country abbreviation': 'US',
+      places: [
+        {
+          'place name': z.city,
+          state: z.state,
+          latitude:  String(z.lat),
+          longitude: String(z.lng),
+        },
+      ],
+    };
   }
 
-  // ── 4. return cached result if we already know it ────────
+  // ── 2. LOCAL CACHE ───────────────────────────────────────
   const cache = getZipCache();
   if (cache[cleanZip]) return cache[cleanZip];
 
-  // ── 5. remote lookup ─────────────────────────────────────
+  // ── 3. REMOTE LOOK-UP ────────────────────────────────────
   try {
     const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
-    if (!res.ok) {
-      console.warn(`ZIP lookup failed with status ${res.status}`);
-      return null; // graceful 404
-    }
+    if (!res.ok) return null;               // graceful 404
 
     const data = (await res.json()) as ZipApiResponse;
     saveZipCache(cleanZip, data);
@@ -93,10 +97,9 @@ export const lookupZipCode = async (
 };
 
 /*───────────────────────────────────────────────────────────*/
-/*  Convenience helper for UI labels                         */
+/*  Convenience label                                        */
 /*───────────────────────────────────────────────────────────*/
 
-/** Turn “02882” → “Narragansett, Rhode Island 02882” */
 export async function formatCityStateFromZip(
   zipCode: string | number | Promise<any> | Record<string, unknown>
 ): Promise<string | null> {
