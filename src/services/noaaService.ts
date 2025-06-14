@@ -88,3 +88,10 @@ export async function getWeeklyTideForecast(
   // TODO: call NOAA weekly endpoint
   return [];
 }
+
+export function saveStationForLocation(
+  zipCode: string,
+  stationId: string
+): void {
+  // TODO: persist chosen station (e.g., localStorage or DB)
+}
