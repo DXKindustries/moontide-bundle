@@ -61,6 +61,8 @@ export async function fetchNearbyStations(
 /**
  * Convenience: return the nearest station (first item) or throw 'noStation'.
  */
+console.log('DEBUG nearest station 02882 →', getNearestStation('02882'));
+
 export async function getNearestStation(
   lat: number,
   lng: number,
