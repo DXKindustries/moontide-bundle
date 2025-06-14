@@ -76,3 +76,18 @@ export const lookupZipCode = async (
     return null;
   }
 };
+// ------------------------------------------------------------
+// Convenience: turn ZIP →  "City, ST 01234"
+// ------------------------------------------------------------
+export async function formatCityStateFromZip(
+  zipCode: string | number | Promise<any>
+): Promise<string | null> {
+  const data = await lookupZipCode(zipCode);
+  if (!data) return null;
+
+  const place   = data.places[0]['place name'];
+  const state   = data.places[0].state;
+  const clean   = String(zipCode).trim();
+
+  return `${place}, ${state} ${clean}`;
+}
