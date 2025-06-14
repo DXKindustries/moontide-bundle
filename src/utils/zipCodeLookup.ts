@@ -2,9 +2,9 @@
 // src/utils/zipCodeLookup.ts
 //--------------------------------------------------------------
 
-import { safeLocalStorage } from './localStorage';
+import { safeLocalStorage } from '@/utils/localStorage';
 
-/** Shape of the zippopotam.us API response we care about */
+/** zippopotam.us response shape (only the fields we use) */
 interface ZipApiResponse {
   'post code': string;
   country: string;
@@ -17,9 +17,9 @@ interface ZipApiResponse {
   }[];
 }
 
-//--------------------------------------------------------------
-// Local-storage helpers  (unchanged)
-//--------------------------------------------------------------
+/*───────────────────────────────────────────────────────────*/
+/*  Local in-memory fallback cache                           */
+/*───────────────────────────────────────────────────────────*/
 
 const ZIP_CACHE_KEY = 'zipCache';
 
@@ -33,37 +33,49 @@ function saveZipCache(zip: string, data: ZipApiResponse) {
   safeLocalStorage.set(ZIP_CACHE_KEY, cache);
 }
 
-//--------------------------------------------------------------
-// Main function
-//--------------------------------------------------------------
+/*───────────────────────────────────────────────────────────*/
+/*  Main function                                            */
+/*───────────────────────────────────────────────────────────*/
 
 /**
- * Look up a ZIP code.
- * – First returns cached data if present
- * – Otherwise calls https://api.zippopotam.us/us/{ZIP}
- * – Returns null on 404 or network failure
+ * Look up a ZIP code → city/state + lat/lng.
+ *
+ * • First returns cached data if present
+ * • Accepts string, number, Promise, or {zip: …}/{zipCode: …}
+ * • Falls back to https://api.zippopotam.us/us/{ZIP}
+ * • Returns null on 404 / network error / invalid ZIP
  */
 export const lookupZipCode = async (
-  zipCode: string | number | Promise<any>
+  zipCode: string | number | Promise<any> | Record<string, unknown>
 ): Promise<ZipApiResponse | null> => {
   console.log('DEBUG lookupZipCode param →', zipCode);
 
-  // unwrap accidental Promise input
+  // ── 1. unwrap Promise input ──────────────────────────────
   if (typeof (zipCode as any)?.then === 'function') {
     zipCode = await zipCode;
   }
-/* ✱ Add this directly below ✱ */
-if (typeof zipCode === 'object' && zipCode !== null) {
-  zipCode = (zipCode as any).zipCode ?? (zipCode as any).zip ?? '';
-}
-  const cleanZip = String(zipCode).trim();
-  if (!cleanZip) return null;
 
-  //── 1. cache check ──────────────────────────────────────────
+  // ── 2. unwrap common object shapes ───────────────────────
+  if (typeof zipCode === 'object' && zipCode !== null) {
+    zipCode =
+      (zipCode as any).zip ??
+      (zipCode as any).zipCode ??
+      (zipCode as any).value ??
+      '';
+  }
+
+  // ── 3. ensure we now have a trimmed 5-digit string ───────
+  const cleanZip = String(zipCode).trim();
+  if (!/^\d{5}$/.test(cleanZip)) {
+    console.warn('lookupZipCode: invalid ZIP →', zipCode);
+    return null;
+  }
+
+  // ── 4. return cached result if we already know it ────────
   const cache = getZipCache();
   if (cache[cleanZip]) return cache[cleanZip];
 
-  //── 2. remote lookup ────────────────────────────────────────
+  // ── 5. remote lookup ─────────────────────────────────────
   try {
     const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
     if (!res.ok) {
@@ -79,18 +91,21 @@ if (typeof zipCode === 'object' && zipCode !== null) {
     return null;
   }
 };
-// ------------------------------------------------------------
-// Convenience: turn ZIP →  "City, ST 01234"
-// ------------------------------------------------------------
+
+/*───────────────────────────────────────────────────────────*/
+/*  Convenience helper for UI labels                         */
+/*───────────────────────────────────────────────────────────*/
+
+/** Turn “02882” → “Narragansett, Rhode Island 02882” */
 export async function formatCityStateFromZip(
-  zipCode: string | number | Promise<any>
+  zipCode: string | number | Promise<any> | Record<string, unknown>
 ): Promise<string | null> {
   const data = await lookupZipCode(zipCode);
   if (!data) return null;
 
-  const place   = data.places[0]['place name'];
-  const state   = data.places[0].state;
-  const clean   = String(zipCode).trim();
+  const place = data.places[0]['place name'];
+  const state = data.places[0].state;
+  const clean = String(zipCode).trim();
 
   return `${place}, ${state} ${clean}`;
 }
