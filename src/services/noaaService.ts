@@ -37,6 +37,7 @@ export async function loadTideBundle(
 ): Promise<TideBundle> {
   /* 1. ZIP → geo */
   const { lat, lng } = await lookupZipCode(zipCode);
+  console.log('ZIP received', zipCode);
 
   /* 2. Station */
   let station: NoaaStation = await _getNearestStation(lat, lng);
