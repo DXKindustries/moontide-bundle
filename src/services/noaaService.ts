@@ -76,3 +76,15 @@ export const getNearestStation = _getNearestStation;
 
 /** @deprecated – alias for legacy hooks */
 export const getStationForLocation = _getNearestStation;
+
+/* ------------------------------------------------------------------ */
+/*  NEW: Weekly Tide Forecast                                          */
+/* ------------------------------------------------------------------ */
+
+export async function getWeeklyTideForecast(
+  stationId: string,
+  start: Date
+): Promise<TidePrediction[]> {
+  // TODO: call NOAA weekly endpoint
+  return [];
+}
