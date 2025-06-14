@@ -1,3 +1,7 @@
+export const lookupZipCode = async (zipCode: string | number | Promise<any>) => {
+  console.log('DEBUG lookupZipCode param →', zipCode);
+  ...
+}
 
 import { safeLocalStorage } from './localStorage';
 
