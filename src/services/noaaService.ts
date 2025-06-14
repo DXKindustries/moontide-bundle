@@ -1,97 +1,66 @@
-/* -------------------------------------------------------------------------- */
-/*  src/services/noaaService.ts                                               */
-/* -------------------------------------------------------------------------- */
-/*  ZIP ➜ geo ➜ nearest (or saved) station ➜ tide predictions                 */
-/*  Modern helpers + back-compat exports                                      */
+// src/services/noaaService.ts
+// ────────────────────────────────────────────────────────────────────────────
+// Wrapper that resolves the nearest tide station for a ZIP / coords
+// and (optionally) fetches readings from NOAA.
+// ────────────────────────────────────────────────────────────────────────────
 
-import { lookupZipCode } from '@/utils/zipCodeLookup';
 import {
-  fetchDailyTides,
-  fetchWeeklyTides,
-} from '@/services/tide/tideService';
-import {
-  getNearestStation as _getNearestStation,
+  getNearestStation,
   getSavedStationForLocation,
-  NoaaStation,
-} from '@/services/tide/stationService';
+  Station,
+} from './tide/stationService';
 
+// ---------------------------------------------------------------------------
+// 1. Resolve a station for the current location
+// ---------------------------------------------------------------------------
 
-/* ------------------------------------------------------------------ */
-/*  NEW canonical helper                                              */
-/* ------------------------------------------------------------------ */
+/**
+ * Return the nearest NOAA water-level station for this ZIP / coordinates.
+ * Falls back to a previously saved pick (for speed).
+ */
+export async function resolveStation(
+  zip: string,
+  lat: number,
+  lng: number
+): Promise<Station | null> {
+  // quick path: use any cached value
+  const saved = getSavedStationForLocation(zip);
+  if (saved) return saved;
 
-export interface TideBundle {
-  stationId: string;
-  stationName: string;
-  daily: any;          // NOAA predictions JSON
-  weekly: any;
+  // otherwise compute + persist a fresh nearest
+  return getNearestStation(zip, lat, lng);
+}
+
+// ---------------------------------------------------------------------------
+// 2. Fetch tide readings for a station + date  (extend as needed)
+// ---------------------------------------------------------------------------
+
+interface TideReading {
+  time: string;   // ISO 8601
+  height: number; // feet (NOAA default is feet when units=english)
 }
 
 /**
- * Resolve ZIP → lat/lng → station (honouring any saved choice) →
- * parallel daily + weekly tide predictions.
+ * Example tide-fetch call — customise or replace with your own hook/service.
  */
-export async function loadTideBundle(
-  zipCode: string,
-  date: Date = new Date()
-): Promise<TideBundle> {
-  /* 1. ZIP → geo */
-  const { lat, lng } = await lookupZipCode(zipCode);
-  console.log('ZIP received', zipCode);
+export async function fetchTideReadings(
+  station: Station,
+  dateISO: string // e.g. '2025-06-14'
+): Promise<TideReading[]> {
+  const url =
+    'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter' +
+    `?product=predictions&application=moontide` +
+    `&datum=MLLW&station=${station.id}` +
+    `&begin_date=${dateISO.replace(/-/g, '')}` +
+    `&end_date=${dateISO.replace(/-/g, '')}` +
+    `&interval=hilo&units=english&time_zone=lst_ldt&format=json`;
 
-  /* 2. Station */
-  let station: NoaaStation = await _getNearestStation(lat, lng);
-  const saved = getSavedStationForLocation(zipCode);
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error('Failed to fetch tide data');
 
-  if (saved && saved !== station.id) {
-    // In a future step we’ll validate distance; for now nearest wins.
-    station = await _getNearestStation(lat, lng);
-  }
-
-  saveStationForLocation(zipCode, station.id);
-
-  /* 3. Tides (parallel) */
-  const [daily, weekly] = await Promise.all([
-    fetchDailyTides(station, date),
-    fetchWeeklyTides(station, date),
-  ]);
-
-  return {
-    stationId: station.id,
-    stationName: station.name,
-    daily,
-    weekly,
-  };
-}
-
-/* ------------------------------------------------------------------ */
-/*  Back-compat exports — keep legacy imports working                  */
-/* ------------------------------------------------------------------ */
-
-/** @deprecated – use `loadTideBundle` */
-export const getCurrentTideData = loadTideBundle;
-
-/** @deprecated – import directly from stationService in new code */
-export const getNearestStation = _getNearestStation;
-
-/** @deprecated – alias for legacy hooks */
-export const getStationForLocation = _getNearestStation;
-
-/* ------------------------------------------------------------------ */
-/*  NEW: Weekly Tide Forecast                                          */
-/* ------------------------------------------------------------------ */
-
-export async function getWeeklyTideForecast(
-  stationId: string,
-  start: Date
-): Promise<TidePrediction[]> {
-  // TODO: call NOAA weekly endpoint
-  return [];
-}
-
-export function saveStationForLocation(
-  zipCode: string,
-  stationId: string
-): void {
-  // TODO: persist chosen station (e.g., localStorage or DB)
+  const raw = await resp.json();
+  return (raw?.predictions ?? []).map((p: any) => ({
+    time: p.t,           // 'YYYY-MM-DD HH:mm'
+    height: parseFloat(p.v),
+  }));
 }
