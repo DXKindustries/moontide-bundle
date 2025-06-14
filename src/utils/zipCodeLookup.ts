@@ -62,6 +62,7 @@ export const lookupZipCode = async (zipCode: string | number) => {
     console.log(`Looking up ZIP code: ${cleanZip}`);
     // For US ZIP codes
     const response = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+
     
     if (!response.ok) {
       console.error(`ZIP lookup failed with status: ${response.status}`);
