@@ -30,11 +30,13 @@ export const calculateSolarTimes = (date: Date, lat: number = 41.4353, lng: numb
   const sunriseHour = 12 - (hourAngle * 180 / Math.PI) / 15;
   const sunsetHour = 12 + (hourAngle * 180 / Math.PI) / 15;
   
-  // Format times
+  // Format times in 12-hour AM/PM format
   const formatTime = (hour: number): string => {
     const h = Math.floor(hour);
     const m = Math.floor((hour - h) * 60);
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${displayHour}:${m.toString().padStart(2, '0')} ${period}`;
   };
   
   const sunrise = formatTime(sunriseHour);
