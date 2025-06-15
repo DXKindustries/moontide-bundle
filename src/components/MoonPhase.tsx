@@ -57,10 +57,10 @@ const MoonPhase = ({
 
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex justify-between items-start">
           <div className="flex flex-col gap-2">
-            <span>{phase}</span>
+            <span className="text-lg">{phase}</span>
             {fullMoonName && (
               <FullMoonBanner fullMoonName={fullMoonName} />
             )}
@@ -68,56 +68,54 @@ const MoonPhase = ({
           <span className="text-moon-primary text-sm">{date}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center">
-        <div className="relative">
-          <div className={`w-36 h-36 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
-        </div>
-        
-        <div className="mt-8 w-full">
-          <div className="flex justify-between text-sm mb-4">
-            <div>
-              <p className="text-muted-foreground">Illumination</p>
-              <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
-            </div>
-            <div className="text-right">
-              <p className="text-muted-foreground">Moonrise</p>
-              <p className="text-lg font-semibold">{moonrise}</p>
-            </div>
+      <CardContent className="pt-0">
+        {/* Main moon display and key info */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="relative flex-shrink-0">
+            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-4 bg-gradient-to-t from-moon-primary/20 to-transparent w-12 md:w-16 h-6 md:h-8 blur-md rounded-full"></div>
           </div>
           
-          <div className="flex justify-between text-sm mb-4">
+          <div className="flex-1 grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-muted-foreground">Moonset</p>
-              <p className="text-lg font-semibold">{moonset}</p>
+              <p className="text-muted-foreground text-xs">Illumination</p>
+              <p className="text-base font-semibold text-moon-primary">{illumination}%</p>
             </div>
-            <div className="text-right">
-              <p className="text-muted-foreground">Next Phase</p>
-              <p className="text-lg font-semibold">In 3 days</p>
+            <div>
+              <p className="text-muted-foreground text-xs">Moonrise</p>
+              <p className="text-base font-semibold">{moonrise}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Moonset</p>
+              <p className="text-base font-semibold">{moonset}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Next Phase</p>
+              <p className="text-base font-semibold">In 3 days</p>
             </div>
           </div>
+        </div>
 
-          {/* Solar information integrated */}
-          <div className="border-t border-muted pt-4">
-            <div className="flex justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Sunrise className="h-4 w-4 text-orange-400" />
-                <div>
-                  <p className="text-muted-foreground">Sunrise</p>
-                  <p className="font-semibold">{solarTimes.sunrise}</p>
-                </div>
+        {/* Compact solar information */}
+        <div className="border-t border-muted pt-3">
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="flex items-center gap-1">
+              <Sunrise className="h-3 w-3 text-orange-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-muted-foreground truncate">Sunrise</p>
+                <p className="font-semibold truncate">{solarTimes.sunrise}</p>
               </div>
-              <div className="text-center">
-                <p className="text-muted-foreground">Daylight</p>
-                <p className="font-semibold text-yellow-400">{solarTimes.daylight}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-muted-foreground">Daylight</p>
+              <p className="font-semibold text-yellow-400">{solarTimes.daylight}</p>
+            </div>
+            <div className="flex items-center gap-1 justify-end">
+              <div className="text-right min-w-0">
+                <p className="text-muted-foreground truncate">Sunset</p>
+                <p className="font-semibold truncate">{solarTimes.sunset}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <p className="text-muted-foreground">Sunset</p>
-                  <p className="font-semibold">{solarTimes.sunset}</p>
-                </div>
-                <Sunset className="h-4 w-4 text-red-400" />
-              </div>
+              <Sunset className="h-3 w-3 text-red-400 flex-shrink-0" />
             </div>
           </div>
         </div>
