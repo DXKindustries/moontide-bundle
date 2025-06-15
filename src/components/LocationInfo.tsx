@@ -32,7 +32,7 @@ const LocationInfo = ({ currentLocation, stationName, error }: LocationInfoProps
           {stationName && !error ? (
             <>NOAA station: <span className="font-medium">{stationName}</span></>
           ) : (
-            <>No tide data - try a coastal ZIP code</>
+            <>No tide data available - try a coastal ZIP code if tidal information is needed</>
           )}
         </div>
       </div>
