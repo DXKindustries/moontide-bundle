@@ -64,9 +64,10 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           .calendar-full-moon-overlay > span {
             position: relative;
             z-index: 2;
-            color: #161616 !important; /* Very dark for contrast */
-            font-weight: bold !important;
+            color: #000 !important;   /* Pure black for maximum contrast */
+            font-weight: 900 !important; /* Extra bold */
             opacity: 1 !important;
+            text-shadow: none !important;
           }
 
           /* --- NEW MOON --- */
@@ -90,9 +91,10 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           .calendar-new-moon-overlay > span {
             position: relative;
             z-index: 2;
-            color: #222 !important; /* Slightly lighter for gray BG */
-            font-weight: bold !important;
+            color: #000 !important;   /* Pure black for maximum contrast */
+            font-weight: 900 !important; /* Extra bold */
             opacity: 1 !important;
+            text-shadow: none !important;
           }
 
           /* --- SOLAR EVENT (keep below, dot under) --- */
