@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,9 +64,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           .calendar-full-moon-overlay > span {
             position: relative;
             z-index: 2;
-            color: #231800 !important;
-            opacity: 0.7;
-            font-weight: 700;
+            color: #161616 !important; /* Very dark for contrast */
+            font-weight: bold !important;
+            opacity: 1 !important;
           }
 
           /* --- NEW MOON --- */
@@ -91,9 +90,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           .calendar-new-moon-overlay > span {
             position: relative;
             z-index: 2;
-            color: #232323 !important;
-            opacity: 0.7;
-            font-weight: 700;
+            color: #222 !important; /* Slightly lighter for gray BG */
+            font-weight: bold !important;
+            opacity: 1 !important;
           }
 
           /* --- SOLAR EVENT (keep below, dot under) --- */
@@ -144,4 +143,3 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 };
 
 export default CalendarCard;
-
