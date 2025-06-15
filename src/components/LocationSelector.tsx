@@ -79,7 +79,7 @@ export default function LocationSelector({
       
       if (!geo || !geo.places || geo.places.length === 0) {
         console.error('❌ ZIP not found in lookup service');
-        toast.error('ZIP not found');
+        toast.error('ZIP code not found. Please check and try again.');
         return;
       }
       
@@ -123,7 +123,7 @@ export default function LocationSelector({
       toast.success(`Added ${cityState}`);
     } catch (err) {
       console.error('💥 Error in addLocation:', err);
-      toast.error('ZIP not found');
+      toast.error('ZIP code not found. Please check and try again.');
     }
   };
 

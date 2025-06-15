@@ -48,7 +48,11 @@ export default function LocationDisplay({ currentLocation, stationName }: Locati
       </div>
       {/* Station name under ZIP */}
       <div className="text-xs text-muted-foreground pl-5">
-        Tide data from NOAA station: <span className="font-medium">{stationName || "N/A"}</span>
+        {stationName ? (
+          <>Tide data from NOAA station: <span className="font-medium">{stationName}</span></>
+        ) : (
+          <>No tide data available - this may be a non-coastal area. Try a coastal ZIP code for tide information.</>
+        )}
       </div>
     </div>
   );
