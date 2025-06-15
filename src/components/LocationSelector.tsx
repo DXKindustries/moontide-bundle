@@ -142,6 +142,15 @@ export default function LocationSelector({
     setIsOpen(false);
   };
 
+  const handleAddLocationClick = () => {
+    console.log('🎯 Add location button clicked');
+    if (search.trim()) {
+      addLocation();
+    } else {
+      toast.error('Enter a ZIP code first');
+    }
+  };
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -186,10 +195,7 @@ export default function LocationSelector({
 
         <div className="mt-2 border-t pt-2">
           <button
-            onClick={() => {
-              setSearch('');
-              setIsOpen(false);
-            }}
+            onClick={handleAddLocationClick}
             className="flex w-full items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <Plus size={12} /> Add location
