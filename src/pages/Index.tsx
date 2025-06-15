@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
+import MobileScreenBoundary from '@/components/MobileScreenBoundary';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { locationStorage } from '@/utils/locationStorage';
@@ -101,6 +101,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
+      <MobileScreenBoundary />
       
       <AppHeader 
         currentLocation={currentLocation}
