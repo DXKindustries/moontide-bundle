@@ -30,24 +30,27 @@ export default function LocationSelector({
 
   /* ---------------- load / persist ---------------- */
   useEffect(() => {
-    const raw = safeLocalStorage.getItem(STORAGE_KEY);
-    console.log('🏠 Loading saved locations from storage:', raw);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        setSaved(Array.isArray(parsed) ? parsed : []);
-        console.log('✅ Successfully loaded saved locations:', parsed);
-      } catch (error) {
-        console.error('❌ Error parsing saved locations:', error);
+    console.log('🏠 Loading saved locations from storage...');
+    try {
+      const raw = safeLocalStorage.get(STORAGE_KEY);
+      console.log('🏠 Raw data from storage:', raw);
+      if (raw && Array.isArray(raw)) {
+        setSaved(raw);
+        console.log('✅ Successfully loaded saved locations:', raw);
+      } else {
+        console.log('📝 No saved locations found, starting with empty array');
         setSaved([]);
       }
+    } catch (error) {
+      console.error('❌ Error loading saved locations:', error);
+      setSaved([]);
     }
   }, []);
 
   useEffect(() => {
     console.log('💾 Saving locations to storage:', saved);
     try {
-      safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      safeLocalStorage.set(STORAGE_KEY, saved);
       console.log('✅ Successfully saved locations to storage');
     } catch (error) {
       console.error('❌ Error saving locations to storage:', error);
@@ -103,8 +106,8 @@ export default function LocationSelector({
       
       // Update saved locations first
       const newSaved = [...saved, loc];
+      console.log('📝 About to update saved locations state to:', newSaved);
       setSaved(newSaved);
-      console.log('📝 Updated saved locations state:', newSaved);
       
       // Clear search and close dropdown
       setSearch('');
