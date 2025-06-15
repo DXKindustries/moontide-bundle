@@ -5,6 +5,8 @@ import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
+import { locationStorage } from '@/utils/locationStorage';
+import { LocationData } from '@/types/locationTypes';
 import { toast } from 'sonner';
 import { useTideData } from '@/hooks/useTideData';
 

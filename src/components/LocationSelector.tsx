@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { safeLocalStorage } from '@/utils/localStorage';
-import LocationSearchInput from './LocationSearchInput';
-import SavedLocationsList from './SavedLocationsList';
+import { locationStorage } from '@/utils/locationStorage';
+import { LocationData } from '@/types/locationTypes';
+import ZipCodeEntry from './ZipCodeEntry';
 
+// Keep the SavedLocation interface for backward compatibility
 export interface SavedLocation {
   id?: string;         
   name: string;        
@@ -16,74 +16,29 @@ export interface SavedLocation {
   lng: number;
 }
 
-const STORAGE_KEY = 'savedLocations';
-
 export default function LocationSelector({
   onSelect,
 }: {
   onSelect: (loc: SavedLocation) => void;
 }) {
-  const [saved, setSaved] = useState<SavedLocation[]>([]);
-  const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  /* ---------------- load / persist ---------------- */
-  useEffect(() => {
-    console.log('🏠 Loading saved locations from storage...');
-    try {
-      const raw = safeLocalStorage.get(STORAGE_KEY);
-      console.log('🏠 Raw data from storage:', raw);
-      if (raw && Array.isArray(raw)) {
-        // Only filter out truly invalid locations (empty zipCode or "default"), 
-        // but keep all valid ZIP codes including 02882 (Narragansett)
-        const validLocations = raw.filter(loc => loc.zipCode && loc.zipCode !== "default");
-        setSaved(validLocations);
-        console.log('✅ Successfully loaded saved locations:', validLocations);
-      } else {
-        console.log('📝 No saved locations found, starting with empty array');
-        setSaved([]);
-      }
-    } catch (error) {
-      console.error('❌ Error loading saved locations:', error);
-      setSaved([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    console.log('💾 Saving locations to storage:', saved);
-    try {
-      // Only save valid locations (those with actual ZIP codes, not "default")
-      const locationsToSave = saved.filter(loc => loc.zipCode && loc.zipCode !== "default");
-      safeLocalStorage.set(STORAGE_KEY, locationsToSave);
-      console.log('✅ Successfully saved locations to storage');
-    } catch (error) {
-      console.error('❌ Error saving locations to storage:', error);
-    }
-  }, [saved]);
-
-  const handleLocationAdd = (location: SavedLocation) => {
-    // Update saved locations first
-    const newSaved = [...saved, location];
-    console.log('📝 About to update saved locations state to:', newSaved);
-    setSaved(newSaved);
+  const handleLocationSelect = (location: LocationData): void => {
+    console.log('📍 New location selected via ZipCodeEntry:', location);
     
-    // Call onSelect to update the current location immediately
-    onSelect(location);
-    setIsOpen(false);
-  };
+    // Convert LocationData to SavedLocation format for compatibility
+    const savedLocation: SavedLocation = {
+      id: location.zipCode,
+      name: location.city,
+      country: 'USA',
+      zipCode: location.zipCode,
+      cityState: `${location.city}, ${location.state}`,
+      lat: location.lat || 0,
+      lng: location.lng || 0
+    };
 
-  const handleLocationSelect = (loc: SavedLocation) => {
-    onSelect(loc);
+    onSelect(savedLocation);
     setIsOpen(false);
-  };
-
-  const handleAddLocationClick = () => {
-    console.log('🎯 Add location button clicked');
-    if (search.trim()) {
-      // This will be handled by the search input component
-    } else {
-      toast.error('Enter a ZIP code first');
-    }
   };
 
   return (
@@ -95,19 +50,10 @@ export default function LocationSelector({
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-64 p-3">
-        <LocationSearchInput
-          search={search}
-          setSearch={setSearch}
-          onLocationAdd={handleLocationAdd}
-          savedLocations={saved}
-          onClose={() => setIsOpen(false)}
-        />
-
-        <SavedLocationsList
-          savedLocations={saved}
+      <DropdownMenuContent className="w-80 p-0">
+        <ZipCodeEntry
           onLocationSelect={handleLocationSelect}
-          onAddLocationClick={handleAddLocationClick}
+          onClose={() => setIsOpen(false)}
         />
       </DropdownMenuContent>
     </DropdownMenu>
