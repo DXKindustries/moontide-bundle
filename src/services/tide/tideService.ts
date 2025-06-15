@@ -29,6 +29,13 @@ interface PredictionParams {
 
 /* ------------------------- internal helpers ------------------------------ */
 
+function dateToYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
 function buildQuery(p: PredictionParams): string {
   const qs = new URLSearchParams({
     product: 'predictions',
@@ -79,7 +86,7 @@ export async function fetchDailyTides(
   date: Date,
   units: 'english' | 'metric' = 'english'
 ) {
-  const yyyymmdd = date.toISOString().slice(0, 10).replace(/-/g, '');
+  const yyyymmdd = dateToYYYYMMDD(date);
   return fetchPredictions({
     station: station.id,
     beginDate: yyyymmdd,
@@ -97,10 +104,10 @@ export async function fetchWeeklyTides(
   start: Date,
   units: 'english' | 'metric' = 'english'
 ) {
-  const begin = start.toISOString().slice(0, 10).replace(/-/g, '');
+  const begin = dateToYYYYMMDD(start);
   const endObj = new Date(start);
   endObj.setDate(endObj.getDate() + 6);
-  const end = endObj.toISOString().slice(0, 10).replace(/-/g, '');
+  const end = dateToYYYYMMDD(endObj);
 
   return fetchPredictions({
     station: station.id,

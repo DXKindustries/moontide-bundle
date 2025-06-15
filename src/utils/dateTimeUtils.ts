@@ -20,7 +20,10 @@ export const getCurrentTimeString = (): string => {
 };
 
 export const formatApiDate = (apiDate: string): string => {
-  const date = new Date(apiDate);
+  // apiDate is YYYY-MM-DD. new Date(apiDate) will interpret it as YYYY-MM-DD 00:00:00 UTC.
+  // This causes off-by-one day errors in timezones behind UTC.
+  // Appending T00:00:00 makes it be parsed as local time.
+  const date = new Date(`${apiDate}T00:00:00`);
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'long', 
