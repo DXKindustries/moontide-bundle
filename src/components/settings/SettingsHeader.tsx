@@ -8,12 +8,17 @@ type SettingsHeaderProps = {
 };
 
 const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
+  const handleBackClick = () => {
+    console.log('SettingsHeader back button clicked');
+    onBackPress();
+  };
+
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-700">
       <Button
         variant="ghost"
         size="icon"
-        onClick={onBackPress}
+        onClick={handleBackClick}
         className="text-white hover:bg-gray-700"
       >
         <ArrowLeft className="h-6 w-6" />
