@@ -3,17 +3,21 @@ import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import MobileScreenBoundary from '@/components/MobileScreenBoundary';
+import MobileBoundaryToggle from '@/components/MobileBoundaryToggle';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import { toast } from 'sonner';
 import { useTideData } from '@/hooks/useTideData';
+import { useMobileBoundary } from '@/hooks/useMobileBoundary';
 
 const CURRENT_LOCATION_KEY = 'moontide-current-location';
 
 const Index = () => {
   console.log('🚀 Index component rendering...');
+  
+  const { showBoundary, setShowBoundary } = useMobileBoundary();
   
   const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
     console.log('📍 Initializing currentLocation state...');
@@ -101,7 +105,11 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
-      <MobileScreenBoundary />
+      <MobileScreenBoundary show={showBoundary} />
+      <MobileBoundaryToggle 
+        showBoundary={showBoundary} 
+        onToggle={() => setShowBoundary(prev => !prev)} 
+      />
       
       <AppHeader 
         currentLocation={currentLocation}
