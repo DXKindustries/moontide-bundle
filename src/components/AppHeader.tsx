@@ -38,7 +38,7 @@ export default function AppHeader({
             <Link to="/fishing-calendar">
               <Button variant="outline" className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span className="hidden md:inline">Fishing Calendar</span>
+                <span className="hidden md:inline">Calendar</span>
               </Button>
             </Link>
             <LocationSelector 
