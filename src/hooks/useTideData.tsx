@@ -26,6 +26,37 @@ type UseTideDataReturn = {
   stationName: string | null;
 };
 
+// Check if location is likely inland based on common inland state/region patterns
+const isLikelyInlandLocation = (location: { zipCode?: string; name?: string; lat?: number; lng?: number }) => {
+  if (!location.zipCode && !location.name) return false;
+  
+  // Common inland ZIP code patterns (very rough heuristic)
+  const zipCode = location.zipCode;
+  if (zipCode) {
+    // Some inland regions (this is a basic check - in real app you'd use a more comprehensive database)
+    const inlandZipPrefixes = [
+      '010', '011', '012', '013', '014', '015', '016', '017', '018', '019', // Western MA (many inland)
+      '050', '051', '052', '053', '054', '055', '056', '057', '058', '059', // Vermont (mostly inland)
+      '600', '601', '602', '603', '604', '605', '606', '607', '608', '609', // Illinois (mostly inland)
+      '800', '801', '802', '803', '804', '805', '806', '807', '808', '809', // Colorado (landlocked)
+    ];
+    
+    const zipPrefix = zipCode.substring(0, 3);
+    if (inlandZipPrefixes.includes(zipPrefix)) {
+      return true;
+    }
+  }
+  
+  // Check city name for obvious inland indicators
+  const name = location.name?.toLowerCase() || '';
+  const inlandKeywords = ['lake', 'mountain', 'valley', 'hills', 'forest', 'park', 'falls'];
+  if (inlandKeywords.some(keyword => name.includes(keyword))) {
+    return true;
+  }
+  
+  return false;
+};
+
 export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn => {
   console.log('🪝 useTideData hook called with location:', location);
   
@@ -59,6 +90,17 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
       setIsLoading(false);
       setError(null);
       setTideData([]);
+      setStationName(null);
+      return;
+    }
+
+    // Check if this is likely an inland location
+    if (isLikelyInlandLocation(location)) {
+      console.log('🏔️ Detected likely inland location, skipping tide data fetch');
+      setIsLoading(false);
+      setError(null);
+      setTideData([]); // Empty array will trigger the inland message in TideChart
+      setStationName(null);
       return;
     }
 
@@ -89,6 +131,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         // Set empty tide data but use calculated forecast for weekly forecast
         setTideData([]);
         setWeeklyForecast(calculatedForecast);
+        setStationName(null);
       }
     };
 
