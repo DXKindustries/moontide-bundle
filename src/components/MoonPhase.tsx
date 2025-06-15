@@ -51,27 +51,11 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Fixed location detection logic - check for actual meaningful location data
+  // Simplified location detection - show onboarding when NO zipcode, hide when zipcode is present
   const hasLocation = currentLocation && 
-    currentLocation !== null && 
-    (
-      // Valid ZIP code that's not empty or default
-      (currentLocation.zipCode && 
-       currentLocation.zipCode !== '' && 
-       currentLocation.zipCode !== 'default') ||
-      
-      // Valid name that's not a placeholder  
-      (currentLocation.name && 
-       currentLocation.name !== '' && 
-       currentLocation.name !== 'Select a location' && 
-       currentLocation.name !== 'Choose Location' &&
-       currentLocation.name !== 'Unknown Location') ||
-       
-      // Valid cityState combination
-      (currentLocation.cityState && 
-       currentLocation.cityState !== '' &&
-       currentLocation.cityState !== ', ')
-    );
+    currentLocation.zipCode && 
+    currentLocation.zipCode !== '' && 
+    currentLocation.zipCode !== 'default';
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
@@ -112,16 +96,16 @@ const MoonPhase = ({
             {/* Solar Times Row */}
             <SolarInfo solarTimes={solarTimes} />
 
-            {/* Conditional Bottom Section - Show onboarding when NO location, show location info when HAS location */}
+            {/* Conditional Bottom Section - Show onboarding when NO zipcode, show location info when zipcode is present */}
             {hasLocation ? (
-              /* Location Display and Error - Show when location is selected */
+              /* Location Display and Error - Show when zipcode is present */
               <LocationInfo 
                 currentLocation={currentLocation}
                 stationName={stationName}
                 error={error}
               />
             ) : (
-              /* Onboarding Information - Show when no location is selected */
+              /* Onboarding Information - Show when no zipcode is present */
               <OnboardingInfo onGetStarted={onGetStarted!} />
             )}
           </div>
