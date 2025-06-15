@@ -48,17 +48,17 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     setCurrentDate(newDate);
     setCurrentTime(newTime);
 
-    // If no location is provided, use calculated forecast with proper dates and moon phases
+    // Always use calculated forecast with proper dates and moon phases
+    const calculatedForecast = generateWeeklyForecastFromCurrentDate();
+    console.log('📅 Setting calculated weekly forecast');
+    setWeeklyForecast(calculatedForecast);
+
+    // If no location is provided, just set loading to false
     if (!location) {
-      console.log('⚠️ No location provided, generating calculated weekly forecast');
-      
-      // Generate weekly forecast with proper moon phase calculations and current dates
-      const calculatedForecast = generateWeeklyForecastFromCurrentDate();
-      console.log('📅 Generated calculated weekly forecast:', calculatedForecast);
-      
-      setWeeklyForecast(calculatedForecast);
+      console.log('⚠️ No location provided, using calculated forecast only');
       setIsLoading(false);
       setError(null);
+      setTideData([]);
       return;
     }
 
@@ -70,7 +70,8 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         const result = await fetchTideDataForLocation(location, newDate, newTime);
         
         setTideData(result.tideData);
-        setWeeklyForecast(result.weeklyForecast);
+        // Always use calculated forecast for consistency
+        setWeeklyForecast(calculatedForecast);
         setCurrentDate(result.currentDate);
         setCurrentTime(result.currentTime);
         
@@ -87,7 +88,6 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         
         // Set empty tide data but use calculated forecast for weekly forecast
         setTideData([]);
-        const calculatedForecast = generateWeeklyForecastFromCurrentDate();
         setWeeklyForecast(calculatedForecast);
       }
     };

@@ -86,36 +86,11 @@ export const fetchTideDataForLocation = async (
     throw new Error('Failed to fetch current tide data');
   }
   
-  // Get weekly forecast - always use calculated forecast with proper dates and moon phases
-  let weeklyForecast: TideForecast[] = [];
-  try {
-    console.log('📅 Calling getWeeklyTideForecast API...');
-    const forecast = await getWeeklyTideForecast(stationId);
-    console.log('📅 getWeeklyTideForecast response:', {
-      forecastLength: forecast.length,
-      sampleForecast: forecast.slice(0, 2)
-    });
-    
-    // Log forecast details to verify correctness
-    if (forecast.length > 0) {
-      console.log('📊 First forecast day details:', forecast[0]);
-    }
-    
-    weeklyForecast = forecast;
-    console.log('📅 Set weekly forecast with length:', forecast.length);
-  } catch (forecastError) {
-    console.error('⚠️ Error getting weekly forecast from API, using calculated fallback:', forecastError);
-    // Always use calculated forecast as fallback to ensure correct dates and moon phases
-    const calculatedForecast = generateWeeklyForecastFromCurrentDate();
-    console.log('📅 Using calculated weekly forecast as fallback');
-    weeklyForecast = calculatedForecast;
-  }
-  
-  // If the API forecast doesn't have proper dates or moon phases, replace with calculated version
-  if (weeklyForecast.length === 0 || !weeklyForecast[0].date.includes('-')) {
-    console.log('📅 API forecast invalid, replacing with calculated forecast');
-    weeklyForecast = generateWeeklyForecastFromCurrentDate();
-  }
+  // ALWAYS use calculated forecast with proper dates and moon phases
+  // This ensures consistency regardless of API responses
+  console.log('📅 Using calculated weekly forecast with accurate moon phases');
+  const weeklyForecast = generateWeeklyForecastFromCurrentDate();
+  console.log('📅 Generated calculated weekly forecast:', weeklyForecast.slice(0, 2));
   
   console.log('✅ Tide data fetch completed successfully');
   
