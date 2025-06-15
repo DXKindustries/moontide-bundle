@@ -9,7 +9,7 @@ type FishingCalendarHeaderProps = {
     name: string;
     country: string;
     zipCode?: string;
-  };
+  } | null;
   stationName: string | null;
 };
 
@@ -29,9 +29,13 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium hidden md:inline">
-              {currentLocation.name}, {currentLocation.country}
-              {currentLocation.zipCode && ` (${currentLocation.zipCode})`}
-              {stationName && ` - ${stationName}`}
+              {currentLocation
+                ? <>
+                    {currentLocation.name}, {currentLocation.country}
+                    {currentLocation.zipCode && ` (${currentLocation.zipCode})`}
+                    {stationName && ` - ${stationName}`}
+                  </>
+                : "Location not set"}
             </span>
             <Link to="/">
               <Button variant="ghost" className="flex items-center gap-1">
@@ -46,3 +50,4 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
 };
 
 export default FishingCalendarHeader;
+
