@@ -6,9 +6,9 @@ export interface ProxyConfig {
   fallbackProxyUrl: string;
 }
 
-// Default configuration - prioritizes local proxy for full control
+// Default configuration - temporarily use fallback first to debug
 export const DEFAULT_PROXY_CONFIG: ProxyConfig = {
-  useLocalProxy: true, // Default to local proxy when available
+  useLocalProxy: false, // Temporarily set to false to test fallback first
   localProxyUrl: 'http://localhost:3001/api/noaa',
   fallbackProxyUrl: 'https://api.allorigins.win/raw?url='
 };
