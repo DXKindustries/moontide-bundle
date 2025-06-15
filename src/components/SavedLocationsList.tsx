@@ -33,6 +33,26 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     return 'Just now';
   };
 
+  const getLocationDisplayName = (location: LocationData): string => {
+    if (location.nickname) return location.nickname;
+    return `${location.city}, ${location.state}`;
+  };
+
+  const getLocationSubtext = (location: LocationData): string => {
+    let subtext = '';
+    if (location.zipCode) {
+      subtext = `ZIP: ${location.zipCode}`;
+    } else {
+      subtext = `${location.city}, ${location.state}`;
+    }
+    
+    if (location.isManual) {
+      subtext += ' • Manual';
+    }
+    
+    return subtext;
+  };
+
   if (locationHistory.length === 0 && showEmpty) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -46,11 +66,12 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   return (
     <div className="space-y-2 max-h-64 overflow-y-auto">
       {locationHistory.map((location, index) => {
-        const isCurrent = currentLocation?.zipCode === location.zipCode;
+        const isCurrent = currentLocation?.zipCode === location.zipCode || 
+                         (currentLocation?.city === location.city && currentLocation?.state === location.state);
         
         return (
           <Button
-            key={`${location.zipCode}-${index}`}
+            key={`${location.zipCode || location.city}-${index}`}
             variant={isCurrent ? "secondary" : "ghost"}
             className="w-full justify-start h-auto p-3 text-left"
             onClick={() => handleLocationClick(location)}
@@ -60,17 +81,14 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="font-medium text-sm truncate">
-                    {location.city}, {location.state}
+                    {getLocationDisplayName(location)}
                   </div>
                   {isCurrent && (
                     <span className="text-xs text-primary font-medium ml-2">Current</span>
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  ZIP: {location.zipCode}
-                  {location.isManual && (
-                    <span className="ml-2 text-blue-600">Manual</span>
-                  )}
+                  {getLocationSubtext(location)}
                 </div>
                 {location.timestamp && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">

@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { MapPin, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
-import ZipCodeEntry from './ZipCodeEntry';
+import EnhancedLocationInput from './EnhancedLocationInput';
 import SavedLocationsList from './SavedLocationsList';
 
 // Keep the SavedLocation interface for backward compatibility
@@ -27,12 +28,12 @@ export default function LocationSelector({
   const [showAddNew, setShowAddNew] = useState(false);
 
   const handleLocationSelect = (location: LocationData): void => {
-    console.log('📍 New location selected via ZipCodeEntry:', location);
+    console.log('📍 New location selected via EnhancedLocationInput:', location);
     
     // Convert LocationData to SavedLocation format for compatibility
     const savedLocation: SavedLocation = {
-      id: location.zipCode,
-      name: location.city,
+      id: location.zipCode || location.city,
+      name: location.nickname || location.city,
       country: 'USA',
       zipCode: location.zipCode,
       cityState: `${location.city}, ${location.state}`,
@@ -50,8 +51,8 @@ export default function LocationSelector({
     
     // Convert LocationData to SavedLocation format for compatibility
     const savedLocation: SavedLocation = {
-      id: location.zipCode,
-      name: location.city,
+      id: location.zipCode || location.city,
+      name: location.nickname || location.city,
       country: 'USA',
       zipCode: location.zipCode,
       cityState: `${location.city}, ${location.state}`,
@@ -94,10 +95,9 @@ export default function LocationSelector({
               </Button>
               <span className="text-sm font-medium">Add New Location</span>
             </div>
-            <ZipCodeEntry
+            <EnhancedLocationInput
               onLocationSelect={handleLocationSelect}
               onClose={() => setIsOpen(false)}
-              skipAutoLoad={true}
             />
           </div>
         ) : (

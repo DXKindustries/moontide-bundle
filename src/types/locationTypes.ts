@@ -7,6 +7,7 @@ export interface LocationData {
   lng: number | null;
   isManual: boolean;
   timestamp?: number; // When this location was saved
+  nickname?: string; // User-defined nickname for the location
 }
 
 export interface ZipLookupResult {
