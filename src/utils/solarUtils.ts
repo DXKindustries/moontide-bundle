@@ -15,16 +15,18 @@ export type SolarEvent = {
   description: string;
 };
 
-// Calculate sunrise and sunset times (simplified approximation)
+// Calculate sunrise and sunset times using a fixed reference location
+// This ensures consistent time difference calculations regardless of ZIP code
 export const calculateSolarTimes = (date: Date, lat: number = 41.4353, lng: number = -71.4616): SolarTimes => {
-  // This is a simplified calculation - in a real app you'd use a proper solar calculation library
-  // Using approximate times for the given coordinates (Narragansett, RI area)
+  // Use fixed coordinates (Narragansett, RI area) for consistent calculations
+  const fixedLat = 41.4353;
+  const fixedLng = -71.4616;
   
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   
-  // Approximate sunrise/sunset calculation based on day of year and latitude
+  // Approximate sunrise/sunset calculation based on day of year and fixed latitude
   const solarDeclination = 23.45 * Math.sin((360 * (284 + dayOfYear) / 365) * Math.PI / 180);
-  const hourAngle = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(solarDeclination * Math.PI / 180));
+  const hourAngle = Math.acos(-Math.tan(fixedLat * Math.PI / 180) * Math.tan(solarDeclination * Math.PI / 180));
   
   // Convert to hours
   const sunriseHour = 12 - (hourAngle * 180 / Math.PI) / 15;
@@ -49,13 +51,13 @@ export const calculateSolarTimes = (date: Date, lat: number = 41.4353, lng: numb
   const daylight = `${hours}h ${minutes}m`;
   const daylightMinutes = Math.floor(daylightHours * 60);
   
-  // Calculate daylight duration for previous day using the same method
+  // Calculate daylight duration for previous day using the same fixed coordinates
   const previousDay = new Date(date);
   previousDay.setDate(previousDay.getDate() - 1);
   const previousDayOfYear = Math.floor((previousDay.getTime() - new Date(previousDay.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
   
   const previousSolarDeclination = 23.45 * Math.sin((360 * (284 + previousDayOfYear) / 365) * Math.PI / 180);
-  const previousHourAngle = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(previousSolarDeclination * Math.PI / 180));
+  const previousHourAngle = Math.acos(-Math.tan(fixedLat * Math.PI / 180) * Math.tan(previousSolarDeclination * Math.PI / 180));
   
   const previousSunriseHour = 12 - (previousHourAngle * 180 / Math.PI) / 15;
   const previousSunsetHour = 12 + (previousHourAngle * 180 / Math.PI) / 15;
