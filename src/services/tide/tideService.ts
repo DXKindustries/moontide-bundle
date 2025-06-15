@@ -16,8 +16,8 @@ type NoaaStation = {
 const BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
-/* Proxy server configuration */
-const PROXY_BASE = 'http://localhost:3001/api/noaa';
+/* Proxy server configuration - REMOVED because it's not available in this environment */
+// const PROXY_BASE = 'http://localhost:3001/api/noaa';
 
 interface PredictionParams {
   station: string;          // NOAA station ID
@@ -47,19 +47,23 @@ function buildQuery(p: PredictionParams): string {
 
 async function fetchPredictions(p: PredictionParams) {
   const noaaUrl = buildQuery(p);
-  const proxyUrl = `${PROXY_BASE}?url=${encodeURIComponent(noaaUrl)}`;
   
-  console.log('🌐 Making request through proxy:', proxyUrl);
-  console.log('🎯 Target NOAA URL:', noaaUrl);
+  console.log('🎯 Calling NOAA API directly:', noaaUrl);
   
-  const res = await fetch(proxyUrl);
+  const res = await fetch(noaaUrl);
   if (!res.ok) {
-    console.error('❌ Proxy request failed:', res.status, res.statusText);
-    throw new Error(`proxyError:${res.status}`);
+    console.error('❌ NOAA API request failed:', res.status, res.statusText);
+    throw new Error(`API request failed with status: ${res.status}`);
   }
   
   const data = await res.json();
-  console.log('✅ Proxy response received:', data);
+
+  if (data.error) {
+    console.error('❌ NOAA API returned an error:', data.error.message);
+    throw new Error(`NOAA API Error: ${data.error.message}`);
+  }
+
+  console.log('✅ NOAA API response received:', data);
   return data;               // { predictions: [...] }
 }
 
