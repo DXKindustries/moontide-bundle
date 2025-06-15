@@ -1,3 +1,4 @@
+import { getProxyConfig } from './proxyConfig';
 
 interface NoaaStationMetadata {
   id: string;
@@ -8,8 +9,6 @@ interface NoaaStationMetadata {
 }
 
 const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
-const LOCAL_PROXY_BASE = 'http://localhost:3001/api/noaa';
-const FALLBACK_PROXY_BASE = 'https://api.allorigins.win/raw?url=';
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
@@ -19,42 +18,48 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
     return stationCache;
   }
   
-  // Try local proxy first, then fallback to public proxy
-  let proxyUrl: string;
-  let proxyType: string;
+  const config = getProxyConfig();
   
-  try {
-    console.log('🌐 Trying local proxy first...');
-    proxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
-    proxyType = 'local proxy';
-    
-    const response = await fetch(proxyUrl);
-    if (!response.ok) {
-      throw new Error(`Local proxy returned ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return processStationData(data, proxyType);
-    
-  } catch (localError) {
-    console.log('⚠️ Local proxy failed, trying fallback proxy...', localError.message);
-    
+  if (config.useLocalProxy) {
+    // Try local proxy first
     try {
-      proxyUrl = `${FALLBACK_PROXY_BASE}${encodeURIComponent(NOAA_STATIONS_API)}`;
-      proxyType = 'fallback proxy';
+      console.log('🌐 Using local proxy (preferred)...');
+      const proxyUrl = `${config.localProxyUrl}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
       
       const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error(`Local proxy returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return processStationData(data, 'local proxy');
+      
+    } catch (localError) {
+      console.log('⚠️ Local proxy failed, falling back to external proxy...', localError.message);
+      
+      // Fallback to external proxy
+      const fallbackUrl = `${config.fallbackProxyUrl}${encodeURIComponent(NOAA_STATIONS_API)}`;
+      
+      const response = await fetch(fallbackUrl);
       if (!response.ok) {
         throw new Error(`Fallback proxy returned ${response.status}`);
       }
       
       const data = await response.json();
-      return processStationData(data, proxyType);
-      
-    } catch (fallbackError) {
-      console.error('❌ Both proxies failed:', { localError, fallbackError });
-      throw new Error('Failed to fetch station data from both local and fallback proxies');
+      return processStationData(data, 'fallback proxy (api.allorigins.win)');
     }
+  } else {
+    // Use fallback proxy directly
+    console.log('🌐 Using fallback proxy directly...');
+    const fallbackUrl = `${config.fallbackProxyUrl}${encodeURIComponent(NOAA_STATIONS_API)}`;
+    
+    const response = await fetch(fallbackUrl);
+    if (!response.ok) {
+      throw new Error(`Fallback proxy returned ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return processStationData(data, 'fallback proxy (api.allorigins.win)');
   }
 }
 
