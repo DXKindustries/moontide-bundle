@@ -1,12 +1,6 @@
 
-// src/services/tide/stationService.ts
-// ────────────────────────────────────────────────────────────────────────────
-// Cached NOAA station metadata   +   nearest-station resolver   +   helpers
-// ────────────────────────────────────────────────────────────────────────────
-
-import { fetchStationMetadata } from './metadata';
-import { getDistanceKm } from './geo';
-import { STATION_BY_ZIP } from './stationMap';
+import { findNearestRealStation } from './realStationService';
+import { getCoordinatesForZip } from '../geocodingService';
 
 export interface Station {
   id: string;
@@ -15,17 +9,16 @@ export interface Station {
   lng: number;
 }
 
-// In-memory caches ----------------------------------------------------------
-let metadataCache: Station[] | null = null;
-const nearestCache: Record<string, Station | null> = {};
+// In-memory cache for stations by ZIP
+const stationCache: Record<string, Station | null> = {};
 
-// Local-storage helpers (persist nearest per-ZIP) ---------------------------
-const STORAGE_KEY = 'mt_nearest_station_by_zip';
+// Local storage helpers
+const STORAGE_KEY = 'mt_real_station_by_zip';
 
 function loadFromStorage(): Record<string, Station> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, Station>) : {};
+    return raw ? JSON.parse(raw) as Record<string, Station> : {};
   } catch {
     return {};
   }
@@ -33,98 +26,69 @@ function loadFromStorage(): Record<string, Station> {
 
 function saveToStorage(state: Record<string, Station | null>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Only save successful lookups (not null values)
+    const validStations = Object.fromEntries(
+      Object.entries(state).filter(([_, station]) => station !== null)
+    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(validStations));
   } catch {
-    /* ignore quota / private-mode failures */
+    /* ignore storage failures */
   }
 }
 
-// Merge persisted cache once at module load
-Object.assign(nearestCache, loadFromStorage());
+// Load persisted cache on module initialization
+Object.assign(stationCache, loadFromStorage());
 
-// Metadata loader -----------------------------------------------------------
-async function loadMetadata(): Promise<Station[]> {
-  if (metadataCache) return metadataCache;
-  metadataCache = await fetchStationMetadata();
-  return metadataCache;
-}
-
-/**
- * Find the nearest station ≤ 50 km for a given lat/lng.
- * First checks direct ZIP mapping, then falls back to distance search.
- * Results are memoised in memory and localStorage (by ZIP).
- */
 export async function getNearestStation(
   zip: string,
   lat: number,
   lng: number
 ): Promise<Station | null> {
-  console.log(`🔍 getNearestStation called for ZIP: ${zip}, lat: ${lat}, lng: ${lng}`);
+  console.log(`🔍 Finding real NOAA station for ZIP: ${zip}`);
   
-  // Return cached result if available
-  if (nearestCache.hasOwnProperty(zip)) {
-    console.log(`💾 Found cached station for ZIP ${zip}:`, nearestCache[zip]);
-    return nearestCache[zip];
+  // Check cache first
+  if (stationCache.hasOwnProperty(zip)) {
+    console.log(`💾 Using cached station for ZIP ${zip}:`, stationCache[zip]);
+    return stationCache[zip];
   }
-
-  // First priority: Check direct ZIP mapping
-  if (STATION_BY_ZIP[zip]) {
-    console.log(`🎯 Found direct ZIP mapping for ${zip}:`, STATION_BY_ZIP[zip]);
-    const station: Station = {
-      id: STATION_BY_ZIP[zip].id,
-      name: STATION_BY_ZIP[zip].name,
-      lat: lat, // Use provided coordinates
-      lng: lng
-    };
-    nearestCache[zip] = station;
-    saveToStorage(nearestCache);
-    console.log(`✅ Using direct mapping for ${zip}: ${station.name} (${station.id})`);
-    return station;
-  }
-
-  console.log(`⚠️ No direct ZIP mapping found for ${zip}, trying comprehensive search...`);
-
-  // Second priority: Try comprehensive station search
+  
   try {
-    const stations = await loadMetadata();
-    console.log(`📊 Loaded ${stations.length} stations for distance search`);
+    // Get accurate coordinates for this ZIP code
+    let coordinates = { lat, lng };
     
-    // If we only have local mapping data (lat/lng = 0), skip distance calculation
-    if (stations.length > 0 && stations[0].lat === 0 && stations[0].lng === 0) {
-      console.log('⚠️ Only local station mapping available, no distance search possible');
-      nearestCache[zip] = null;
-      saveToStorage(nearestCache);
+    console.log(`🗺️ Getting accurate coordinates for ZIP ${zip}...`);
+    const geocoded = await getCoordinatesForZip(zip);
+    
+    if (geocoded) {
+      coordinates = { lat: geocoded.lat, lng: geocoded.lng };
+      console.log(`✅ Geocoded ZIP ${zip} to coordinates:`, coordinates);
+    } else {
+      console.log(`⚠️ Geocoding failed for ZIP ${zip}, using provided coordinates:`, coordinates);
+    }
+    
+    // Find the nearest real NOAA station
+    console.log(`🔍 Searching for nearest real NOAA station...`);
+    const station = await findNearestRealStation(coordinates.lat, coordinates.lng);
+    
+    if (station) {
+      console.log(`✅ Found real NOAA station for ZIP ${zip}: ${station.name} (${station.id})`);
+      stationCache[zip] = station;
+      saveToStorage(stationCache);
+      return station;
+    } else {
+      console.log(`❌ No real NOAA stations found near ZIP ${zip}`);
+      stationCache[zip] = null;
+      saveToStorage(stationCache);
       return null;
     }
-
-    const nearest =
-      stations
-        .map((s) => ({
-          ...s,
-          distanceKm: getDistanceKm(lat, lng, s.lat, s.lng),
-        }))
-        .sort((a, b) => a.distanceKm - b.distanceKm)
-        .find((s) => s.distanceKm <= 50) ?? null;
-
-    console.log(`🎯 Distance search result for ZIP ${zip}:`, nearest ? `${nearest.name} (${nearest.id}) - ${nearest.distanceKm.toFixed(1)}km` : 'No station within 50km');
-    
-    nearestCache[zip] = nearest;
-    saveToStorage(nearestCache);
-    return nearest;
   } catch (error) {
-    console.warn('❌ Station metadata search failed:', error);
-    nearestCache[zip] = null;
-    saveToStorage(nearestCache);
+    console.error(`❌ Error finding real station for ZIP ${zip}:`, error);
+    stationCache[zip] = null;
+    saveToStorage(stationCache);
     return null;
   }
 }
 
-/**
- * Return any previously stored nearest-station for this ZIP,
- * or null if none has been cached yet.
- */
 export function getSavedStationForLocation(zip: string): Station | null {
-  const saved = nearestCache[zip] ?? null;
-  console.log(`💾 getSavedStationForLocation(${zip}):`, saved);
-  return saved;
+  return stationCache[zip] ?? null;
 }
