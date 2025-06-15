@@ -8,6 +8,8 @@ type SolarInfoProps = {
 };
 
 const SolarInfo = ({ solarTimes }: SolarInfoProps) => {
+  console.log('🌅 SolarInfo received solarTimes:', solarTimes);
+  
   const isGettingLonger = solarTimes.changeFromPrevious?.includes('+') || solarTimes.changeFromPrevious?.includes('longer');
   const isGettingShorter = solarTimes.changeFromPrevious?.includes('-') || solarTimes.changeFromPrevious?.includes('shorter');
 
@@ -32,11 +34,12 @@ const SolarInfo = ({ solarTimes }: SolarInfoProps) => {
           <span className="font-semibold text-yellow-400">{solarTimes.daylight}</span>
         </div>
 
-        {/* Change from Previous Day */}
+        {/* Change from Previous Day - Always show if available */}
         {solarTimes.changeFromPrevious && (
           <div className="flex items-center gap-1">
             {isGettingLonger && <TrendingUp className="h-3 w-3 text-green-400" />}
             {isGettingShorter && <TrendingDown className="h-3 w-3 text-red-400" />}
+            {!isGettingLonger && !isGettingShorter && <Clock className="h-3 w-3 text-muted-foreground" />}
             <span className={`font-semibold ${
               isGettingLonger ? 'text-green-400' : 
               isGettingShorter ? 'text-red-400' : 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, AlertCircle } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 type LocationInfoProps = {
   currentLocation: any;
@@ -22,35 +22,20 @@ const LocationInfo = ({ currentLocation, stationName, error }: LocationInfoProps
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
-        <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">
-            {formatLocationDisplay()}
-          </div>
-          <div className="text-muted-foreground mt-1">
-            {stationName && !error ? (
-              <>NOAA station: <span className="font-medium">{stationName}</span></>
-            ) : (
-              <>No tide data - try a coastal ZIP code</>
-            )}
-          </div>
+    <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
+      <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">
+          {formatLocationDisplay()}
+        </div>
+        <div className="text-muted-foreground mt-1">
+          {stationName && !error ? (
+            <>NOAA station: <span className="font-medium">{stationName}</span></>
+          ) : (
+            <>No tide data - try a coastal ZIP code</>
+          )}
         </div>
       </div>
-
-      {/* Error Message - Show when there's an error */}
-      {error && (
-        <div className="flex items-start gap-2 text-xs bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
-          <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="font-medium text-red-400">Error</div>
-            <div className="text-red-300 mt-1">
-              {error}. Using mock data instead.
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
