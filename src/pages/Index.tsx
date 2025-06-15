@@ -93,6 +93,19 @@ const Index = () => {
     toast.success(`Loading tide data for ${updatedLocation.name}`);
   };
 
+  const handleLocationClear = () => {
+    console.log('🗑️ Clearing current location from Index');
+    setCurrentLocation(null);
+    
+    // Clear from localStorage
+    try {
+      safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
+      console.log('💾 Successfully cleared location from localStorage');
+    } catch (error) {
+      console.error('❌ Error clearing location from localStorage:', error);
+    }
+  };
+
   const handleGetStarted = () => {
     setShowLocationSelector(true);
   };
@@ -114,6 +127,7 @@ const Index = () => {
         currentLocation={currentLocation}
         stationName={stationName}
         onLocationChange={handleLocationChange}
+        onLocationClear={handleLocationClear}
         hasError={!!error}
         forceShowLocationSelector={showLocationSelector}
         onLocationSelectorClose={() => setShowLocationSelector(false)}
