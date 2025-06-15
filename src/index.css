@@ -69,50 +69,41 @@
     @apply absolute rounded-full bg-white animate-pulse-subtle;
   }
   
-  /* Calendar day indicators with maximum specificity */
-  .rdp .rdp-day.day-full-moon,
-  .rdp [data-rdp-day].day-full-moon,
-  .rdp button.day-full-moon,
-  .rdp .rdp-button_reset.day-full-moon {
+  /* Calendar day indicators - using the custom class names */
+  .calendar-full-moon {
     background-color: rgb(251 191 36) !important;
     color: rgb(17 24 39) !important;
     font-weight: bold !important;
     border: 2px solid rgb(251 191 36) !important;
+    border-radius: 6px !important;
   }
   
-  .rdp .rdp-day.day-new-moon,
-  .rdp [data-rdp-day].day-new-moon,
-  .rdp button.day-new-moon,
-  .rdp .rdp-button_reset.day-new-moon {
+  .calendar-new-moon {
     background-color: rgb(107 114 128) !important;
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(107 114 128) !important;
+    border-radius: 6px !important;
   }
   
-  .rdp .rdp-day.day-solar-event,
-  .rdp [data-rdp-day].day-solar-event,
-  .rdp button.day-solar-event,
-  .rdp .rdp-button_reset.day-solar-event {
+  .calendar-solar-event {
     background-color: rgb(249 115 22) !important;
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(249 115 22) !important;
+    border-radius: 6px !important;
   }
   
-  /* Override hover states */
-  .rdp .rdp-day.day-full-moon:hover,
-  .rdp button.day-full-moon:hover {
+  /* Hover states */
+  .calendar-full-moon:hover {
     background-color: rgb(245 158 11) !important;
   }
   
-  .rdp .rdp-day.day-new-moon:hover,
-  .rdp button.day-new-moon:hover {
+  .calendar-new-moon:hover {
     background-color: rgb(75 85 99) !important;
   }
   
-  .rdp .rdp-day.day-solar-event:hover,
-  .rdp button.day-solar-event:hover {
+  .calendar-solar-event:hover {
     background-color: rgb(234 88 12) !important;
   }
   
