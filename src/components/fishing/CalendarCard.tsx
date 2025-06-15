@@ -18,58 +18,11 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  // Use DayPicker's DayProps signature for maximal compatibility
-  // This is NOT a forwardRef component! Just a function as required by DayPicker v8.
-  function DayCustom(props: any) {
-    // Spread all props (including event handlers, data, aria, tabIndex, style, etc)
-    // DayPicker guarantees that ref is not required here.
-    const { children, ...otherProps } = props;
-    return (
-      <button {...otherProps}>
-        <span className="calendar-day-inner relative z-20">{children}</span>
-      </button>
-    );
-  }
+  console.log("🔧 CalendarCard rendering with accurate full/new moon modifiers");
+  console.log("🔧 Calendar modifiersClassNames:", modifiersClassNames);
 
   return (
-    <Card className="bg-card/50 backdrop-blur-md relative">
-      <style>
-        {`
-        .calendar-full-moon .calendar-day-inner::after {
-          content: '';
-          position: absolute;
-          left: 50%; 
-          top: 72%; 
-          transform: translateX(-50%);
-          width: 0.5rem;
-          height: 0.5rem;
-          border-radius: 9999px;
-          background-color: #fde047;
-        }
-        .calendar-new-moon .calendar-day-inner::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          top: 72%;
-          transform: translateX(-50%);
-          width: 0.5rem;
-          height: 0.5rem;
-          border-radius: 9999px;
-          background-color: #a3a3a3;
-        }
-        .calendar-solar-event .calendar-day-inner::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          top: 72%;
-          transform: translateX(-50%);
-          width: 0.5rem;
-          height: 0.5rem;
-          border-radius: 9999px;
-          background-color: #f97316;
-        }
-        `}
-      </style>
+    <Card className="bg-card/50 backdrop-blur-md">
       <CardHeader>
         <CardTitle>Calendar</CardTitle>
       </CardHeader>
@@ -80,9 +33,6 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           onSelect={onSelectDate}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          components={{
-            Day: DayCustom,
-          }}
           footer={
             <div className="mt-3 pt-3 border-t border-muted">
               <div className="flex items-center gap-2 mb-2">
@@ -106,3 +56,4 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 };
 
 export default CalendarCard;
+
