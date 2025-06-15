@@ -39,26 +39,28 @@ export default function MainContent({
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-      {/* Location and Error Display Area */}
-      <div className="mb-6 space-y-4">
-        <div className="flex justify-center">
-          <LocationDisplay 
-            currentLocation={currentLocation}
-            stationName={stationName}
-            hasError={!!error}
-          />
+      {/* Only show location and error info when a location is selected */}
+      {currentLocation && (
+        <div className="mb-6 space-y-4">
+          <div className="flex justify-center">
+            <LocationDisplay 
+              currentLocation={currentLocation}
+              stationName={stationName}
+              hasError={!!error}
+            />
+          </div>
+          
+          {error && (
+            <Alert variant="destructive" className="max-w-2xl mx-auto">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                {error}. Using mock data instead.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
-        
-        {error && (
-          <Alert variant="destructive" className="max-w-2xl mx-auto">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {error}. Using mock data instead.
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MoonPhase

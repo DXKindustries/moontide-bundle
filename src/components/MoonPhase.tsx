@@ -69,55 +69,52 @@ const MoonPhase = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center">
-        <div className="relative">
+        {/* Large Moon Visual - Center Focus */}
+        <div className="relative mb-8">
           <div className={`w-36 h-36 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
         </div>
         
-        <div className="mt-8 w-full">
-          <div className="flex justify-between text-sm mb-4">
-            <div>
-              <p className="text-muted-foreground">Illumination</p>
-              <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
-            </div>
-            <div className="text-right">
-              <p className="text-muted-foreground">Moonrise</p>
-              <p className="text-lg font-semibold">{moonrise}</p>
-            </div>
+        {/* Moon Data Grid - 2x2 Layout */}
+        <div className="grid grid-cols-2 gap-4 w-full mb-6">
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">Illumination</p>
+            <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
           </div>
-          
-          <div className="flex justify-between text-sm mb-4">
-            <div>
-              <p className="text-muted-foreground">Moonset</p>
-              <p className="text-lg font-semibold">{moonset}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-muted-foreground">Next Phase</p>
-              <p className="text-lg font-semibold">In 3 days</p>
-            </div>
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">Moonrise</p>
+            <p className="text-lg font-semibold">{moonrise}</p>
           </div>
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">Moonset</p>
+            <p className="text-lg font-semibold">{moonset}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-muted-foreground text-sm">Next Phase</p>
+            <p className="text-lg font-semibold">In 3 days</p>
+          </div>
+        </div>
 
-          {/* Solar information integrated */}
-          <div className="border-t border-muted pt-4">
-            <div className="flex justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <Sunrise className="h-4 w-4 text-orange-400" />
-                <div>
-                  <p className="text-muted-foreground">Sunrise</p>
-                  <p className="font-semibold">{solarTimes.sunrise}</p>
-                </div>
-              </div>
+        {/* Solar Information - Bottom Section with Icons */}
+        <div className="border-t border-muted pt-4 w-full">
+          <div className="flex justify-between items-center text-sm">
+            <div className="flex items-center gap-2">
+              <Sunrise className="h-4 w-4 text-orange-400" />
               <div className="text-center">
-                <p className="text-muted-foreground">Daylight</p>
-                <p className="font-semibold text-yellow-400">{solarTimes.daylight}</p>
+                <p className="text-muted-foreground">Sunrise</p>
+                <p className="font-semibold">{solarTimes.sunrise}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <p className="text-muted-foreground">Sunset</p>
-                  <p className="font-semibold">{solarTimes.sunset}</p>
-                </div>
-                <Sunset className="h-4 w-4 text-red-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-muted-foreground">Daylight</p>
+              <p className="font-semibold text-yellow-400">{solarTimes.daylight}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-center">
+                <p className="text-muted-foreground">Sunset</p>
+                <p className="font-semibold">{solarTimes.sunset}</p>
               </div>
+              <Sunset className="h-4 w-4 text-red-400" />
             </div>
           </div>
         </div>
