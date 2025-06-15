@@ -3,6 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
+import { calculateSolarTimes } from '@/utils/solarUtils';
+import { Sunrise, Sunset } from 'lucide-react';
 import FullMoonBanner from './FullMoonBanner';
 
 type MoonPhaseProps = {
@@ -25,6 +27,9 @@ const MoonPhase = ({
   // Get full moon name if applicable
   const currentDate = new Date(date);
   const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
+
+  // Calculate solar times for today
+  const solarTimes = calculateSolarTimes(currentDate);
 
   // Calculate visual representation of moon phase
   const getMoonPhaseVisual = () => {
@@ -81,7 +86,7 @@ const MoonPhase = ({
             </div>
           </div>
           
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-sm mb-4">
             <div>
               <p className="text-muted-foreground">Moonset</p>
               <p className="text-lg font-semibold">{moonset}</p>
@@ -89,6 +94,30 @@ const MoonPhase = ({
             <div className="text-right">
               <p className="text-muted-foreground">Next Phase</p>
               <p className="text-lg font-semibold">In 3 days</p>
+            </div>
+          </div>
+
+          {/* Solar information integrated */}
+          <div className="border-t border-muted pt-4">
+            <div className="flex justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <Sunrise className="h-4 w-4 text-orange-400" />
+                <div>
+                  <p className="text-muted-foreground">Sunrise</p>
+                  <p className="font-semibold">{solarTimes.sunrise}</p>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-muted-foreground">Daylight</p>
+                <p className="font-semibold text-yellow-400">{solarTimes.daylight}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <p className="text-muted-foreground">Sunset</p>
+                  <p className="font-semibold">{solarTimes.sunset}</p>
+                </div>
+                <Sunset className="h-4 w-4 text-red-400" />
+              </div>
             </div>
           </div>
         </div>
