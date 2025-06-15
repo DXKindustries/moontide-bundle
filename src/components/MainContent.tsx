@@ -1,7 +1,6 @@
 
 import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
-import SolarInfo from '@/components/SolarInfo';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -45,7 +44,7 @@ export default function MainContent({
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MoonPhase
           phase={moonPhaseData.phase}
           illumination={moonPhaseData.illumination}
@@ -54,16 +53,11 @@ export default function MainContent({
           date={moonPhaseData.date}
         />
 
-        <SolarInfo
-          date={currentDate || moonPhaseData.date}
-        />
-
         <TideChart
           data={tideData}
           date={currentDate || moonPhaseData.date}
           currentTime={currentTime}
           isLoading={isLoading}
-          className="xl:col-span-1 md:col-span-2"
         />
       </div>
 
