@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { MapPin, Search, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -128,10 +127,11 @@ export default function LocationSelector({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     console.log(`⌨️ Key pressed in location input: ${e.key}`);
     if (e.key === 'Enter') {
       e.preventDefault();
+      console.log('🎯 Enter key detected, calling addLocation');
       addLocation();
     }
   };
@@ -156,7 +156,7 @@ export default function LocationSelector({
           <Input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Enter ZIP code…"
             maxLength={5}
           />
