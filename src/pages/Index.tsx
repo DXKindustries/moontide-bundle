@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
+import OnboardingMessage from '@/components/OnboardingMessage';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { locationStorage } from '@/utils/locationStorage';
@@ -36,6 +37,8 @@ const Index = () => {
     console.log('🎯 No saved location found, starting with null');
     return null; // Start with no location instead of hardcoded default
   });
+
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
 
   console.log('🌊 Current location for useTideData:', currentLocation);
 
@@ -86,7 +89,14 @@ const Index = () => {
       console.error('❌ Error saving location to localStorage:', error);
     }
     
+    // Close the location selector if it was opened from onboarding
+    setShowLocationSelector(false);
+    
     toast.success(`Loading tide data for ${updatedLocation.name}`);
+  };
+
+  const handleGetStarted = () => {
+    setShowLocationSelector(true);
   };
 
   console.log('🎨 About to render Index component with:', {
@@ -107,18 +117,24 @@ const Index = () => {
         stationName={stationName}
         onLocationChange={handleLocationChange}
         hasError={!!error}
+        forceShowLocationSelector={showLocationSelector}
+        onLocationSelectorClose={() => setShowLocationSelector(false)}
       />
 
-      <MainContent 
-        error={error}
-        isLoading={isLoading}
-        tideData={tideData}
-        weeklyForecast={weeklyForecast}
-        currentDate={currentDate}
-        currentTime={currentTime}
-        currentLocation={currentLocation}
-        stationName={stationName}
-      />
+      {!currentLocation ? (
+        <OnboardingMessage onGetStarted={handleGetStarted} />
+      ) : (
+        <MainContent 
+          error={error}
+          isLoading={isLoading}
+          tideData={tideData}
+          weeklyForecast={weeklyForecast}
+          currentDate={currentDate}
+          currentTime={currentTime}
+          currentLocation={currentLocation}
+          stationName={stationName}
+        />
+      )}
     </div>
   );
 };
