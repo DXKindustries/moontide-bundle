@@ -9,6 +9,15 @@ type TideInfoProps = {
 };
 
 const TideInfo: React.FC<TideInfoProps> = ({ tides }) => {
+  const formatTimeToAMPM = (timeString: string) => {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Tide Information</h3>
@@ -18,7 +27,7 @@ const TideInfo: React.FC<TideInfoProps> = ({ tides }) => {
           {tides.highTide.length > 0 ? (
             tides.highTide.map((tide, i) => (
               <div key={`high-${i}`} className="flex justify-between">
-                <span>{tide.time}</span>
+                <span>{formatTimeToAMPM(tide.time)}</span>
                 <span className="font-semibold">{tide.height.toFixed(1)}m</span>
               </div>
             ))
@@ -31,7 +40,7 @@ const TideInfo: React.FC<TideInfoProps> = ({ tides }) => {
           {tides.lowTide.length > 0 ? (
             tides.lowTide.map((tide, i) => (
               <div key={`low-${i}`} className="flex justify-between">
-                <span>{tide.time}</span>
+                <span>{formatTimeToAMPM(tide.time)}</span>
                 <span className="font-semibold">{tide.height.toFixed(1)}m</span>
               </div>
             ))

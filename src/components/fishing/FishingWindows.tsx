@@ -14,6 +14,15 @@ type FishingWindowsProps = {
 };
 
 const FishingWindows: React.FC<FishingWindowsProps> = ({ windows }) => {
+  const formatTimeToAMPM = (timeString: string) => {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Optimal Fishing Windows</h3>
@@ -22,7 +31,7 @@ const FishingWindows: React.FC<FishingWindowsProps> = ({ windows }) => {
           {windows.map((window, idx) => (
             <div key={idx} className="p-3 rounded-md bg-muted/30 backdrop-blur-sm">
               <div className="flex justify-between items-start">
-                <span className="font-medium">{window.start} - {window.end}</span>
+                <span className="font-medium">{formatTimeToAMPM(window.start)} - {formatTimeToAMPM(window.end)}</span>
                 <Badge variant={
                   window.quality === 'excellent' ? 'default' :
                   window.quality === 'good' ? 'secondary' : 'outline'
