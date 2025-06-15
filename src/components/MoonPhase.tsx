@@ -51,17 +51,9 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Fixed location detection - check if we have a meaningful location
-  const hasLocation = currentLocation && 
-    currentLocation !== null && 
-    (
-      // Check for valid ZIP code
-      (currentLocation.zipCode && currentLocation.zipCode.length > 0 && currentLocation.zipCode !== "default") ||
-      // Check for valid name that's not the default placeholder
-      (currentLocation.name && currentLocation.name.length > 0 && currentLocation.name !== "Select a location" && currentLocation.name !== "Choose Location") ||
-      // Check for valid ID that's not default
-      (currentLocation.id && currentLocation.id !== "default" && currentLocation.id.length > 0)
-    );
+  // Simple location detection - if we have a current location with meaningful data, we have a location
+  const hasLocation = !!(currentLocation && 
+    (currentLocation.zipCode || currentLocation.name || currentLocation.id));
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
@@ -101,17 +93,17 @@ const MoonPhase = ({
             {/* Solar Times Row */}
             <SolarInfo solarTimes={solarTimes} />
 
-            {/* Conditional Bottom Section */}
-            {!hasLocation ? (
-              /* Onboarding Information - Show when no location is selected */
-              <OnboardingInfo onGetStarted={onGetStarted!} />
-            ) : (
+            {/* Conditional Bottom Section - Fixed Logic */}
+            {hasLocation ? (
               /* Location Display and Error - Show when location is selected */
               <LocationInfo 
                 currentLocation={currentLocation}
                 stationName={stationName}
                 error={error}
               />
+            ) : (
+              /* Onboarding Information - Show when no location is selected */
+              <OnboardingInfo onGetStarted={onGetStarted!} />
             )}
           </div>
         </CardContent>
