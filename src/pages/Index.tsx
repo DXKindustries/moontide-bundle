@@ -25,15 +25,26 @@ const DEFAULT_LOCATION: SavedLocation & { id: string; country: string } = {
   lng: -71.4495,
 };
 
+const CURRENT_LOCATION_KEY = 'moontide-current-location';
+
 const Index = () => {
   console.log('🚀 Index component rendering...');
   
   const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
     console.log('📍 Initializing currentLocation state...');
     try {
-      const savedLocation = safeLocalStorage.getItem('moontide-current-location');
-      console.log('💾 Saved location from localStorage:', savedLocation);
-      if (savedLocation) return savedLocation;
+      const saved = safeLocalStorage.getItem(CURRENT_LOCATION_KEY);
+      console.log('💾 Saved location from localStorage:', saved);
+      if (saved) {
+        // Ensure the saved location has all required fields
+        const location = {
+          ...saved,
+          id: saved.id || saved.zipCode || "default",
+          country: saved.country || "USA",
+        };
+        console.log('✅ Using saved location:', location);
+        return location;
+      }
     } catch (error) {
       console.warn('⚠️ Error reading location from localStorage:', error);
     }
@@ -88,14 +99,19 @@ const Index = () => {
       name: location.name || `${location.zipCode || "Unknown Location"}`
     };
     console.log('📍 Updated location object:', updatedLocation);
+    
+    // Update state first
     setCurrentLocation(updatedLocation);
+    
+    // Then save to localStorage
     try {
-      safeLocalStorage.setItem('moontide-current-location', updatedLocation);
-      console.log('💾 Saved updated location to localStorage');
+      safeLocalStorage.setItem(CURRENT_LOCATION_KEY, updatedLocation);
+      console.log('💾 Successfully saved updated location to localStorage');
     } catch (error) {
-      console.warn('⚠️ Error saving location to localStorage:', error);
+      console.error('❌ Error saving location to localStorage:', error);
     }
-    toast.info(`Loading tide data for ${updatedLocation.name}`);
+    
+    toast.success(`Loading tide data for ${updatedLocation.name}`);
   };
 
   const formatLocationDisplay = () => {
