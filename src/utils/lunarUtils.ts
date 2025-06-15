@@ -53,3 +53,53 @@ export const getMoonEmoji = (phase: string): string => {
       return "🌙";
   }
 };
+
+// Calculate actual moon phase for any given date
+export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
+  // Known new moon reference: January 1, 2000 was approximately a new moon
+  const knownNewMoon = new Date(2000, 0, 6, 18, 14); // Jan 6, 2000 6:14 PM UTC
+  const lunarCycleLength = 29.53058867; // Average lunar cycle in days
+  
+  // Calculate days since the known new moon
+  const daysSinceKnownNewMoon = (date.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+  
+  // Calculate the current position in the lunar cycle
+  const cyclePosition = ((daysSinceKnownNewMoon % lunarCycleLength) + lunarCycleLength) % lunarCycleLength;
+  
+  // Calculate illumination percentage
+  const illumination = Math.round((1 - Math.cos((cyclePosition / lunarCycleLength) * 2 * Math.PI)) * 50);
+  
+  // Determine phase based on cycle position
+  let phase: string;
+  if (cyclePosition < 1.84566) {
+    phase = "New Moon";
+  } else if (cyclePosition < 5.53699) {
+    phase = "Waxing Crescent";
+  } else if (cyclePosition < 9.22831) {
+    phase = "First Quarter";
+  } else if (cyclePosition < 12.91963) {
+    phase = "Waxing Gibbous";
+  } else if (cyclePosition < 16.61096) {
+    phase = "Full Moon";
+  } else if (cyclePosition < 20.30228) {
+    phase = "Waning Gibbous";
+  } else if (cyclePosition < 23.99361) {
+    phase = "Last Quarter";
+  } else {
+    phase = "Waning Crescent";
+  }
+  
+  return { phase, illumination };
+};
+
+// Check if a specific date is a full moon (within 1 day of peak)
+export const isDateFullMoon = (date: Date): boolean => {
+  const { phase } = calculateMoonPhase(date);
+  return phase === "Full Moon";
+};
+
+// Check if a specific date is a new moon (within 1 day of peak)
+export const isDateNewMoon = (date: Date): boolean => {
+  const { phase } = calculateMoonPhase(date);
+  return phase === "New Moon";
+};

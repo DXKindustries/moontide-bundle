@@ -3,9 +3,8 @@ import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TideForecast } from '@/services/noaaService';
-import { isFullMoon } from '@/utils/lunarUtils';
+import { isDateFullMoon, isDateNewMoon } from '@/utils/lunarUtils';
 import { getSolarEvents } from '@/utils/solarUtils';
-import { format } from 'date-fns';
 
 type CalendarCardProps = {
   selectedDate: Date | undefined;
@@ -20,14 +19,10 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const modifiers = {
     fullMoon: (date: Date) => {
-      const dateStr = format(date, 'MMM d');
-      const forecast = weeklyForecast.find(f => f.date === dateStr);
-      return forecast ? isFullMoon(forecast.moonPhase) : false;
+      return isDateFullMoon(date);
     },
     newMoon: (date: Date) => {
-      const dateStr = format(date, 'MMM d');
-      const forecast = weeklyForecast.find(f => f.date === dateStr);
-      return forecast ? forecast.moonPhase === 'New Moon' : false;
+      return isDateNewMoon(date);
     },
     solarEvent: (date: Date) => {
       return getSolarEvents(date) !== null;
