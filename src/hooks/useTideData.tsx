@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { TidePoint, TideForecast } from '@/services/noaaService';
 import { fetchTideDataForLocation } from '@/services/tideDataService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
-import { generateMockWeeklyForecast } from '@/utils/mockForecastGenerator';
+import { generateWeeklyForecastFromCurrentDate } from '@/utils/mockForecastGenerator';
 
 type UseTideDataParams = {
   location: {
@@ -47,15 +48,15 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     setCurrentDate(newDate);
     setCurrentTime(newTime);
 
-    // If no location is provided, use mock data but include weekly forecast
+    // If no location is provided, use calculated forecast with proper dates and moon phases
     if (!location) {
-      console.log('⚠️ No location provided, generating mock data including weekly forecast');
+      console.log('⚠️ No location provided, generating calculated weekly forecast');
       
-      // Generate mock weekly forecast with proper moon phase calculations
-      const mockForecast = generateMockWeeklyForecast();
-      console.log('📅 Generated mock weekly forecast:', mockForecast);
+      // Generate weekly forecast with proper moon phase calculations and current dates
+      const calculatedForecast = generateWeeklyForecastFromCurrentDate();
+      console.log('📅 Generated calculated weekly forecast:', calculatedForecast);
       
-      setWeeklyForecast(mockForecast);
+      setWeeklyForecast(calculatedForecast);
       setIsLoading(false);
       setError(null);
       return;
@@ -84,9 +85,10 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         
-        // Set empty data but keep current date/time
+        // Set empty tide data but use calculated forecast for weekly forecast
         setTideData([]);
-        setWeeklyForecast([]);
+        const calculatedForecast = generateWeeklyForecastFromCurrentDate();
+        setWeeklyForecast(calculatedForecast);
       }
     };
 

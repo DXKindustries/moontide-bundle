@@ -7,7 +7,7 @@ import {
 } from '@/services/noaaService';
 import { getStationId } from '@/services/locationService';
 import { formatApiDate } from '@/utils/dateTimeUtils';
-import { generateMockWeeklyForecast } from '@/utils/mockForecastGenerator';
+import { generateWeeklyForecastFromCurrentDate } from '@/utils/mockForecastGenerator';
 
 type Location = {
   id: string;
@@ -86,7 +86,7 @@ export const fetchTideDataForLocation = async (
     throw new Error('Failed to fetch current tide data');
   }
   
-  // Get weekly forecast
+  // Get weekly forecast - always use calculated forecast with proper dates and moon phases
   let weeklyForecast: TideForecast[] = [];
   try {
     console.log('📅 Calling getWeeklyTideForecast API...');
@@ -104,11 +104,17 @@ export const fetchTideDataForLocation = async (
     weeklyForecast = forecast;
     console.log('📅 Set weekly forecast with length:', forecast.length);
   } catch (forecastError) {
-    console.error('⚠️ Error getting weekly forecast (non-fatal):', forecastError);
-    // If API fails, generate mock forecast as fallback
-    const mockForecast = generateMockWeeklyForecast();
-    console.log('📅 Using mock weekly forecast as fallback');
-    weeklyForecast = mockForecast;
+    console.error('⚠️ Error getting weekly forecast from API, using calculated fallback:', forecastError);
+    // Always use calculated forecast as fallback to ensure correct dates and moon phases
+    const calculatedForecast = generateWeeklyForecastFromCurrentDate();
+    console.log('📅 Using calculated weekly forecast as fallback');
+    weeklyForecast = calculatedForecast;
+  }
+  
+  // If the API forecast doesn't have proper dates or moon phases, replace with calculated version
+  if (weeklyForecast.length === 0 || !weeklyForecast[0].date.includes('-')) {
+    console.log('📅 API forecast invalid, replacing with calculated forecast');
+    weeklyForecast = generateWeeklyForecastFromCurrentDate();
   }
   
   console.log('✅ Tide data fetch completed successfully');
