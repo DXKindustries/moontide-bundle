@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -35,8 +34,9 @@ export default function LocationSelector({
       const raw = safeLocalStorage.get(STORAGE_KEY);
       console.log('🏠 Raw data from storage:', raw);
       if (raw && Array.isArray(raw)) {
-        // Filter out any default locations that might have been saved
-        const validLocations = raw.filter(loc => loc.zipCode && loc.zipCode !== "default" && loc.zipCode !== "02882");
+        // Only filter out truly invalid locations (empty zipCode or "default"), 
+        // but keep all valid ZIP codes including 02882 (Narragansett)
+        const validLocations = raw.filter(loc => loc.zipCode && loc.zipCode !== "default");
         setSaved(validLocations);
         console.log('✅ Successfully loaded saved locations:', validLocations);
       } else {
@@ -52,8 +52,8 @@ export default function LocationSelector({
   useEffect(() => {
     console.log('💾 Saving locations to storage:', saved);
     try {
-      // Only save non-default locations
-      const locationsToSave = saved.filter(loc => loc.zipCode && loc.zipCode !== "default" && loc.zipCode !== "02882");
+      // Only save valid locations (those with actual ZIP codes, not "default")
+      const locationsToSave = saved.filter(loc => loc.zipCode && loc.zipCode !== "default");
       safeLocalStorage.set(STORAGE_KEY, locationsToSave);
       console.log('✅ Successfully saved locations to storage');
     } catch (error) {
