@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
@@ -127,9 +126,8 @@ const Index = () => {
 
   const handleLocationClear = () => {
     console.log('🗑️ Clearing current location from Index');
-    setCurrentLocation(null);
     
-    // Clear from both storage systems
+    // Clear from both storage systems first
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
       locationStorage.clearCurrentLocation();
@@ -137,6 +135,10 @@ const Index = () => {
     } catch (error) {
       console.error('❌ Error clearing location from localStorage:', error);
     }
+    
+    // IMPORTANT: Update the component state to null to trigger re-render
+    setCurrentLocation(null);
+    console.log('🔄 Component state updated to null - onboarding should now show');
   };
 
   const handleGetStarted = (location?: LocationData) => {
