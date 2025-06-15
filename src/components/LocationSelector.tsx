@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
-import { MapPin, Search, Plus } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { safeLocalStorage } from '@/utils/localStorage';
-import { lookupZipCode, formatCityStateFromZip } from '@/utils/zipCodeLookup';
+import LocationSearchInput from './LocationSearchInput';
+import SavedLocationsList from './SavedLocationsList';
 
 export interface SavedLocation {
   id?: string;         
@@ -60,84 +61,18 @@ export default function LocationSelector({
     }
   }, [saved]);
 
-  /* ---------------- helpers ---------------- */
-  const addLocation = async () => {
-    console.log('🏁 addLocation triggered.');
-    const zip = search.trim();
-    console.log('🔍 Attempting to add location for ZIP:', zip);
+  const handleLocationAdd = (location: SavedLocation) => {
+    // Update saved locations first
+    const newSaved = [...saved, location];
+    console.log('📝 About to update saved locations state to:', newSaved);
+    setSaved(newSaved);
     
-    if (!/^\d{5}$/.test(zip)) {
-      console.error('❌ Invalid ZIP format:', zip);
-      toast.error('Enter a valid 5-digit U.S. ZIP');
-      return;
-    }
-
-    try {
-      console.log('🌐 Looking up ZIP code:', zip);
-      const geo = await lookupZipCode(zip);
-      console.log('📍 ZIP lookup result:', geo);
-      
-      if (!geo || !geo.places || geo.places.length === 0) {
-        console.error('❌ ZIP not found in lookup service');
-        toast.error('ZIP code not found. Please check and try again.');
-        return;
-      }
-      
-      const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
-      console.log('🏙️ Formatted city/state:', cityState);
-      
-      // De-dup on zip
-      if (saved.some(l => l.zipCode === zip)) {
-        console.log('⚠️ ZIP already exists in saved locations');
-        toast.info('ZIP already saved');
-        setSearch('');
-        setIsOpen(false);
-        return;
-      }
-
-      const loc: SavedLocation = {
-        id: zip, // Use ZIP as ID
-        name: geo.places[0]['place name'],
-        country: 'USA',
-        zipCode: zip,
-        cityState,
-        lat: parseFloat(geo.places[0].latitude),
-        lng: parseFloat(geo.places[0].longitude),
-      };
-      
-      console.log('✅ Created location object:', loc);
-      
-      // Update saved locations first
-      const newSaved = [...saved, loc];
-      console.log('📝 About to update saved locations state to:', newSaved);
-      setSaved(newSaved);
-      
-      // Clear search and close dropdown
-      setSearch('');
-      setIsOpen(false);
-      
-      // Call onSelect to update the current location immediately
-      console.log('📢 Calling onSelect with location:', loc);
-      onSelect(loc);
-      
-      toast.success(`Added ${cityState}`);
-    } catch (err) {
-      console.error('💥 Error in addLocation:', err);
-      toast.error('ZIP code not found. Please check and try again.');
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    console.log(`⌨️ Key pressed in location input: ${e.key}`);
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      console.log('🎯 Enter key detected, calling addLocation');
-      addLocation();
-    }
+    // Call onSelect to update the current location immediately
+    onSelect(location);
+    setIsOpen(false);
   };
 
   const handleLocationSelect = (loc: SavedLocation) => {
-    console.log('🎯 Selected saved location:', loc);
     onSelect(loc);
     setIsOpen(false);
   };
@@ -145,7 +80,7 @@ export default function LocationSelector({
   const handleAddLocationClick = () => {
     console.log('🎯 Add location button clicked');
     if (search.trim()) {
-      addLocation();
+      // This will be handled by the search input component
     } else {
       toast.error('Enter a ZIP code first');
     }
@@ -161,46 +96,19 @@ export default function LocationSelector({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-64 p-3">
-        <div className="flex items-center gap-2 mb-3">
-          <Input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter ZIP code…"
-            maxLength={5}
-          />
-          <button
-            className="p-2 rounded bg-primary text-white"
-            onClick={addLocation}
-          >
-            <Search size={16} />
-          </button>
-        </div>
+        <LocationSearchInput
+          search={search}
+          setSearch={setSearch}
+          onLocationAdd={handleLocationAdd}
+          savedLocations={saved}
+          onClose={() => setIsOpen(false)}
+        />
 
-        {saved.length === 0 && (
-          <p className="text-xs text-muted-foreground mb-2">
-            No saved locations yet. Add one above.
-          </p>
-        )}
-
-        {saved.map(loc => (
-          <button
-            key={loc.zipCode}
-            className="flex w-full justify-between items-center px-2 py-1 rounded hover:bg-muted-foreground/10 text-left text-sm"
-            onClick={() => handleLocationSelect(loc)}
-          >
-            {loc.cityState} <span className="opacity-60">({loc.zipCode})</span>
-          </button>
-        ))}
-
-        <div className="mt-2 border-t pt-2">
-          <button
-            onClick={handleAddLocationClick}
-            className="flex w-full items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Plus size={12} /> Add location
-          </button>
-        </div>
+        <SavedLocationsList
+          savedLocations={saved}
+          onLocationSelect={handleLocationSelect}
+          onAddLocationClick={handleAddLocationClick}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
