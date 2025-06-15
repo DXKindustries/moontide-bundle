@@ -2,6 +2,8 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
+import FullMoonBanner from './FullMoonBanner';
 
 type MoonPhaseProps = {
   phase: string;
@@ -20,6 +22,10 @@ const MoonPhase = ({
   date,
   className 
 }: MoonPhaseProps) => {
+  // Get full moon name if applicable
+  const currentDate = new Date(date);
+  const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
+
   // Calculate visual representation of moon phase
   const getMoonPhaseVisual = () => {
     switch (phase) {
@@ -48,7 +54,12 @@ const MoonPhase = ({
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
-          <span>{phase}</span>
+          <div className="flex flex-col gap-2">
+            <span>{phase}</span>
+            {fullMoonName && (
+              <FullMoonBanner fullMoonName={fullMoonName} />
+            )}
+          </div>
           <span className="text-moon-primary text-sm">{date}</span>
         </CardTitle>
       </CardHeader>

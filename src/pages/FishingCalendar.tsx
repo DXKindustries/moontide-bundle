@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, addDays, addMonths, parse } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
@@ -11,6 +10,8 @@ import StarsBackdrop from '@/components/StarsBackdrop';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useTideData } from '@/hooks/useTideData';
 import { TideForecast, TidePoint } from '@/services/noaaService';
+import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
+import { getSolarEvents, calculateSolarTimes } from '@/utils/solarUtils';
 
 // Types for fishing conditions
 type MoonPhase = 'New Moon' | 'Waxing Crescent' | 'First Quarter' | 'Waxing Gibbous' | 
@@ -155,6 +156,9 @@ const FishingCalendar = () => {
       });
     }
 
+    // Calculate real solar times
+    const solarTimes = calculateSolarTimes(date);
+
     // Generate optimal fishing windows based on moon phase and tides
     const optimalFishingWindows = [];
     
@@ -196,8 +200,8 @@ const FishingCalendar = () => {
         highTide: highTides,
         lowTide: lowTides,
       },
-      sunrise: '06:15',  // These would ideally come from a weather API
-      sunset: '19:45',
+      sunrise: solarTimes.sunrise,
+      sunset: solarTimes.sunset,
       optimalFishingWindows
     };
   };
@@ -229,16 +233,23 @@ const FishingCalendar = () => {
     ? fishingInfo[format(selectedDate, 'yyyy-MM-dd')] 
     : undefined;
 
-  // Define modifiers for the calendar (for styling full/new moon dates)
+  // Define modifiers for the calendar (for styling full/new moon dates and solar events)
   const modifiers = {
     fullMoon: (date: Date) => {
-      const dayOfMonth = date.getDate();
-      return dayOfMonth % 29 === 14; // Simple pattern for demo
+      // Check if this date corresponds to a full moon in our forecast data
+      const dateStr = format(date, 'MMM d');
+      const forecast = weeklyForecast.find(f => f.date === dateStr);
+      return forecast ? isFullMoon(forecast.moonPhase) : false;
     },
     newMoon: (date: Date) => {
-      const dayOfMonth = date.getDate();
-      return dayOfMonth % 29 === 0; // Simple pattern for demo
+      // Check if this date corresponds to a new moon in our forecast data
+      const dateStr = format(date, 'MMM d');
+      const forecast = weeklyForecast.find(f => f.date === dateStr);
+      return forecast ? forecast.moonPhase === 'New Moon' : false;
     },
+    solarEvent: (date: Date) => {
+      return getSolarEvents(date) !== null;
+    }
   };
 
   // Get moon phase visual class
@@ -322,9 +333,13 @@ const FishingCalendar = () => {
                       <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                       <span className="text-xs text-muted-foreground">Full Moon</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-2">
                       <div className="w-3 h-3 rounded-full bg-gray-500"></div>
                       <span className="text-xs text-muted-foreground">New Moon</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">☀️</span>
+                      <span className="text-xs text-muted-foreground">Solar Event</span>
                     </div>
                   </div>
                 }
@@ -348,18 +363,42 @@ const FishingCalendar = () => {
                   <span>
                     {format(selectedDateInfo.date, 'EEEE, MMMM d, yyyy')}
                   </span>
-                  <Badge variant={selectedDateInfo.optimalFishingWindows.length > 0 ? "default" : "outline"}>
-                    {selectedDateInfo.optimalFishingWindows.length > 0 ? "Fishing Recommended" : "Regular Day"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {/* Solar event indicator */}
+                    {selectedDate && getSolarEvents(selectedDate) && (
+                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-100 border-yellow-500/30">
+                        {getSolarEvents(selectedDate)!.emoji} {getSolarEvents(selectedDate)!.name}
+                      </Badge>
+                    )}
+                    <Badge variant={selectedDateInfo.optimalFishingWindows.length > 0 ? "default" : "outline"}>
+                      {selectedDateInfo.optimalFishingWindows.length > 0 ? "Fishing Recommended" : "Regular Day"}
+                    </Badge>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Moon phase info */}
                 <div className="flex items-center space-x-6">
                   <div className={`w-16 h-16 rounded-full ${getMoonPhaseVisual(selectedDateInfo.moonPhase)}`}></div>
-                  <div>
-                    <h3 className="text-lg font-medium">{selectedDateInfo.moonPhase}</h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-2xl">{getMoonEmoji(selectedDateInfo.moonPhase)}</span>
+                      <h3 className="text-lg font-medium">{selectedDateInfo.moonPhase}</h3>
+                    </div>
                     <p className="text-muted-foreground">Illumination: {selectedDateInfo.illumination}%</p>
+                    {/* Show full moon name if applicable */}
+                    {isFullMoon(selectedDateInfo.moonPhase) && selectedDate && (
+                      <div className="mt-2">
+                        {(() => {
+                          const fullMoonName = getFullMoonName(selectedDate);
+                          return fullMoonName ? (
+                            <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-100 border-yellow-500/30">
+                              🌕 {fullMoonName.name}
+                            </Badge>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
                   </div>
                 </div>
                 

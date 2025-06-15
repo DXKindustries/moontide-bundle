@@ -3,9 +3,11 @@ import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
+import SolarInfo from '@/components/SolarInfo';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { TidePoint, TideForecast } from '@/services/noaaService';
+import { calculateSolarTimes } from '@/utils/solarUtils';
 
 interface MainContentProps {
   error: string | null;
@@ -32,6 +34,10 @@ export default function MainContent({
     date: currentDate || "May 21, 2025"
   };
 
+  // Calculate solar times for today
+  const today = new Date();
+  const solarTimes = calculateSolarTimes(today);
+
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
       {error && (
@@ -43,6 +49,11 @@ export default function MainContent({
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Solar information banner */}
+      <div className="mb-6">
+        <SolarInfo solarTimes={solarTimes} />
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MoonPhase
