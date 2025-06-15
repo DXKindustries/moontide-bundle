@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,42 +17,24 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  // Only forward standard props to custom day; DO NOT forward invalid props
+  // Forward ALL props from DayPicker. Only wrap children in .calendar-day-inner span.
   function DayCustom(props: any) {
-    // Destructure only valid props for a button element
-    // Remove any DayPicker-specific props that should NOT go on <button>
-    const {
-      date,
-      className = "",
-      selected,
-      disabled,
-      hidden,
-      today,
-      ...rest
-    } = props;
+    // Remove only data attributes React doesn't allow on <button> (for full DayPicker compatibility)
+    // Otherwise, spread everything, especially event handlers, aria, tabIndex, ref, etc.
+    const { children, ...otherProps } = props;
 
-    // Forward only aria-selected, tabIndex, onClick, etc.
+    // Use a React ref if provided by DayPicker—preserve as much default behavior as possible
     return (
-      <button
-        type="button"
-        tabIndex={rest.tabIndex}
-        aria-selected={rest["aria-selected"]}
-        aria-label={rest["aria-label"]}
-        disabled={disabled}
-        className={`${className} relative`}
-        onClick={rest.onClick}
-      >
-        <span className="calendar-day-inner relative z-20">{props.children}</span>
+      <button {...otherProps}>
+        <span className="calendar-day-inner relative z-20">{children}</span>
       </button>
     );
   }
 
   return (
     <Card className="bg-card/50 backdrop-blur-md relative">
-      {/* Inline style block for calendar event markers */}
       <style>
         {`
-        /* Full Moon: yellow dot below date */
         .calendar-full-moon .calendar-day-inner::after {
           content: '';
           position: absolute;
@@ -63,9 +44,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 9999px;
-          background-color: #fde047; /* Tailwind yellow-400 */
+          background-color: #fde047;
         }
-        /* New Moon: gray dot below date */
         .calendar-new-moon .calendar-day-inner::after {
           content: '';
           position: absolute;
@@ -75,9 +55,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 9999px;
-          background-color: #a3a3a3; /* Tailwind gray-400 */
+          background-color: #a3a3a3;
         }
-        /* Solar Event: orange dot below date */
         .calendar-solar-event .calendar-day-inner::after {
           content: '';
           position: absolute;
@@ -87,12 +66,11 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           width: 0.5rem;
           height: 0.5rem;
           border-radius: 9999px;
-          background-color: #f97316; /* Tailwind orange-500 */
+          background-color: #f97316;
         }
         `}
       </style>
       <CardHeader>
-        {/* Restore to original label (no "Fishing & Lunar Calendar") */}
         <CardTitle>Calendar</CardTitle>
       </CardHeader>
       <CardContent>
