@@ -68,39 +68,82 @@
   .star {
     @apply absolute rounded-full bg-white animate-pulse-subtle;
   }
-  
-  /* High specificity selectors to override react-day-picker default styles */
+
+  /* --- Calendar Modifier Colors Override --- */
+  /* FULL MOON (yellow - match legend) */
   .rdp .rdp-day.calendar-full-moon,
   .rdp .rdp-day.calendar-full-moon:not([aria-selected]),
-  .rdp .rdp-day.calendar-full-moon:hover {
-    background-color: rgb(251 191 36) !important;
-    color: rgb(17 24 39) !important;
+  .rdp .rdp-day.calendar-full-moon:hover,
+  .rdp .rdp-day.calendar-full-moon:focus,
+  .rdp .rdp-day.calendar-full-moon:active,
+  .rdp .rdp-day_selected.calendar-full-moon,
+  .rdp .rdp-day[aria-selected="true"].calendar-full-moon {
+    background-color: rgb(251 191 36) !important; /* yellow-400 */
+    color: rgb(17 24 39) !important; /* gray-900 */
     font-weight: bold !important;
     border: 2px solid rgb(251 191 36) !important;
     border-radius: 50% !important;
   }
-  
+  /* FULL MOON hover/focus, a little darker */
+  .rdp .rdp-day.calendar-full-moon:hover,
+  .rdp .rdp-day.calendar-full-moon:active,
+  .rdp .rdp-day.calendar-full-moon:focus {
+    background-color: rgb(245 158 11) !important; /* yellow-500 */
+  }
+
+  /* NEW MOON (gray - match legend) */
   .rdp .rdp-day.calendar-new-moon,
   .rdp .rdp-day.calendar-new-moon:not([aria-selected]),
-  .rdp .rdp-day.calendar-new-moon:hover {
-    background-color: rgb(107 114 128) !important;
+  .rdp .rdp-day.calendar-new-moon:hover,
+  .rdp .rdp-day.calendar-new-moon:focus,
+  .rdp .rdp-day.calendar-new-moon:active,
+  .rdp .rdp-day_selected.calendar-new-moon,
+  .rdp .rdp-day[aria-selected="true"].calendar-new-moon {
+    background-color: rgb(107 114 128) !important; /* gray-500 */
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(107 114 128) !important;
     border-radius: 50% !important;
   }
-  
+  /* NEW MOON hover/focus, a little darker */
+  .rdp .rdp-day.calendar-new-moon:hover,
+  .rdp .rdp-day.calendar-new-moon:active,
+  .rdp .rdp-day.calendar-new-moon:focus {
+    background-color: rgb(75 85 99) !important; /* gray-700 */
+  }
+
+  /* SOLAR EVENT (orange - match legend) */
   .rdp .rdp-day.calendar-solar-event,
   .rdp .rdp-day.calendar-solar-event:not([aria-selected]),
-  .rdp .rdp-day.calendar-solar-event:hover {
-    background-color: rgb(249 115 22) !important;
+  .rdp .rdp-day.calendar-solar-event:hover,
+  .rdp .rdp-day.calendar-solar-event:focus,
+  .rdp .rdp-day.calendar-solar-event:active,
+  .rdp .rdp-day_selected.calendar-solar-event,
+  .rdp .rdp-day[aria-selected="true"].calendar-solar-event {
+    background-color: rgb(249 115 22) !important; /* orange-500 */
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(249 115 22) !important;
     border-radius: 50% !important;
   }
-  
+  /* SOLAR EVENT hover/focus, a bit deeper orange */
+  .rdp .rdp-day.calendar-solar-event:hover,
+  .rdp .rdp-day.calendar-solar-event:active,
+  .rdp .rdp-day.calendar-solar-event:focus {
+    background-color: rgb(234 88 12) !important; /* orange-600 */
+  }
+
+  /* In case a selected day is _also_ a full-moon/new-moon/solar event, always show the event color
+     (Ensures no purple/blue selection color bleeds through) */
+  .rdp .rdp-day_selected.calendar-full-moon,
+  .rdp .rdp-day_selected.calendar-new-moon,
+  .rdp .rdp-day_selected.calendar-solar-event {
+    box-shadow: 0 0 0 2px rgb(68 64 60 / 0.5); /* faint outline for focus, optional */
+    z-index: 1; /* pop above */
+  }
+
   .day-optimal-fishing {
     @apply border-2 !border-moon-primary;
   }
 }
+
