@@ -9,6 +9,7 @@ import { LocationData } from '@/types/locationTypes';
 
 interface EnhancedLocationInputProps {
   onLocationSelect: (location: LocationData) => void;
+  onLocationClear?: () => void;
   onClose: () => void;
 }
 
@@ -16,7 +17,7 @@ interface SavedLocationWithNickname extends LocationData {
   nickname?: string;
 }
 
-export default function EnhancedLocationInput({ onLocationSelect, onClose }: EnhancedLocationInputProps) {
+export default function EnhancedLocationInput({ onLocationSelect, onLocationClear, onClose }: EnhancedLocationInputProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [savedLocations, setSavedLocations] = useState<SavedLocationWithNickname[]>([]);
