@@ -18,18 +18,18 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  // THIS FIXES: Make DayCustom forward ref and be DayPicker compatible!
-  // DayPicker expects a React.forwardRef component for Day override.
-  const DayCustom = React.forwardRef<HTMLButtonElement, any>((props, ref) => {
+  // Use DayPicker's DayProps signature for maximal compatibility
+  // This is NOT a forwardRef component! Just a function as required by DayPicker v8.
+  function DayCustom(props: any) {
+    // Spread all props (including event handlers, data, aria, tabIndex, style, etc)
+    // DayPicker guarantees that ref is not required here.
     const { children, ...otherProps } = props;
-    // Only spread props that are valid on <button>; DayPicker should be clean but just in case
     return (
-      <button ref={ref} {...otherProps}>
+      <button {...otherProps}>
         <span className="calendar-day-inner relative z-20">{children}</span>
       </button>
     );
-  });
-  DayCustom.displayName = "DayCustom";
+  }
 
   return (
     <Card className="bg-card/50 backdrop-blur-md relative">
@@ -81,7 +81,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
           components={{
-            Day: DayCustom
+            Day: DayCustom,
           }}
           footer={
             <div className="mt-3 pt-3 border-t border-muted">
