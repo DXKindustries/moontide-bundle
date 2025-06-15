@@ -51,15 +51,34 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Simple location detection - if we have a current location with meaningful data, we have a location
-  const hasLocation = !!(currentLocation && 
-    (currentLocation.zipCode || currentLocation.name || currentLocation.id));
+  // Fixed location detection logic - check for actual meaningful location data
+  const hasLocation = currentLocation && 
+    currentLocation !== null && 
+    (
+      // Valid ZIP code that's not empty or default
+      (currentLocation.zipCode && 
+       currentLocation.zipCode !== '' && 
+       currentLocation.zipCode !== 'default') ||
+      
+      // Valid name that's not a placeholder  
+      (currentLocation.name && 
+       currentLocation.name !== '' && 
+       currentLocation.name !== 'Select a location' && 
+       currentLocation.name !== 'Choose Location' &&
+       currentLocation.name !== 'Unknown Location') ||
+       
+      // Valid cityState combination
+      (currentLocation.cityState && 
+       currentLocation.cityState !== '' &&
+       currentLocation.cityState !== ', ')
+    );
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
     currentLocation, 
     zipCode: currentLocation?.zipCode,
     name: currentLocation?.name,
+    cityState: currentLocation?.cityState,
     id: currentLocation?.id
   });
 
@@ -93,7 +112,7 @@ const MoonPhase = ({
             {/* Solar Times Row */}
             <SolarInfo solarTimes={solarTimes} />
 
-            {/* Conditional Bottom Section - Fixed Logic */}
+            {/* Conditional Bottom Section - Show onboarding when NO location, show location info when HAS location */}
             {hasLocation ? (
               /* Location Display and Error - Show when location is selected */
               <LocationInfo 
