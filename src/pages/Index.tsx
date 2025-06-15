@@ -104,6 +104,7 @@ const Index = () => {
         currentLocation={currentLocation}
         stationName={stationName}
         onLocationChange={handleLocationChange}
+        hasError={!!error}
       />
 
       <MainContent 
