@@ -36,8 +36,12 @@ const MoonPhase = ({
   const currentDate = new Date(date);
   const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
 
-  // Calculate solar times for today
-  const solarTimes = calculateSolarTimes(currentDate);
+  // Calculate solar times for today using actual location coordinates
+  const solarTimes = calculateSolarTimes(
+    currentDate, 
+    currentLocation?.lat || 41.4353, 
+    currentLocation?.lng || -71.4616
+  );
 
   // Calculate visual representation of moon phase
   const getMoonPhaseVisual = () => {
