@@ -8,9 +8,11 @@ import { safeLocalStorage } from '@/utils/localStorage';
 import { lookupZipCode, formatCityStateFromZip } from '@/utils/zipCodeLookup';
 
 export interface SavedLocation {
-  name: string;      // "Narragansett"
-  zipCode: string;   // "02882"
-  cityState: string; // "Narragansett, RI"
+  id?: string;         // Add id as optional for compatibility
+  name: string;        // "Narragansett"
+  country?: string;    // Add country as optional for compatibility
+  zipCode: string;     // "02882"
+  cityState: string;   // "Narragansett, RI"
   lat: number;
   lng: number;
 }
