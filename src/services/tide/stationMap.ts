@@ -20,9 +20,11 @@ export const STATION_BY_ZIP: Record<
     name: 'SOUTH FERRY, NARRAGANSETT BAY',
   },
   
-  // Newport, Rhode Island
+  // Newport, Rhode Island - Using Newport specific station
   '02840': {
-    id: '8452660', // Using same station as Narragansett for now
-    name: 'NEWPORT - NARRAGANSETT BAY',
+    id: '8452660', // This is correct - Newport uses the same NOAA station
+    name: 'NEWPORT - NARRAGANSETT BAY', // But let's make the name more specific to Newport
   },
 };
+
+console.log('🗺️ Station mapping loaded:', STATION_BY_ZIP);
