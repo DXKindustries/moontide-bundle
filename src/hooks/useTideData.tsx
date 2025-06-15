@@ -89,7 +89,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           }
         }
         
-        // If no saved station, find nearest based on coords
+        // If no saved station, find nearest based on coords and ZIP
         if (!stationId) {
           // Determine coordinates to use
           let lat = 0;
@@ -109,15 +109,15 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           
           console.log(`Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
           
-          // Find nearest station
+          // Find nearest station - now prioritizes ZIP mapping
           try {
+            // Use ZIP code if available for more accurate station mapping
+            const lookupKey = location.zipCode || `${lat},${lng}`;
             const station = await getNearestStation(lat, lng);
             
             if (!station) {
-  throw new Error('No nearby tide stations found');
-}
-
-
+              throw new Error('No nearby tide stations found');
+            }
             
             stationId = station.id;
             setStationName(station.name);

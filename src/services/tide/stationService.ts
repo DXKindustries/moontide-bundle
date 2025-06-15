@@ -1,3 +1,4 @@
+
 // src/services/tide/stationService.ts
 // ────────────────────────────────────────────────────────────────────────────
 // Cached NOAA station metadata   +   nearest-station resolver   +   helpers
@@ -5,6 +6,7 @@
 
 import { fetchStationMetadata } from './metadata';
 import { getDistanceKm } from './geo';
+import { STATION_BY_ZIP } from './stationMap';
 
 export interface Station {
   id: string;
@@ -49,6 +51,7 @@ async function loadMetadata(): Promise<Station[]> {
 
 /**
  * Find the nearest station ≤ 50 km for a given lat/lng.
+ * First checks direct ZIP mapping, then falls back to distance search.
  * Results are memoised in memory and localStorage (by ZIP).
  */
 export async function getNearestStation(
@@ -56,22 +59,53 @@ export async function getNearestStation(
   lat: number,
   lng: number
 ): Promise<Station | null> {
+  // Return cached result if available
   if (nearestCache.hasOwnProperty(zip)) return nearestCache[zip];
 
-  const stations = await loadMetadata();
+  // First priority: Check direct ZIP mapping
+  if (STATION_BY_ZIP[zip]) {
+    const station: Station = {
+      id: STATION_BY_ZIP[zip].id,
+      name: STATION_BY_ZIP[zip].name,
+      lat: lat, // Use provided coordinates
+      lng: lng
+    };
+    nearestCache[zip] = station;
+    saveToStorage(nearestCache);
+    console.log(`Found direct ZIP mapping for ${zip}: ${station.name} (${station.id})`);
+    return station;
+  }
 
-  const nearest =
-    stations
-      .map((s) => ({
-        ...s,
-        distanceKm: getDistanceKm(lat, lng, s.lat, s.lng),
-      }))
-      .sort((a, b) => a.distanceKm - b.distanceKm)
-      .find((s) => s.distanceKm <= 50) ?? null;
+  // Second priority: Try comprehensive station search
+  try {
+    const stations = await loadMetadata();
+    
+    // If we only have local mapping data (lat/lng = 0), skip distance calculation
+    if (stations.length > 0 && stations[0].lat === 0 && stations[0].lng === 0) {
+      console.log('Only local station mapping available, no distance search possible');
+      nearestCache[zip] = null;
+      saveToStorage(nearestCache);
+      return null;
+    }
 
-  nearestCache[zip] = nearest;
-  saveToStorage(nearestCache);
-  return nearest;
+    const nearest =
+      stations
+        .map((s) => ({
+          ...s,
+          distanceKm: getDistanceKm(lat, lng, s.lat, s.lng),
+        }))
+        .sort((a, b) => a.distanceKm - b.distanceKm)
+        .find((s) => s.distanceKm <= 50) ?? null;
+
+    nearestCache[zip] = nearest;
+    saveToStorage(nearestCache);
+    return nearest;
+  } catch (error) {
+    console.warn('Station metadata search failed:', error);
+    nearestCache[zip] = null;
+    saveToStorage(nearestCache);
+    return null;
+  }
 }
 
 /**
