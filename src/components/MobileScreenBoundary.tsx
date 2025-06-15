@@ -1,7 +1,13 @@
 
 import React from 'react';
 
-const MobileScreenBoundary = () => {
+interface MobileScreenBoundaryProps {
+  show: boolean;
+}
+
+const MobileScreenBoundary = ({ show }: MobileScreenBoundaryProps) => {
+  if (!show) return null;
+
   // Typical mobile screen dimensions (iPhone 14/15 as reference)
   const mobileWidth = 390; // px
   const mobileHeight = 844; // px
