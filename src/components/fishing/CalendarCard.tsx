@@ -20,25 +20,32 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   const modifiers = {
     fullMoon: (date: Date) => {
       const isFullMoon = isDateFullMoon(date);
-      console.log(`Checking full moon for ${date.toDateString()}: ${isFullMoon}`);
+      if (isFullMoon) {
+        console.log(`✨ FULL MOON detected for ${date.toDateString()}`);
+      }
       return isFullMoon;
     },
     newMoon: (date: Date) => {
       const isNewMoon = isDateNewMoon(date);
-      console.log(`Checking new moon for ${date.toDateString()}: ${isNewMoon}`);
+      if (isNewMoon) {
+        console.log(`🌑 NEW MOON detected for ${date.toDateString()}`);
+      }
       return isNewMoon;
     },
     solarEvent: (date: Date) => {
-      const hasSolarEvent = getSolarEvents(date) !== null;
-      console.log(`Checking solar event for ${date.toDateString()}: ${hasSolarEvent}`);
+      const solarEvent = getSolarEvents(date);
+      const hasSolarEvent = solarEvent !== null;
+      if (hasSolarEvent) {
+        console.log(`☀️ SOLAR EVENT detected for ${date.toDateString()}: ${solarEvent.name}`);
+      }
       return hasSolarEvent;
     }
   };
 
   const modifiersClassNames = {
-    fullMoon: "day-full-moon",
-    newMoon: "day-new-moon", 
-    solarEvent: "day-solar-event"
+    fullMoon: "calendar-full-moon",
+    newMoon: "calendar-new-moon", 
+    solarEvent: "calendar-solar-event"
   };
 
   return (
