@@ -139,8 +139,27 @@ const Index = () => {
     }
   };
 
-  const handleGetStarted = () => {
-    setShowLocationSelector(true);
+  const handleGetStarted = (location?: LocationData) => {
+    console.log('🎯 handleGetStarted called with location:', location);
+    
+    if (location) {
+      // Convert LocationData to SavedLocation format and update current location
+      const savedLocation: SavedLocation = {
+        id: location.zipCode,
+        name: location.nickname || location.city,
+        country: "USA",
+        zipCode: location.zipCode,
+        cityState: `${location.city}, ${location.state}`,
+        lat: location.lat || 0,
+        lng: location.lng || 0
+      };
+      
+      console.log('🔄 Converting LocationData to SavedLocation and updating state:', savedLocation);
+      handleLocationChange(savedLocation);
+    } else {
+      // No location provided, just show the location selector
+      setShowLocationSelector(true);
+    }
   };
 
   console.log('🎨 About to render Index component with:', {
