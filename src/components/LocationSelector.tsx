@@ -31,47 +31,76 @@ export default function LocationSelector({
   /* ---------------- load / persist ---------------- */
   useEffect(() => {
     const raw = safeLocalStorage.getItem(STORAGE_KEY);
+    console.log('🏠 Loading saved locations from storage:', raw);
     if (raw) setSaved(JSON.parse(raw));
   }, []);
 
   useEffect(() => {
+    console.log('💾 Saving locations to storage:', saved);
     safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
   }, [saved]);
 
   /* ---------------- helpers ---------------- */
   const addLocation = async () => {
     const zip = search.trim();
+    console.log('🔍 Attempting to add location for ZIP:', zip);
+    
     if (!/^\d{5}$/.test(zip)) {
+      console.error('❌ Invalid ZIP format:', zip);
       toast.error('Enter a valid 5-digit U.S. ZIP');
       return;
     }
 
     try {
-      const geo = await lookupZipCode(zip);           // {post code, places:[{...}] ...}
+      console.log('🌐 Looking up ZIP code:', zip);
+      const geo = await lookupZipCode(zip);
+      console.log('📍 ZIP lookup result:', geo);
+      
       if (!geo || !geo.places || geo.places.length === 0) {
+        console.error('❌ ZIP not found in lookup service');
         toast.error('ZIP not found');
         return;
       }
+      
       const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
+      console.log('🏙️ Formatted city/state:', cityState);
+      
       // De-dup on zip
       if (saved.some(l => l.zipCode === zip)) {
+        console.log('⚠️ ZIP already exists in saved locations');
         toast.info('ZIP already saved');
         return;
       }
 
       const loc: SavedLocation = {
+        id: zip, // Use ZIP as ID
         name: geo.places[0]['place name'],
+        country: 'USA',
         zipCode: zip,
         cityState,
         lat: parseFloat(geo.places[0].latitude),
         lng: parseFloat(geo.places[0].longitude),
       };
+      
+      console.log('✅ Created location object:', loc);
       setSaved([...saved, loc]);
       setSearch('');
+      
+      console.log('📢 Calling onSelect with location:', loc);
       onSelect(loc);
       setIsOpen(false);
+      
+      toast.success(`Added ${cityState}`);
     } catch (err) {
+      console.error('💥 Error in addLocation:', err);
       toast.error('ZIP not found');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addLocation();
     }
   };
 
@@ -89,6 +118,7 @@ export default function LocationSelector({
           <Input
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder="Enter ZIP…"
             maxLength={5}
           />
@@ -111,6 +141,7 @@ export default function LocationSelector({
             key={loc.zipCode}
             className="flex w-full justify-between items-center px-2 py-1 rounded hover:bg-muted-foreground/10 text-left text-sm"
             onClick={() => {
+              console.log('🎯 Selected saved location:', loc);
               onSelect(loc);
               setIsOpen(false);
             }}

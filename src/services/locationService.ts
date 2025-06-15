@@ -19,6 +19,8 @@ type Location = {
 const sessionStationCache = new Map<string, string>();
 
 export const getStationId = async (location: Location): Promise<{ stationId: string; stationName?: string }> => {
+  console.log('🏭 getStationId called with location:', location);
+  
   let stationId = null;
   let stationName = null;
   
@@ -38,6 +40,8 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
         sessionStationCache.set(location.id, stationId);
         console.log(`✅ Found station ID for location ${location.id} in localStorage: ${stationId}`);
         return { stationId };
+      } else {
+        console.log(`📭 No cached station found for location ${location.id}`);
       }
     } catch (error) {
       console.warn('⚠️ Error getting station for location from localStorage:', error);
@@ -65,11 +69,13 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
     }
     
     console.log(`🔍 Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
+    console.log(`🔍 ZIP code available: ${location.zipCode}`);
     
     // Find nearest station - now prioritizes ZIP mapping
     try {
       console.log('🌐 Calling getNearestStation API...');
       const station = await getNearestStation(lat, lng);
+      console.log('🌐 getNearestStation returned:', station);
       
       if (!station) {
         console.error('❌ No nearby tide stations found');
