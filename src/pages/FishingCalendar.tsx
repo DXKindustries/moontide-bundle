@@ -47,13 +47,8 @@ const FishingCalendar = () => {
     } catch (error) {
       console.warn('Error reading location data:', error);
     }
-    // Fall back to default
-    return {
-      id: "sf",
-      name: "San Francisco", 
-      country: "USA",
-      zipCode: "94105"
-    };
+    // NO more fallback — begin with null so app prompts for user location
+    return null;
   });
 
   // Fetch real tide data from NOAA
