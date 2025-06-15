@@ -16,8 +16,8 @@ type NoaaStation = {
 const BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
-/* Public CORS proxy for development/demo. For production, host your own. */
-const PROXY_BASE = 'https://api.allorigins.win/raw?url=';
+/* Local proxy for CORS resolution */
+const LOCAL_PROXY_BASE = 'http://localhost:3001/api/noaa';
 
 interface PredictionParams {
   station: string;          // NOAA station ID
@@ -54,25 +54,25 @@ function buildQuery(p: PredictionParams): string {
 
 async function fetchPredictions(p: PredictionParams) {
   const noaaUrl = buildQuery(p);
-  const proxyUrl = `${PROXY_BASE}${encodeURIComponent(noaaUrl)}`;
+  const proxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(noaaUrl)}`;
   
-  console.log('🌐 Making request through public CORS proxy:', proxyUrl);
+  console.log('🌐 Making request through local proxy:', proxyUrl);
   
   const res = await fetch(proxyUrl);
   if (!res.ok) {
     const errorText = await res.text();
-    console.error('❌ Proxy request failed:', res.status, res.statusText, errorText);
-    throw new Error(`Proxy request failed with status: ${res.status}. Error: ${errorText}`);
+    console.error('❌ Local proxy request failed:', res.status, res.statusText, errorText);
+    throw new Error(`Local proxy request failed with status: ${res.status}. Error: ${errorText}`);
   }
   
   const data = await res.json();
 
   if (data.error) {
-    console.error('❌ NOAA API returned an error via proxy:', data.error.message);
+    console.error('❌ NOAA API returned an error via local proxy:', data.error.message);
     throw new Error(`NOAA API Error: ${data.error.message}`);
   }
 
-  console.log('✅ Proxy response received:', data);
+  console.log('✅ Local proxy response received:', data);
   return data;               // { predictions: [...] }
 }
 

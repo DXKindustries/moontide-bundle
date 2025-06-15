@@ -1,4 +1,3 @@
-
 interface NoaaStationMetadata {
   id: string;
   name: string;
@@ -8,7 +7,7 @@ interface NoaaStationMetadata {
 }
 
 const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
-const PROXY_BASE = 'https://api.allorigins.win/raw?url=';
+const LOCAL_PROXY_BASE = 'http://localhost:3001/api/noaa';
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
@@ -19,12 +18,12 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   }
   
   try {
-    console.log('🌐 Fetching real NOAA station metadata...');
-    const proxyUrl = `${PROXY_BASE}${encodeURIComponent(NOAA_STATIONS_API)}`;
+    console.log('🌐 Fetching real NOAA station metadata via local proxy...');
+    const proxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
     
     const response = await fetch(proxyUrl);
     if (!response.ok) {
-      throw new Error(`Station API returned ${response.status}`);
+      throw new Error(`Local proxy returned ${response.status}`);
     }
     
     const data = await response.json();
@@ -47,13 +46,13 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
           state: station.state
         }));
       
-      console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations`);
+      console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via local proxy`);
       return stationCache;
     }
     
     throw new Error('Invalid station data format');
   } catch (error) {
-    console.error('❌ Failed to fetch real station metadata:', error);
+    console.error('❌ Failed to fetch real station metadata via local proxy:', error);
     throw error;
   }
 }
