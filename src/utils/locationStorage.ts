@@ -1,4 +1,3 @@
-
 import { safeLocalStorage } from './localStorage';
 import { LocationData } from '@/types/locationTypes';
 
@@ -105,6 +104,7 @@ export const locationStorage = {
   deleteLocation: (locationToDelete: LocationData): void => {
     try {
       const history = locationStorage.getLocationHistory();
+      const currentLocation = locationStorage.getCurrentLocation();
       
       // Filter out the location to delete
       const updatedHistory = history.filter(loc => {
@@ -115,6 +115,20 @@ export const locationStorage = {
       });
       
       safeLocalStorage.set(LOCATION_HISTORY_KEY, updatedHistory);
+      
+      // Check if the deleted location is the current location and clear it if so
+      if (currentLocation) {
+        const isCurrentMatch = (locationToDelete.zipCode && currentLocation.zipCode && 
+                               currentLocation.zipCode === locationToDelete.zipCode) ||
+                              (currentLocation.city === locationToDelete.city && 
+                               currentLocation.state === locationToDelete.state);
+        
+        if (isCurrentMatch) {
+          console.log('🗑️ Deleted location matches current location, clearing current location');
+          locationStorage.clearCurrentLocation();
+        }
+      }
+      
       console.log('✅ Location deleted successfully');
     } catch (error) {
       console.error('❌ Error deleting location:', error);
