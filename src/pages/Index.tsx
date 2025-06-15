@@ -3,10 +3,8 @@ import React, { useState, useEffect } from 'react';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
-import OnboardingMessage from '@/components/OnboardingMessage';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
-import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import { toast } from 'sonner';
 import { useTideData } from '@/hooks/useTideData';
@@ -112,40 +110,26 @@ const Index = () => {
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
       
-      {!currentLocation ? (
-        <>
-          <AppHeader 
-            currentLocation={currentLocation}
-            stationName={stationName}
-            onLocationChange={handleLocationChange}
-            hasError={!!error}
-            forceShowLocationSelector={showLocationSelector}
-            onLocationSelectorClose={() => setShowLocationSelector(false)}
-          />
-          <OnboardingMessage onGetStarted={handleGetStarted} />
-        </>
-      ) : (
-        <>
-          <AppHeader 
-            currentLocation={currentLocation}
-            stationName={stationName}
-            onLocationChange={handleLocationChange}
-            hasError={!!error}
-            forceShowLocationSelector={showLocationSelector}
-            onLocationSelectorClose={() => setShowLocationSelector(false)}
-          />
-          <MainContent 
-            error={error}
-            isLoading={isLoading}
-            tideData={tideData}
-            weeklyForecast={weeklyForecast}
-            currentDate={currentDate}
-            currentTime={currentTime}
-            currentLocation={currentLocation}
-            stationName={stationName}
-          />
-        </>
-      )}
+      <AppHeader 
+        currentLocation={currentLocation}
+        stationName={stationName}
+        onLocationChange={handleLocationChange}
+        hasError={!!error}
+        forceShowLocationSelector={showLocationSelector}
+        onLocationSelectorClose={() => setShowLocationSelector(false)}
+      />
+      
+      <MainContent 
+        error={error}
+        isLoading={isLoading}
+        tideData={tideData}
+        weeklyForecast={weeklyForecast}
+        currentDate={currentDate}
+        currentTime={currentTime}
+        currentLocation={currentLocation}
+        stationName={stationName}
+        onGetStarted={handleGetStarted}
+      />
     </div>
   );
 };
