@@ -1,3 +1,4 @@
+
 import {
   getNearestStation as _getNearestStation,
   getSavedStationForLocation,
@@ -57,7 +58,10 @@ export async function getCurrentTideData(stationId: string): Promise<{
   try {
     // Default to today (local date)
     const now = new Date();
-    const dateStr = now.toISOString().slice(0,10);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     // The fetchDailyTides method returns an object with { predictions: [...] }
     const fakeStation = { id: stationId, name: 'NOAA', lat: 0, lng: 0 };
     const res = await fetchDailyTides(fakeStation, now);
