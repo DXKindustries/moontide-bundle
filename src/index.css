@@ -69,8 +69,10 @@
     @apply absolute rounded-full bg-white animate-pulse-subtle;
   }
   
-  /* Target react-day-picker modifier classes directly - made circular */
-  .rdp-day.calendar-full-moon {
+  /* High specificity selectors to override react-day-picker default styles */
+  .rdp .rdp-day.calendar-full-moon,
+  .rdp .rdp-day.calendar-full-moon:not([aria-selected]),
+  .rdp .rdp-day.calendar-full-moon:hover {
     background-color: rgb(251 191 36) !important;
     color: rgb(17 24 39) !important;
     font-weight: bold !important;
@@ -78,7 +80,9 @@
     border-radius: 50% !important;
   }
   
-  .rdp-day.calendar-new-moon {
+  .rdp .rdp-day.calendar-new-moon,
+  .rdp .rdp-day.calendar-new-moon:not([aria-selected]),
+  .rdp .rdp-day.calendar-new-moon:hover {
     background-color: rgb(107 114 128) !important;
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
@@ -86,25 +90,14 @@
     border-radius: 50% !important;
   }
   
-  .rdp-day.calendar-solar-event {
+  .rdp .rdp-day.calendar-solar-event,
+  .rdp .rdp-day.calendar-solar-event:not([aria-selected]),
+  .rdp .rdp-day.calendar-solar-event:hover {
     background-color: rgb(249 115 22) !important;
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(249 115 22) !important;
     border-radius: 50% !important;
-  }
-  
-  /* Hover states */
-  .rdp-day.calendar-full-moon:hover {
-    background-color: rgb(245 158 11) !important;
-  }
-  
-  .rdp-day.calendar-new-moon:hover {
-    background-color: rgb(75 85 99) !important;
-  }
-  
-  .rdp-day.calendar-solar-event:hover {
-    background-color: rgb(234 88 12) !important;
   }
   
   .day-optimal-fishing {

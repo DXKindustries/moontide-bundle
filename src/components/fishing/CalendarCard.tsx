@@ -50,6 +50,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
     solarEvent: "calendar-solar-event"
   };
 
+  console.log('🔧 CalendarCard rendering with modifiers:', modifiers);
+  console.log('🔧 Calendar modifiersClassNames:', modifiersClassNames);
+
   return (
     <Card className="bg-card/50 backdrop-blur-md">
       <CardHeader>
