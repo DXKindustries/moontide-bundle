@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CloudMoon, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
           <div className="flex items-center">
             <CloudMoon className="h-8 w-8 text-moon-primary mr-2" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
-              MoonTide
+              Calendar
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -50,4 +49,3 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
 };
 
 export default FishingCalendarHeader;
-

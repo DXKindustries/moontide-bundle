@@ -10,7 +10,7 @@ import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
 import CalendarCard from '@/components/fishing/CalendarCard';
 import SelectedDateDetails from '@/components/fishing/SelectedDateDetails';
 
-// Types for fishing conditions
+// Types for calendar conditions (was: fishing conditions)
 type MoonPhase = 'New Moon' | 'Waxing Crescent' | 'First Quarter' | 'Waxing Gibbous' | 
                  'Full Moon' | 'Waning Gibbous' | 'Last Quarter' | 'Waning Crescent';
 
@@ -34,7 +34,7 @@ type DayFishingInfo = {
   }[];
 };
 
-const FishingCalendar = () => {
+const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [fishingInfo, setFishingInfo] = useState<Record<string, DayFishingInfo>>({});
   const [currentLocation, setCurrentLocation] = useState(() => {
@@ -109,7 +109,7 @@ const FishingCalendar = () => {
     };
   };
 
-  // Generate fishing info combining moon data and real tide data
+  // Generate info combining moon data and real tide data
   const generateFishingInfoForDate = (date: Date, forecasts: TideForecast[], tides: TidePoint[]): DayFishingInfo => {
     // Get moon phase from forecasts with fallback
     const { phase: moonPhase, illumination } = forecasts.length > 0 
@@ -198,14 +198,14 @@ const FishingCalendar = () => {
     };
   };
   
-  // When a date is selected, generate fishing info based on the real tide data
+  // When a date is selected, generate info based on the real tide data
   const handleSelectDate = (date: Date | undefined) => {
     setSelectedDate(date);
     if (!date) return;
     
     const dateStr = format(date, 'yyyy-MM-dd');
     
-    // Generate fishing info using real tide data or mock data if not available
+    // Generate info using real tide data or mock data if not available
     const newInfo = generateFishingInfoForDate(date, weeklyForecast, tideData);
     setFishingInfo(prev => ({
       ...prev,
@@ -264,7 +264,7 @@ const FishingCalendar = () => {
           ) : (
             <Card className="bg-card/50 backdrop-blur-md md:col-span-2">
               <CardContent className="flex items-center justify-center h-full p-12">
-                <p className="text-muted-foreground">Select a date to see fishing conditions</p>
+                <p className="text-muted-foreground">Select a date to see calendar conditions</p>
               </CardContent>
             </Card>
           )}
@@ -274,4 +274,5 @@ const FishingCalendar = () => {
   );
 };
 
-export default FishingCalendar;
+// For routing (must keep the file name and export as default)
+export default Calendar;
