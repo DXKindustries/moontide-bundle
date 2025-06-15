@@ -1,10 +1,9 @@
 
-import React from 'react';
-import { Calendar } from '@/components/ui/calendar';
+import React from "react";
+import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TideForecast } from '@/services/noaaService';
-import { calculateMoonPhase } from '@/utils/lunarUtils';
-import { getSolarEvents } from '@/utils/solarUtils';
+import { TideForecast } from "@/services/noaaService";
+import { useCalendarModifiers } from "./useCalendarModifiers";
 
 type CalendarCardProps = {
   selectedDate: Date | undefined;
@@ -15,45 +14,12 @@ type CalendarCardProps = {
 const CalendarCard: React.FC<CalendarCardProps> = ({
   selectedDate,
   onSelectDate,
-  weeklyForecast
+  weeklyForecast,
 }) => {
-  const modifiers = {
-    fullMoon: (date: Date) => {
-      // Use accurate full moon calculation
-      const { phase } = calculateMoonPhase(date);
-      const isFullMoon = phase === "Full Moon";
-      if (isFullMoon) {
-        console.log(`✨ FULL MOON detected for ${date.toDateString()}`);
-      }
-      return isFullMoon;
-    },
-    newMoon: (date: Date) => {
-      // Use accurate new moon calculation
-      const { phase } = calculateMoonPhase(date);
-      const isNewMoon = phase === "New Moon";
-      if (isNewMoon) {
-        console.log(`🌑 NEW MOON detected for ${date.toDateString()}`);
-      }
-      return isNewMoon;
-    },
-    solarEvent: (date: Date) => {
-      const solarEvent = getSolarEvents(date);
-      const hasSolarEvent = solarEvent !== null;
-      if (hasSolarEvent) {
-        console.log(`☀️ SOLAR EVENT detected for ${date.toDateString()}: ${solarEvent.name}`);
-      }
-      return hasSolarEvent;
-    }
-  };
+  const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  const modifiersClassNames = {
-    fullMoon: "calendar-full-moon",
-    newMoon: "calendar-new-moon", 
-    solarEvent: "calendar-solar-event"
-  };
-
-  console.log('🔧 CalendarCard rendering with accurate full/new moon modifiers');
-  console.log('🔧 Calendar modifiersClassNames:', modifiersClassNames);
+  console.log("🔧 CalendarCard rendering with accurate full/new moon modifiers");
+  console.log("🔧 Calendar modifiersClassNames:", modifiersClassNames);
 
   return (
     <Card className="bg-card/50 backdrop-blur-md">
