@@ -19,14 +19,16 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const modifiers = {
     fullMoon: (date: Date) => {
-      const isFullMoon = isDateFullMoon(date);
+      // Only show full moon on the 15th of each month for simplicity
+      const isFullMoon = date.getDate() === 15;
       if (isFullMoon) {
         console.log(`✨ FULL MOON detected for ${date.toDateString()}`);
       }
       return isFullMoon;
     },
     newMoon: (date: Date) => {
-      const isNewMoon = isDateNewMoon(date);
+      // Only show new moon on the 1st of each month for simplicity
+      const isNewMoon = date.getDate() === 1;
       if (isNewMoon) {
         console.log(`🌑 NEW MOON detected for ${date.toDateString()}`);
       }
