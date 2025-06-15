@@ -37,6 +37,7 @@ const MoonPhase = ({
   error,
   onGetStarted
 }: MoonPhaseProps) => {
+  console.log('🌙 MoonPhase render START');
   console.log('🌙 MoonPhase render - currentLocation:', currentLocation);
   console.log('🌙 MoonPhase render - currentLocation type:', typeof currentLocation);
   console.log('🌙 MoonPhase render - currentLocation zipCode:', currentLocation?.zipCode);
@@ -75,6 +76,7 @@ const MoonPhase = ({
   });
 
   console.log('🌙 MoonPhase will show:', hasLocation ? 'LocationInfo' : 'OnboardingInfo');
+  console.log('🌙 MoonPhase render END');
 
   return (
     <div className="w-full">

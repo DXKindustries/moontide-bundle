@@ -66,8 +66,14 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
     }
     
     // IMPORTANT: Update the component state to null to trigger re-render
+    console.log('🔄 About to call setCurrentLocation(null)');
     setCurrentLocation(null);
     console.log('🔄 Component state updated to null - onboarding should now show');
+    
+    // Force a small delay to ensure state propagation
+    setTimeout(() => {
+      console.log('🔄 Delayed check - location should be null now');
+    }, 100);
   };
 
   const handleGetStarted = (location?: LocationData) => {
