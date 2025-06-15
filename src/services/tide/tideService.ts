@@ -1,9 +1,16 @@
+
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
 /*  Fetch daily and weekly tide predictions from NOAA’s new cloud endpoint.   */
 
-import type { NoaaStation } from './stationService';
+// Use an inline type instead of external import to avoid build issues
+type NoaaStation = {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+};
 
 /* Cloud host — note the mandatory `/prod/` segment */
 const BASE =
