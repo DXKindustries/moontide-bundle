@@ -2,7 +2,7 @@
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
-/*  Fetch daily and weekly tide predictions from NOAA’s new cloud endpoint.   */
+/*  Fetch daily and weekly tide predictions from NOAA's new cloud endpoint.   */
 
 // Use an inline type instead of external import to avoid build issues
 type NoaaStation = {
@@ -15,6 +15,9 @@ type NoaaStation = {
 /* Cloud host — note the mandatory `/prod/` segment */
 const BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+
+/* Proxy server configuration */
+const PROXY_BASE = 'http://localhost:3001/api/noaa';
 
 interface PredictionParams {
   station: string;          // NOAA station ID
@@ -43,10 +46,21 @@ function buildQuery(p: PredictionParams): string {
 }
 
 async function fetchPredictions(p: PredictionParams) {
-  const url = buildQuery(p);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`noaaError:${res.status}`);
-  return res.json();               // { predictions: [...] }
+  const noaaUrl = buildQuery(p);
+  const proxyUrl = `${PROXY_BASE}?url=${encodeURIComponent(noaaUrl)}`;
+  
+  console.log('🌐 Making request through proxy:', proxyUrl);
+  console.log('🎯 Target NOAA URL:', noaaUrl);
+  
+  const res = await fetch(proxyUrl);
+  if (!res.ok) {
+    console.error('❌ Proxy request failed:', res.status, res.statusText);
+    throw new Error(`proxyError:${res.status}`);
+  }
+  
+  const data = await res.json();
+  console.log('✅ Proxy response received:', data);
+  return data;               // { predictions: [...] }
 }
 
 /* -------------------------- PUBLIC EXPORTS ------------------------------- */
