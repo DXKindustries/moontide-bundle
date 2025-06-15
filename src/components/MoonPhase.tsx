@@ -51,6 +51,13 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
+  // Check if we have a valid location - could be zipCode or name
+  const hasLocation = currentLocation && (
+    currentLocation.zipCode || 
+    currentLocation.name || 
+    currentLocation.city
+  );
+
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
@@ -81,7 +88,7 @@ const MoonPhase = ({
           <SolarInfo solarTimes={solarTimes} />
 
           {/* Conditional Bottom Section */}
-          {!currentLocation ? (
+          {!hasLocation ? (
             /* Onboarding Information - Show when no location is selected */
             <OnboardingInfo onGetStarted={onGetStarted!} />
           ) : (
