@@ -1,10 +1,13 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TideForecast } from '@/services/noaaService';
 import { isDateFullMoon, isDateNewMoon } from '@/utils/lunarUtils';
 import { getSolarEvents } from '@/utils/solarUtils';
+import { DayPickerDayProps } from 'react-day-picker';
+
+// Single dot indicator color for full moon
+const FULL_MOON_DOT_COLOR = "bg-yellow-400";
 
 type CalendarCardProps = {
   selectedDate: Date | undefined;
@@ -17,6 +20,36 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   onSelectDate,
   weeklyForecast
 }) => {
+  // Custom day renderer for full moon dots
+  const renderDay = (date: Date, dayProps: DayPickerDayProps) => {
+    const isFullMoon = isDateFullMoon(date);
+    // Use default day button styles
+    return (
+      <div className="relative flex flex-col items-center">
+        <span
+          className={
+            [
+              "z-10",
+              dayProps.selected ? "font-bold text-primary" : "",
+              dayProps.today ? "border border-accent rounded-full" : "",
+              dayProps.disabled ? "text-muted-foreground opacity-50" : ""
+            ].join(" ")
+          }
+        >
+          {date.getDate()}
+        </span>
+        {isFullMoon && (
+          <span
+            className={`w-1.5 h-1.5 mt-0.5 rounded-full ${FULL_MOON_DOT_COLOR}`}
+            data-testid="full-moon-dot"
+            title="Full Moon"
+          />
+        )}
+      </div>
+    );
+  };
+
+  // Other modifiers can remain for now (may update new moon/solar later)
   const modifiers = {
     fullMoon: (date: Date) => {
       // Only show full moon on the 15th of each month for simplicity
@@ -43,15 +76,11 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
       return hasSolarEvent;
     }
   };
-
   const modifiersClassNames = {
     fullMoon: "calendar-full-moon",
     newMoon: "calendar-new-moon", 
     solarEvent: "calendar-solar-event"
   };
-
-  console.log('🔧 CalendarCard rendering with modifiers:', modifiers);
-  console.log('🔧 Calendar modifiersClassNames:', modifiersClassNames);
 
   return (
     <Card className="bg-card/50 backdrop-blur-md">
@@ -65,6 +94,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           onSelect={onSelectDate}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
+          renderDay={renderDay}
           footer={
             <div className="mt-3 pt-3 border-t border-muted">
               <div className="flex items-center gap-2 mb-2">
