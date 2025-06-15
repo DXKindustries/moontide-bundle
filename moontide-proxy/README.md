@@ -1,7 +1,7 @@
 
 # MoonTide Proxy Server
 
-A TypeScript-based Node.js proxy server to bypass CORS restrictions when accessing the NOAA API from the frontend.
+A simple Express proxy server to bypass CORS restrictions when accessing the NOAA API from the frontend.
 
 ## Setup
 
@@ -46,9 +46,3 @@ curl "http://localhost:3001/api/noaa?url=https://api.tidesandcurrents.noaa.gov/a
 - `npm run build`: Build TypeScript to JavaScript
 - `npm run start`: Start production server
 - `npm run type-check`: Check TypeScript types without building
-
-## Security
-
-- Only allows requests to NOAA API endpoints (`api.tidesandcurrents.noaa.gov`)
-- Validates URL parameters
-- Includes proper error handling and logging
