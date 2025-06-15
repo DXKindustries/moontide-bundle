@@ -34,6 +34,7 @@ const MoonPhase = ({
   onGetStarted
 }: MoonPhaseProps) => {
   console.log('MoonPhase rendering with:', { phase, illumination, currentLocation, stationName, error });
+  console.log('MoonPhase onGetStarted function:', onGetStarted);
 
   // Get full moon name if applicable
   const currentDate = new Date(date);
@@ -80,6 +81,16 @@ const MoonPhase = ({
       return `${currentLocation.name}, ${currentLocation.country}`;
     }
     return currentLocation.name || "Select a location";
+  };
+
+  const handleGetStartedClick = () => {
+    console.log('Enter Your Location button clicked');
+    console.log('onGetStarted function available:', !!onGetStarted);
+    if (onGetStarted) {
+      onGetStarted();
+    } else {
+      console.error('onGetStarted function not provided');
+    }
   };
 
   return (
@@ -163,7 +174,7 @@ const MoonPhase = ({
               </div>
               
               <Button
-                onClick={onGetStarted}
+                onClick={handleGetStartedClick}
                 className="w-full bg-moon-primary hover:bg-moon-primary/90 text-white py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Search className="w-4 h-4" />
