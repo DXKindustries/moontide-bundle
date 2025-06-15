@@ -3,7 +3,7 @@ import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TideForecast } from '@/services/noaaService';
-import { isDateFullMoon, isDateNewMoon } from '@/utils/lunarUtils';
+import { calculateMoonPhase } from '@/utils/lunarUtils';
 import { getSolarEvents } from '@/utils/solarUtils';
 
 type CalendarCardProps = {
@@ -19,16 +19,18 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const modifiers = {
     fullMoon: (date: Date) => {
-      // Only show full moon on the 15th of each month for simplicity
-      const isFullMoon = date.getDate() === 15;
+      // Use accurate full moon calculation
+      const { phase } = calculateMoonPhase(date);
+      const isFullMoon = phase === "Full Moon";
       if (isFullMoon) {
         console.log(`✨ FULL MOON detected for ${date.toDateString()}`);
       }
       return isFullMoon;
     },
     newMoon: (date: Date) => {
-      // Only show new moon on the 1st of each month for simplicity
-      const isNewMoon = date.getDate() === 1;
+      // Use accurate new moon calculation
+      const { phase } = calculateMoonPhase(date);
+      const isNewMoon = phase === "New Moon";
       if (isNewMoon) {
         console.log(`🌑 NEW MOON detected for ${date.toDateString()}`);
       }
@@ -50,7 +52,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
     solarEvent: "calendar-solar-event"
   };
 
-  console.log('🔧 CalendarCard rendering with modifiers:', modifiers);
+  console.log('🔧 CalendarCard rendering with accurate full/new moon modifiers');
   console.log('🔧 Calendar modifiersClassNames:', modifiersClassNames);
 
   return (
@@ -88,3 +90,4 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 };
 
 export default CalendarCard;
+
