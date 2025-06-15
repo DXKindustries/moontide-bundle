@@ -4,6 +4,7 @@ import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
 import { TidePoint, TideForecast } from '@/services/noaaService';
+import { LocationData } from '@/types/locationTypes';
 
 interface MainContentProps {
   error: string | null;
@@ -14,7 +15,7 @@ interface MainContentProps {
   currentTime: string;
   currentLocation: any;
   stationName: string | null;
-  onGetStarted?: () => void;
+  onGetStarted?: (location?: LocationData) => void;
 }
 
 export default function MainContent({ 

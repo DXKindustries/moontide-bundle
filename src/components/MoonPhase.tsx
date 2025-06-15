@@ -10,6 +10,7 @@ import MoonData from './MoonData';
 import SolarInfo from './SolarInfo';
 import OnboardingInfo from './OnboardingInfo';
 import LocationInfo from './LocationInfo';
+import { LocationData } from '@/types/locationTypes';
 
 type MoonPhaseProps = {
   phase: string;
@@ -21,7 +22,7 @@ type MoonPhaseProps = {
   currentLocation?: any;
   stationName?: string | null;
   error?: string | null;
-  onGetStarted?: () => void;
+  onGetStarted?: (location?: LocationData) => void;
 }
 
 const MoonPhase = ({ 

@@ -7,7 +7,7 @@ import { LocationData } from '@/types/locationTypes';
 import { locationStorage } from '@/utils/locationStorage';
 
 type OnboardingInfoProps = {
-  onGetStarted: () => void;
+  onGetStarted: (location?: LocationData) => void;
 };
 
 const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
@@ -24,20 +24,9 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
     // Save the location
     locationStorage.saveCurrentLocation(location);
     
-    // Convert to the format expected by the parent component
-    const savedLocation = {
-      id: location.zipCode || location.city,
-      name: location.city,
-      country: 'USA',
-      zipCode: location.zipCode,
-      cityState: `${location.city}, ${location.state}`,
-      lat: location.lat || 0,
-      lng: location.lng || 0
-    };
-    
-    // Close modal and trigger location change
+    // Close modal and trigger location change with the actual location data
     setShowLocationModal(false);
-    onGetStarted();
+    onGetStarted(location);
   };
 
   const handleModalClose = () => {
