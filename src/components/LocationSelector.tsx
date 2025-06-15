@@ -21,10 +21,12 @@ export interface SavedLocation {
 
 export default function LocationSelector({
   onSelect,
+  onLocationClear,
   forceOpen,
   onClose,
 }: {
   onSelect: (loc: SavedLocation) => void;
+  onLocationClear?: () => void;
   forceOpen?: boolean;
   onClose?: () => void;
 }) {
@@ -64,6 +66,13 @@ export default function LocationSelector({
     onSelect(savedLocation);
     setIsOpen(false);
     setShowAddNew(false);
+  };
+
+  const handleLocationClear = (): void => {
+    console.log('🗑️ Location clear triggered in LocationSelector');
+    if (onLocationClear) {
+      onLocationClear();
+    }
   };
 
   const handleSavedLocationSelect = (location: LocationData): void => {
@@ -117,6 +126,7 @@ export default function LocationSelector({
             </div>
             <EnhancedLocationInput
               onLocationSelect={handleLocationSelect}
+              onLocationClear={handleLocationClear}
               onClose={() => setIsOpen(false)}
             />
           </div>

@@ -12,7 +12,7 @@ type EntryMode = 'zip' | 'manual' | 'confirmation';
 
 interface ZipCodeEntryProps {
   onLocationSelect: (location: LocationData) => void;
-  onLocationClear?: () => void; // New prop to handle clearing
+  onLocationClear?: () => void;
   onClose?: () => void;
   initialZip?: string;
   skipAutoLoad?: boolean;
@@ -88,9 +88,12 @@ export default function ZipCodeEntry({
     setCurrentZip('');
     setPendingLocation(null);
     
-    // Clear the stored location and notify parent
+    // Clear the stored location
     locationStorage.clearCurrentLocation();
+    
+    // Notify parent component about the clear action
     if (onLocationClear) {
+      console.log('🔄 Calling onLocationClear callback');
       onLocationClear();
     }
   };
