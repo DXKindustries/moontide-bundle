@@ -116,6 +116,8 @@ const Index = () => {
         weeklyForecast={weeklyForecast}
         currentDate={currentDate}
         currentTime={currentTime}
+        currentLocation={currentLocation}
+        stationName={stationName}
       />
     </div>
   );

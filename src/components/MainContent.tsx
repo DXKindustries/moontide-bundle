@@ -3,6 +3,7 @@ import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
+import LocationDisplay from './LocationDisplay';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { TidePoint, TideForecast } from '@/services/noaaService';
@@ -14,6 +15,8 @@ interface MainContentProps {
   weeklyForecast: TideForecast[];
   currentDate: string;
   currentTime: string;
+  currentLocation: any;
+  stationName: string | null;
 }
 
 export default function MainContent({ 
@@ -22,7 +25,9 @@ export default function MainContent({
   tideData, 
   weeklyForecast, 
   currentDate, 
-  currentTime 
+  currentTime,
+  currentLocation,
+  stationName
 }: MainContentProps) {
   const moonPhaseData = {
     phase: weeklyForecast.length > 0 ? weeklyForecast[0].moonPhase : "Waxing Crescent",
@@ -34,15 +39,26 @@ export default function MainContent({
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error}. Using mock data instead.
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Location and Error Display Area */}
+      <div className="mb-6 space-y-4">
+        <div className="flex justify-center">
+          <LocationDisplay 
+            currentLocation={currentLocation}
+            stationName={stationName}
+            hasError={!!error}
+          />
+        </div>
+        
+        {error && (
+          <Alert variant="destructive" className="max-w-2xl mx-auto">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {error}. Using mock data instead.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MoonPhase

@@ -3,14 +3,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CloudMoon, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import LocationDisplay from './LocationDisplay';
 import LocationSelector, { SavedLocation } from './LocationSelector';
 
 interface AppHeaderProps {
   currentLocation: SavedLocation & { id: string; country: string } | null;
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
-  hasError?: boolean; // Add error prop
+  hasError?: boolean;
 }
 
 export default function AppHeader({ currentLocation, stationName, onLocationChange, hasError }: AppHeaderProps) {
@@ -31,11 +30,6 @@ export default function AppHeader({ currentLocation, stationName, onLocationChan
                 <span className="hidden md:inline">Fishing Calendar</span>
               </Button>
             </Link>
-            <LocationDisplay 
-              currentLocation={currentLocation}
-              stationName={stationName}
-              hasError={hasError}
-            />
             <LocationSelector onSelect={onLocationChange} />
           </div>
         </div>
