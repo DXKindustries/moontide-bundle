@@ -1,7 +1,4 @@
 
-// src/services/noaaService.ts
-// Unified tide + station API helpers for MoonTide app
-
 import {
   getNearestStation as _getNearestStation,
   getSavedStationForLocation,
@@ -152,5 +149,5 @@ export async function getTidePredictions(stationId: string, dateISO: string): Pr
   }));
 }
 
-// You may extend with other utility exports as needed
-
+// Export types for usage in hooks/pages
+export type { TidePoint, TideForecast };

@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
-import LocationSelector from '@/components/LocationSelector';
+import LocationSelector, { SavedLocation } from '@/components/LocationSelector';
 import WeeklyForecast from '@/components/WeeklyForecast';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { CloudMoon, Calendar, MapPin } from "lucide-react";
@@ -14,7 +15,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
 const Index = () => {
-  const [currentLocation, setCurrentLocation] = useState(() => {
+  const [currentLocation, setCurrentLocation] = useState<SavedLocation | null>(() => {
     try {
       const savedLocation = safeLocalStorage.getItem('moontide-current-location');
       if (savedLocation) return savedLocation;
@@ -25,8 +26,11 @@ const Index = () => {
       id: "narragansett",
       name: "Narragansett",
       country: "USA",
-      zipCode: "02882"
-    };
+      zipCode: "02882",
+      cityState: "Narragansett, RI",
+      lat: 41.4501,
+      lng: -71.4495,
+    } as unknown as SavedLocation;
   });
 
   const {
@@ -40,7 +44,7 @@ const Index = () => {
   } = useTideData({ location: currentLocation });
 
   useEffect(() => {
-    document.title = `MoonTide - ${currentLocation.name}`;
+    document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
     console.log("Current location in Index.tsx:", currentLocation);
   }, [currentLocation]);
 
@@ -52,7 +56,7 @@ const Index = () => {
     date: currentDate || "May 21, 2025"
   };
 
-  const handleLocationChange = (location: any) => {
+  const handleLocationChange = (location: SavedLocation) => {
     const updatedLocation = {
       ...location,
       name: location.name || `${location.zipCode || "Unknown Location"}`
@@ -68,12 +72,12 @@ const Index = () => {
 
   const formatLocationDisplay = () => {
     if (!currentLocation) return "Select a location";
-    if (currentLocation.id === "default") return "Select a location";
-    if (currentLocation.zipCode) {
-      return `${currentLocation.name} (${currentLocation.zipCode})`;
+    if ((currentLocation as any).id === "default") return "Select a location";
+    if ((currentLocation as any).zipCode) {
+      return `${currentLocation.name} (${(currentLocation as any).zipCode})`;
     }
-    if (currentLocation.name && currentLocation.country) {
-      return `${currentLocation.name}, ${currentLocation.country}`;
+    if (currentLocation.name && (currentLocation as any).country) {
+      return `${currentLocation.name}, ${(currentLocation as any).country}`;
     }
     return currentLocation.name || "Select a location";
   };
@@ -111,8 +115,7 @@ const Index = () => {
                 </div>
               </div>
               <LocationSelector
-                currentLocation={currentLocation}
-                onLocationChange={handleLocationChange}
+                onSelect={handleLocationChange}
               />
             </div>
           </div>

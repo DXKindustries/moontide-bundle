@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { MapPin, Search, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -44,9 +45,12 @@ export default function LocationSelector({
     }
 
     try {
-      const geo = await lookupZipCode(zip);           // {lat,lng,city,state}
-      const cityState = formatCityStateFromZip(geo);
-
+      const geo = await lookupZipCode(zip);           // {post code, places:[{...}] ...}
+      if (!geo || !geo.places || geo.places.length === 0) {
+        toast.error('ZIP not found');
+        return;
+      }
+      const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
       // De-dup on zip
       if (saved.some(l => l.zipCode === zip)) {
         toast.info('ZIP already saved');
@@ -54,11 +58,11 @@ export default function LocationSelector({
       }
 
       const loc: SavedLocation = {
-        name: geo.city,
+        name: geo.places[0]['place name'],
         zipCode: zip,
         cityState,
-        lat: geo.lat,
-        lng: geo.lng,
+        lat: parseFloat(geo.places[0].latitude),
+        lng: parseFloat(geo.places[0].longitude),
       };
       setSaved([...saved, loc]);
       setSearch('');
