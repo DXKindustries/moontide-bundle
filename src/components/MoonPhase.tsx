@@ -51,12 +51,17 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Fix the location detection to check for properties that actually exist
-  const hasLocation = currentLocation && (
-    (currentLocation.zipCode && currentLocation.zipCode !== "default" && currentLocation.zipCode.length > 0) || 
-    (currentLocation.name && currentLocation.name !== "Select a location" && currentLocation.name.length > 0) ||
-    (currentLocation.id && currentLocation.id !== "default")
-  );
+  // Fixed location detection - check if we have a meaningful location
+  const hasLocation = currentLocation && 
+    currentLocation !== null && 
+    (
+      // Check for valid ZIP code
+      (currentLocation.zipCode && currentLocation.zipCode.length > 0 && currentLocation.zipCode !== "default") ||
+      // Check for valid name that's not the default placeholder
+      (currentLocation.name && currentLocation.name.length > 0 && currentLocation.name !== "Select a location" && currentLocation.name !== "Choose Location") ||
+      // Check for valid ID that's not default
+      (currentLocation.id && currentLocation.id !== "default" && currentLocation.id.length > 0)
+    );
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
