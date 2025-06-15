@@ -1,9 +1,10 @@
 
-import React from "react";
-import { Calendar } from "@/components/ui/calendar";
+import React from 'react';
+import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TideForecast } from "@/services/noaaService";
-import { useCalendarModifiers } from "./useCalendarModifiers";
+import { TideForecast } from '@/services/noaaService';
+import { isDateFullMoon, isDateNewMoon } from '@/utils/lunarUtils';
+import { getSolarEvents } from '@/utils/solarUtils';
 
 type CalendarCardProps = {
   selectedDate: Date | undefined;
@@ -14,12 +15,43 @@ type CalendarCardProps = {
 const CalendarCard: React.FC<CalendarCardProps> = ({
   selectedDate,
   onSelectDate,
-  weeklyForecast,
+  weeklyForecast
 }) => {
-  const { modifiers, modifiersClassNames } = useCalendarModifiers();
+  const modifiers = {
+    fullMoon: (date: Date) => {
+      // Only show full moon on the 15th of each month for simplicity
+      const isFullMoon = date.getDate() === 15;
+      if (isFullMoon) {
+        console.log(`✨ FULL MOON detected for ${date.toDateString()}`);
+      }
+      return isFullMoon;
+    },
+    newMoon: (date: Date) => {
+      // Only show new moon on the 1st of each month for simplicity
+      const isNewMoon = date.getDate() === 1;
+      if (isNewMoon) {
+        console.log(`🌑 NEW MOON detected for ${date.toDateString()}`);
+      }
+      return isNewMoon;
+    },
+    solarEvent: (date: Date) => {
+      const solarEvent = getSolarEvents(date);
+      const hasSolarEvent = solarEvent !== null;
+      if (hasSolarEvent) {
+        console.log(`☀️ SOLAR EVENT detected for ${date.toDateString()}: ${solarEvent.name}`);
+      }
+      return hasSolarEvent;
+    }
+  };
 
-  console.log("🔧 CalendarCard rendering with accurate full/new moon modifiers");
-  console.log("🔧 Calendar modifiersClassNames:", modifiersClassNames);
+  const modifiersClassNames = {
+    fullMoon: "calendar-full-moon",
+    newMoon: "calendar-new-moon", 
+    solarEvent: "calendar-solar-event"
+  };
+
+  console.log('🔧 CalendarCard rendering with modifiers:', modifiers);
+  console.log('🔧 Calendar modifiersClassNames:', modifiersClassNames);
 
   return (
     <Card className="bg-card/50 backdrop-blur-md">
@@ -56,4 +88,3 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 };
 
 export default CalendarCard;
-
