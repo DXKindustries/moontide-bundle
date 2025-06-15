@@ -9,8 +9,7 @@ type MoonDataProps = {
   moonset: string;
 };
 
-const getNextPhaseInfo = (currentPhase: string, currentIllumination: number) => {
-  // Determine next phase based on current phase and illumination trend
+const getNextPhaseInfo = (currentPhase: string, currentDate: Date) => {
   const phases = [
     "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
     "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"
@@ -22,8 +21,20 @@ const getNextPhaseInfo = (currentPhase: string, currentIllumination: number) => 
   const nextIndex = (currentIndex + 1) % phases.length;
   const nextPhase = phases[nextIndex];
   
-  // Estimate days to next phase (lunar cycle is ~29.5 days, each phase ~3.7 days)
-  const daysToNext = Math.ceil(Math.random() * 6) + 1; // 1-7 days estimate
+  // Calculate actual days to next phase by checking each upcoming day
+  let daysToNext = 1;
+  let checkDate = new Date(currentDate);
+  
+  // Check up to 30 days ahead to find the next phase change
+  for (let i = 1; i <= 30; i++) {
+    checkDate.setDate(currentDate.getDate() + i);
+    const futurePhase = calculateMoonPhase(checkDate).phase;
+    
+    if (futurePhase === nextPhase) {
+      daysToNext = i;
+      break;
+    }
+  }
   
   return `${nextPhase} in ${daysToNext} day${daysToNext !== 1 ? 's' : ''}`;
 };
@@ -32,7 +43,7 @@ const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
   // Calculate current moon phase for today
   const today = new Date();
   const currentMoonData = calculateMoonPhase(today);
-  const nextPhaseInfo = getNextPhaseInfo(currentMoonData.phase, currentMoonData.illumination);
+  const nextPhaseInfo = getNextPhaseInfo(currentMoonData.phase, today);
 
   return (
     <div className="grid grid-cols-2 gap-4 w-full">
