@@ -26,15 +26,22 @@ const DEFAULT_LOCATION: SavedLocation & { id: string; country: string } = {
 };
 
 const Index = () => {
+  console.log('🚀 Index component rendering...');
+  
   const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
+    console.log('📍 Initializing currentLocation state...');
     try {
       const savedLocation = safeLocalStorage.getItem('moontide-current-location');
+      console.log('💾 Saved location from localStorage:', savedLocation);
       if (savedLocation) return savedLocation;
     } catch (error) {
-      console.warn('Error reading location from localStorage:', error);
+      console.warn('⚠️ Error reading location from localStorage:', error);
     }
+    console.log('🎯 Using DEFAULT_LOCATION:', DEFAULT_LOCATION);
     return DEFAULT_LOCATION; // Always fallback to a valid object
   });
+
+  console.log('🌊 Current location for useTideData:', currentLocation);
 
   const {
     isLoading,
@@ -46,7 +53,18 @@ const Index = () => {
     stationName
   } = useTideData({ location: currentLocation });
 
+  console.log('📊 useTideData results:', {
+    isLoading,
+    error,
+    tideDataLength: tideData?.length || 0,
+    weeklyForecastLength: weeklyForecast?.length || 0,
+    currentDate,
+    currentTime,
+    stationName
+  });
+
   useEffect(() => {
+    console.log('📝 Setting document title for location:', currentLocation?.name);
     document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
     console.log("Current location in Index.tsx:", currentLocation);
   }, [currentLocation]);
@@ -59,18 +77,23 @@ const Index = () => {
     date: currentDate || "May 21, 2025"
   };
 
+  console.log('🌙 Moon phase data:', moonPhaseData);
+
   const handleLocationChange = (location: SavedLocation) => {
+    console.log('📍 Location change requested:', location);
     const updatedLocation = {
       ...location,
       id: location.id || (location.zipCode || "default"),
       country: location.country || "USA",
       name: location.name || `${location.zipCode || "Unknown Location"}`
     };
+    console.log('📍 Updated location object:', updatedLocation);
     setCurrentLocation(updatedLocation);
     try {
       safeLocalStorage.setItem('moontide-current-location', updatedLocation);
+      console.log('💾 Saved updated location to localStorage');
     } catch (error) {
-      console.warn('Error saving location to localStorage:', error);
+      console.warn('⚠️ Error saving location to localStorage:', error);
     }
     toast.info(`Loading tide data for ${updatedLocation.name}`);
   };
@@ -86,6 +109,15 @@ const Index = () => {
     }
     return currentLocation.name || "Select a location";
   };
+
+  console.log('🎨 About to render Index component with:', {
+    hasCurrentLocation: !!currentLocation,
+    locationName: currentLocation?.name,
+    isLoading,
+    hasError: !!error,
+    hasTideData: tideData?.length > 0,
+    hasWeeklyForecast: weeklyForecast?.length > 0
+  });
 
   return (
     <div className="min-h-screen pb-8 relative">
@@ -167,4 +199,3 @@ const Index = () => {
 };
 
 export default Index;
-

@@ -30,6 +30,8 @@ type UseTideDataReturn = {
 };
 
 export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn => {
+  console.log('🪝 useTideData hook called with location:', location);
+  
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tideData, setTideData] = useState<TidePoint[]>([]);
@@ -42,8 +44,11 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     console.log('🔄 useTideData effect triggered with location:', location);
     
     // Always set current date and time, regardless of location
-    setCurrentDate(getCurrentDateString());
-    setCurrentTime(getCurrentTimeString());
+    const newDate = getCurrentDateString();
+    const newTime = getCurrentTimeString();
+    console.log('📅 Setting current date/time:', { newDate, newTime });
+    setCurrentDate(newDate);
+    setCurrentTime(newTime);
 
     // If no location is provided, use mock data but keep current date/time
     if (!location) {
@@ -60,10 +65,13 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setError(null);
         
         // Get station ID using the location service
+        console.log('🏭 Calling getStationId...');
         const { stationId, stationName: foundStationName } = await getStationId(location);
+        console.log('🏭 getStationId returned:', { stationId, foundStationName });
         
         if (foundStationName) {
           setStationName(foundStationName);
+          console.log('🏷️ Set station name:', foundStationName);
         }
         
         console.log(`🌊 Fetching tide data for station: ${stationId}`);
@@ -80,6 +88,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           });
           
           setTideData(currentData.tideData);
+          console.log('📊 Set tide data with length:', currentData.tideData.length);
           
           // Only update date if we got a valid date from the API
           if (currentData.date) {
@@ -111,6 +120,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             sampleForecast: forecast.slice(0, 2)
           });
           setWeeklyForecast(forecast);
+          console.log('📅 Set weekly forecast with length:', forecast.length);
         } catch (forecastError) {
           console.error('⚠️ Error getting weekly forecast (non-fatal):', forecastError);
           setWeeklyForecast([]);
@@ -132,7 +142,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     fetchTideData();
   }, [location]);
 
-  return {
+  const result = {
     isLoading,
     error,
     tideData,
@@ -141,4 +151,12 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     currentTime,
     stationName
   };
+
+  console.log('🪝 useTideData returning:', {
+    ...result,
+    tideDataLength: result.tideData.length,
+    weeklyForecastLength: result.weeklyForecast.length
+  });
+
+  return result;
 };
