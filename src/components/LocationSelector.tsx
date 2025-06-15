@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,31 @@ export interface SavedLocation {
 
 export default function LocationSelector({
   onSelect,
+  forceOpen,
+  onClose,
 }: {
   onSelect: (loc: SavedLocation) => void;
+  forceOpen?: boolean;
+  onClose?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAddNew, setShowAddNew] = useState(false);
+
+  // Handle forceOpen prop
+  useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(true);
+      setShowAddNew(true);
+    }
+  }, [forceOpen]);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      setShowAddNew(false);
+      onClose?.();
+    }
+  };
 
   const handleLocationSelect = (location: LocationData): void => {
     console.log('📍 New location selected via EnhancedLocationInput:', location);
@@ -73,7 +93,7 @@ export default function LocationSelector({
   };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium">
           <MapPin size={16} />

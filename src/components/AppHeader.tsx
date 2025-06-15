@@ -10,9 +10,18 @@ interface AppHeaderProps {
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
   hasError?: boolean;
+  forceShowLocationSelector?: boolean;
+  onLocationSelectorClose?: () => void;
 }
 
-export default function AppHeader({ currentLocation, stationName, onLocationChange, hasError }: AppHeaderProps) {
+export default function AppHeader({ 
+  currentLocation, 
+  stationName, 
+  onLocationChange, 
+  hasError,
+  forceShowLocationSelector,
+  onLocationSelectorClose 
+}: AppHeaderProps) {
   return (
     <header className="py-4 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
@@ -30,7 +39,11 @@ export default function AppHeader({ currentLocation, stationName, onLocationChan
                 <span className="hidden md:inline">Fishing Calendar</span>
               </Button>
             </Link>
-            <LocationSelector onSelect={onLocationChange} />
+            <LocationSelector 
+              onSelect={onLocationChange}
+              forceOpen={forceShowLocationSelector}
+              onClose={onLocationSelectorClose}
+            />
           </div>
         </div>
       </div>
