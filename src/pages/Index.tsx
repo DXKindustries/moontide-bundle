@@ -8,17 +8,6 @@ import { safeLocalStorage } from '@/utils/localStorage';
 import { toast } from 'sonner';
 import { useTideData } from '@/hooks/useTideData';
 
-// --- Fix: Ensure default 'currentLocation' has required fields: id, name, country, zipCode, lat, lng ---
-const DEFAULT_LOCATION: SavedLocation & { id: string; country: string } = {
-  id: "narragansett", // required for hook and caching
-  name: "Narragansett",
-  country: "USA",
-  zipCode: "02882",
-  cityState: "Narragansett, RI",
-  lat: 41.4501,
-  lng: -71.4495,
-};
-
 const CURRENT_LOCATION_KEY = 'moontide-current-location';
 
 const Index = () => {
@@ -29,11 +18,11 @@ const Index = () => {
     try {
       const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
       console.log('💾 Saved location from localStorage:', saved);
-      if (saved) {
+      if (saved && saved.zipCode && saved.zipCode !== "default") {
         // Ensure the saved location has all required fields
         const location = {
           ...saved,
-          id: saved.id || saved.zipCode || "default",
+          id: saved.id || saved.zipCode,
           country: saved.country || "USA",
         };
         console.log('✅ Using saved location:', location);
@@ -42,8 +31,8 @@ const Index = () => {
     } catch (error) {
       console.warn('⚠️ Error reading location from localStorage:', error);
     }
-    console.log('🎯 Using DEFAULT_LOCATION:', DEFAULT_LOCATION);
-    return DEFAULT_LOCATION; // Always fallback to a valid object
+    console.log('🎯 No saved location found, starting with null');
+    return null; // Start with no location instead of hardcoded default
   });
 
   console.log('🌊 Current location for useTideData:', currentLocation);
@@ -78,7 +67,7 @@ const Index = () => {
     console.log('📍 Location change requested:', location);
     const updatedLocation = {
       ...location,
-      id: location.id || (location.zipCode || "default"),
+      id: location.id || location.zipCode || "temp",
       country: location.country || "USA",
       name: location.name || `${location.zipCode || "Unknown Location"}`
     };
