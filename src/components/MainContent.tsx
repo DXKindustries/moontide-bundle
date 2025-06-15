@@ -3,6 +3,7 @@ import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
+import OnboardingMessage from '@/components/OnboardingMessage';
 import { TidePoint, TideForecast } from '@/services/noaaService';
 
 interface MainContentProps {
@@ -14,6 +15,7 @@ interface MainContentProps {
   currentTime: string;
   currentLocation: any;
   stationName: string | null;
+  onGetStarted?: () => void;
 }
 
 export default function MainContent({ 
@@ -24,7 +26,8 @@ export default function MainContent({
   currentDate, 
   currentTime,
   currentLocation,
-  stationName
+  stationName,
+  onGetStarted
 }: MainContentProps) {
   const moonPhaseData = {
     phase: weeklyForecast.length > 0 ? weeklyForecast[0].moonPhase : "Waxing Crescent",
@@ -33,6 +36,15 @@ export default function MainContent({
     moonset: "07:15",
     date: currentDate || "May 21, 2025"
   };
+
+  // Show onboarding message if no location is selected
+  if (!currentLocation) {
+    return (
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <OnboardingMessage onGetStarted={onGetStarted || (() => {})} />
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
