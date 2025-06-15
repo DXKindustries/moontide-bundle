@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CloudMoon, Calendar } from "lucide-react";
+import { CloudMoon, Calendar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LocationSelector, { SavedLocation } from './LocationSelector';
 
@@ -39,6 +39,12 @@ export default function AppHeader({
               <Button variant="outline" className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span className="hidden md:inline">Calendar</span>
+              </Button>
+            </Link>
+            <Link to="/settings">
+              <Button variant="outline" className="flex items-center gap-1">
+                <Settings className="h-4 w-4" />
+                <span className="hidden md:inline">Settings</span>
               </Button>
             </Link>
             <LocationSelector 
