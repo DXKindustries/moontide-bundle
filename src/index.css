@@ -69,13 +69,13 @@
     @apply absolute rounded-full bg-white animate-pulse-subtle;
   }
   
-  /* Target react-day-picker modifier classes directly */
+  /* Target react-day-picker modifier classes directly - made circular */
   .rdp-day.calendar-full-moon {
     background-color: rgb(251 191 36) !important;
     color: rgb(17 24 39) !important;
     font-weight: bold !important;
     border: 2px solid rgb(251 191 36) !important;
-    border-radius: 6px !important;
+    border-radius: 50% !important;
   }
   
   .rdp-day.calendar-new-moon {
@@ -83,7 +83,7 @@
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(107 114 128) !important;
-    border-radius: 6px !important;
+    border-radius: 50% !important;
   }
   
   .rdp-day.calendar-solar-event {
@@ -91,7 +91,7 @@
     color: rgb(255 255 255) !important;
     font-weight: bold !important;
     border: 2px solid rgb(249 115 22) !important;
-    border-radius: 6px !important;
+    border-radius: 50% !important;
   }
   
   /* Hover states */
