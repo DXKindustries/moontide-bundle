@@ -18,9 +18,35 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  // We inject styles for lunar/solar event indicators in Tailwind
-  // These are added to the global style for the day cells of the calendar
-  // Style: small colored dot below the number for full/new moon/solar event days
+  // Only forward standard props to custom day; DO NOT forward invalid props
+  function DayCustom(props: any) {
+    // Destructure only valid props for a button element
+    // Remove any DayPicker-specific props that should NOT go on <button>
+    const {
+      date,
+      className = "",
+      selected,
+      disabled,
+      hidden,
+      today,
+      ...rest
+    } = props;
+
+    // Forward only aria-selected, tabIndex, onClick, etc.
+    return (
+      <button
+        type="button"
+        tabIndex={rest.tabIndex}
+        aria-selected={rest["aria-selected"]}
+        aria-label={rest["aria-label"]}
+        disabled={disabled}
+        className={`${className} relative`}
+        onClick={rest.onClick}
+      >
+        <span className="calendar-day-inner relative z-20">{props.children}</span>
+      </button>
+    );
+  }
 
   return (
     <Card className="bg-card/50 backdrop-blur-md relative">
@@ -43,7 +69,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
         .calendar-new-moon .calendar-day-inner::after {
           content: '';
           position: absolute;
-          left: 50%; 
+          left: 50%;
           top: 72%;
           transform: translateX(-50%);
           width: 0.5rem;
@@ -55,7 +81,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
         .calendar-solar-event .calendar-day-inner::after {
           content: '';
           position: absolute;
-          left: 50%; 
+          left: 50%;
           top: 72%;
           transform: translateX(-50%);
           width: 0.5rem;
@@ -66,8 +92,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
         `}
       </style>
       <CardHeader>
-        {/* UPDATED label as requested */}
-        <CardTitle>Fishing & Lunar Calendar</CardTitle>
+        {/* Restore to original label (no "Fishing & Lunar Calendar") */}
+        <CardTitle>Calendar</CardTitle>
       </CardHeader>
       <CardContent>
         <Calendar
@@ -76,23 +102,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           onSelect={onSelectDate}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
-          // Use custom day content to wrap the number with a span for marker
           components={{
-            Day: (props: any) => {
-              // Add a wrapper span for styling marker dots by CSS class
-              // Copy default content, add our own inner container
-              // The `className` will include calendar-full-moon etc as appropriate for that day
-              return (
-                <button
-                  {...props}
-                  type="button"
-                  tabIndex={props.tabIndex}
-                  className={`${props.className} relative`}
-                >
-                  <span className="calendar-day-inner relative z-20">{props.children}</span>
-                </button>
-              );
-            },
+            Day: DayCustom
           }}
           footer={
             <div className="mt-3 pt-3 border-t border-muted">
