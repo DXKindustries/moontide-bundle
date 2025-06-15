@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
 import { calculateSolarTimes } from '@/utils/solarUtils';
-import { Sunrise, Sunset, MapPin, AlertCircle, Info } from 'lucide-react';
+import { Sunrise, Sunset, MapPin, AlertCircle, Info, Search } from 'lucide-react';
 import FullMoonBanner from './FullMoonBanner';
+import { Button } from "@/components/ui/button";
 
 type MoonPhaseProps = {
   phase: string;
@@ -17,6 +18,7 @@ type MoonPhaseProps = {
   currentLocation?: any;
   stationName?: string | null;
   error?: string | null;
+  onGetStarted?: () => void;
 }
 
 const MoonPhase = ({ 
@@ -28,7 +30,8 @@ const MoonPhase = ({
   className,
   currentLocation,
   stationName,
-  error
+  error,
+  onGetStarted
 }: MoonPhaseProps) => {
   console.log('MoonPhase rendering with:', { phase, illumination, currentLocation, stationName, error });
 
@@ -143,54 +146,61 @@ const MoonPhase = ({
             </div>
           </div>
 
-          {/* Location Display - Always show this section */}
-          <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
-            <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium truncate">
-                {formatLocationDisplay()}
+          {/* Conditional Bottom Section */}
+          {!currentLocation ? (
+            /* Onboarding Information - Show when no location is selected */
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-xs bg-moon-primary/10 border border-moon-primary/20 py-3 px-3 rounded-lg">
+                <Info className="h-3 w-3 text-moon-primary flex-shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-2">
+                  <div className="font-medium text-moon-primary">Welcome to MoonTide!</div>
+                  <div className="text-muted-foreground space-y-1">
+                    <div>• Enter a coastal ZIP code for tide data</div>
+                    <div>• Moon and solar data available for all locations</div>
+                    <div>• Track phases, tides, and fishing conditions</div>
+                  </div>
+                </div>
               </div>
-              <div className="text-muted-foreground mt-1">
-                {currentLocation && stationName && !error ? (
-                  <>NOAA station: <span className="font-medium">{stationName}</span></>
-                ) : currentLocation ? (
-                  <>No tide data - try a coastal ZIP code</>
-                ) : (
-                  <>Enter a ZIP code to get started</>
-                )}
-              </div>
+              
+              <Button
+                onClick={onGetStarted}
+                className="w-full bg-moon-primary hover:bg-moon-primary/90 text-white py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <Search className="w-4 h-4" />
+                Enter Your Location
+              </Button>
             </div>
-          </div>
-
-          {/* Error Message - Show when there's an error */}
-          {error && (
-            <div className="flex items-start gap-2 text-xs bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
-              <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="font-medium text-red-400">Error</div>
-                <div className="text-red-300 mt-1">
-                  {error}. Using mock data instead.
+          ) : (
+            /* Location Display and Error - Show when location is selected */
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
+                <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">
+                    {formatLocationDisplay()}
+                  </div>
+                  <div className="text-muted-foreground mt-1">
+                    {stationName && !error ? (
+                      <>NOAA station: <span className="font-medium">{stationName}</span></>
+                    ) : (
+                      <>No tide data - try a coastal ZIP code</>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Onboarding Information - Show helpful tips */}
-          {!currentLocation && (
-            <div className="flex items-start gap-2 text-xs bg-moon-primary/10 border border-moon-primary/20 py-2 px-3 rounded-lg">
-              <Info className="h-3 w-3 text-moon-primary flex-shrink-0 mt-0.5" />
-              <div className="flex-1 space-y-1">
-                <div className="font-medium text-moon-primary">Welcome to MoonTide!</div>
-                <div className="text-muted-foreground">
-                  • Enter a coastal ZIP code for tide data
+              {/* Error Message - Show when there's an error */}
+              {error && (
+                <div className="flex items-start gap-2 text-xs bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
+                  <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="font-medium text-red-400">Error</div>
+                    <div className="text-red-300 mt-1">
+                      {error}. Using mock data instead.
+                    </div>
+                  </div>
                 </div>
-                <div className="text-muted-foreground">
-                  • Moon and solar data available for all locations
-                </div>
-                <div className="text-muted-foreground">
-                  • Track phases, tides, and fishing conditions
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>
