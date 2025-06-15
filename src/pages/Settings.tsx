@@ -11,14 +11,8 @@ const Settings = () => {
   const navigate = useNavigate();
 
   const handleBackPress = () => {
-    console.log('Back button pressed');
-    // Try navigating to home as fallback if navigate(-1) doesn't work
-    try {
-      navigate(-1);
-    } catch (error) {
-      console.log('Navigate(-1) failed, navigating to home:', error);
-      navigate('/');
-    }
+    console.log('Back button pressed - navigating to home');
+    navigate('/');
   };
 
   return (
