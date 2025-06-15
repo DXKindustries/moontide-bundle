@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { lookupZipCode } from '@/utils/zipCodeLookup';
@@ -11,13 +12,15 @@ type EntryMode = 'zip' | 'manual' | 'confirmation';
 
 interface ZipCodeEntryProps {
   onLocationSelect: (location: LocationData) => void;
+  onLocationClear?: () => void; // New prop to handle clearing
   onClose?: () => void;
   initialZip?: string;
-  skipAutoLoad?: boolean; // New prop to skip auto-loading existing location
+  skipAutoLoad?: boolean;
 }
 
 export default function ZipCodeEntry({ 
   onLocationSelect, 
+  onLocationClear,
   onClose, 
   initialZip,
   skipAutoLoad = false 
@@ -78,6 +81,20 @@ export default function ZipCodeEntry({
     }
   };
 
+  const handleClear = (): void => {
+    console.log('🗑️ Clearing location from ZipCodeEntry');
+    setMode('zip');
+    setError(null);
+    setCurrentZip('');
+    setPendingLocation(null);
+    
+    // Clear the stored location and notify parent
+    locationStorage.clearCurrentLocation();
+    if (onLocationClear) {
+      onLocationClear();
+    }
+  };
+
   const handleManualSave = (location: LocationData): void => {
     console.log(`📝 Manual location entry:`, location);
     setPendingLocation(location);
@@ -111,6 +128,7 @@ export default function ZipCodeEntry({
       {mode === 'zip' && (
         <ZipCodeInput
           onZipSubmit={handleZipLookup}
+          onClear={handleClear}
           isLoading={isLoading}
           error={error}
         />
