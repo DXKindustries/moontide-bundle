@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   AreaChart,
@@ -10,7 +11,7 @@ import {
   ReferenceLine
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Info } from "lucide-react";
+import { Loader2, Waves } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TidePoint = {
@@ -94,16 +95,15 @@ const TideChart = ({
           </div>
         ) : todayData.length === 0 ? (
           <div className="h-64 flex flex-col items-center justify-center text-center px-4">
-            <Info className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground font-medium">
-              No tide data to display for this day.
+            <Waves className="h-12 w-12 text-muted-foreground/50 mb-3" />
+            <p className="text-muted-foreground font-medium mb-2">
+              Tide data unavailable
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              This may be a temporary issue with the NOAA API or an unsupported location.<br />
-              Please try another location, check your connection, or refresh the page.
+            <p className="text-sm text-muted-foreground">
+              This location may be inland or tide data is temporarily unavailable.
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              If you continue to see this, the tide station list may be unavailable.
+            <p className="text-xs text-muted-foreground mt-2 opacity-75">
+              Try a coastal ZIP code for tide predictions
             </p>
           </div>
         ) : (
