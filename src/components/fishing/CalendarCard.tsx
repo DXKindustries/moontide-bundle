@@ -30,9 +30,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   };
 
   const modifiersClassNames = {
-    fullMoon: "!bg-yellow-400 !text-gray-900 font-bold",
-    newMoon: "!bg-gray-400 !text-gray-900 font-bold", 
-    solarEvent: "!bg-orange-500 !text-white font-bold"
+    fullMoon: "day-full-moon",
+    newMoon: "day-new-moon", 
+    solarEvent: "day-solar-event"
   };
 
   return (
