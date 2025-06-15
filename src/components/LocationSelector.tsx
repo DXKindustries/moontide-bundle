@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { MapPin, Search, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
@@ -31,12 +32,26 @@ export default function LocationSelector({
   useEffect(() => {
     const raw = safeLocalStorage.getItem(STORAGE_KEY);
     console.log('🏠 Loading saved locations from storage:', raw);
-    if (raw) setSaved(JSON.parse(raw));
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        setSaved(Array.isArray(parsed) ? parsed : []);
+        console.log('✅ Successfully loaded saved locations:', parsed);
+      } catch (error) {
+        console.error('❌ Error parsing saved locations:', error);
+        setSaved([]);
+      }
+    }
   }, []);
 
   useEffect(() => {
     console.log('💾 Saving locations to storage:', saved);
-    safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    try {
+      safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      console.log('✅ Successfully saved locations to storage');
+    } catch (error) {
+      console.error('❌ Error saving locations to storage:', error);
+    }
   }, [saved]);
 
   /* ---------------- helpers ---------------- */
@@ -69,6 +84,8 @@ export default function LocationSelector({
       if (saved.some(l => l.zipCode === zip)) {
         console.log('⚠️ ZIP already exists in saved locations');
         toast.info('ZIP already saved');
+        setSearch('');
+        setIsOpen(false);
         return;
       }
 
@@ -83,12 +100,19 @@ export default function LocationSelector({
       };
       
       console.log('✅ Created location object:', loc);
-      setSaved([...saved, loc]);
-      setSearch('');
       
+      // Update saved locations first
+      const newSaved = [...saved, loc];
+      setSaved(newSaved);
+      console.log('📝 Updated saved locations state:', newSaved);
+      
+      // Clear search and close dropdown
+      setSearch('');
+      setIsOpen(false);
+      
+      // Call onSelect to update the current location
       console.log('📢 Calling onSelect with location:', loc);
       onSelect(loc);
-      setIsOpen(false);
       
       toast.success(`Added ${cityState}`);
     } catch (err) {
@@ -103,6 +127,12 @@ export default function LocationSelector({
       e.preventDefault();
       addLocation();
     }
+  };
+
+  const handleLocationSelect = (loc: SavedLocation) => {
+    console.log('🎯 Selected saved location:', loc);
+    onSelect(loc);
+    setIsOpen(false);
   };
 
   return (
@@ -141,11 +171,7 @@ export default function LocationSelector({
           <button
             key={loc.zipCode}
             className="flex w-full justify-between items-center px-2 py-1 rounded hover:bg-muted-foreground/10 text-left text-sm"
-            onClick={() => {
-              console.log('🎯 Selected saved location:', loc);
-              onSelect(loc);
-              setIsOpen(false);
-            }}
+            onClick={() => handleLocationSelect(loc)}
           >
             {loc.cityState} <span className="opacity-60">({loc.zipCode})</span>
           </button>
