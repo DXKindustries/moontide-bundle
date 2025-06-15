@@ -37,9 +37,10 @@ const MoonPhase = ({
   error,
   onGetStarted
 }: MoonPhaseProps) => {
-  console.log('MoonPhase rendering with:', { phase, illumination, currentLocation, stationName, error });
-  console.log('MoonPhase onGetStarted function:', onGetStarted);
-
+  console.log('🌙 MoonPhase render - currentLocation:', currentLocation);
+  console.log('🌙 MoonPhase render - currentLocation type:', typeof currentLocation);
+  console.log('🌙 MoonPhase render - currentLocation zipCode:', currentLocation?.zipCode);
+  
   // Get full moon name if applicable
   const currentDate = new Date(date);
   const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
@@ -54,11 +55,16 @@ const MoonPhase = ({
   // Simple location detection - check if we have a location with a zipCode
   const hasLocation = currentLocation && currentLocation.zipCode && currentLocation.zipCode.trim() !== '';
 
-  console.log('MoonPhase hasLocation check:', { 
-    hasLocation, 
-    currentLocation, 
-    zipCode: currentLocation?.zipCode
+  console.log('🌙 MoonPhase hasLocation calculation:', {
+    currentLocationExists: !!currentLocation,
+    hasZipCode: !!currentLocation?.zipCode,
+    zipCodeValue: currentLocation?.zipCode,
+    zipCodeTrimmed: currentLocation?.zipCode?.trim(),
+    zipCodeNotEmpty: currentLocation?.zipCode?.trim() !== '',
+    finalHasLocation: hasLocation
   });
+
+  console.log('🌙 MoonPhase will show:', hasLocation ? 'LocationInfo' : 'OnboardingInfo');
 
   return (
     <div className="w-full">
