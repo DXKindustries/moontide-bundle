@@ -1,7 +1,10 @@
+
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
 /*  Fetch daily and weekly tide predictions from NOAA's new cloud endpoint.   */
+
+import { getProxyConfig } from './proxyConfig';
 
 // Use an inline type instead of external import to avoid build issues
 type NoaaStation = {

@@ -19,47 +19,61 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   }
   
   const config = getProxyConfig();
+  console.log('🔧 Current proxy config:', config);
   
   if (config.useLocalProxy) {
     // Try local proxy first
     try {
       console.log('🌐 Using local proxy (preferred)...');
       const proxyUrl = `${config.localProxyUrl}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
+      console.log('🔗 Local proxy URL:', proxyUrl);
       
       const response = await fetch(proxyUrl);
       if (!response.ok) {
-        throw new Error(`Local proxy returned ${response.status}`);
+        throw new Error(`Local proxy returned ${response.status}: ${response.statusText}`);
       }
       
       const data = await response.json();
       return processStationData(data, 'local proxy');
       
     } catch (localError) {
-      console.log('⚠️ Local proxy failed, falling back to external proxy...', localError.message);
+      console.log('⚠️ Local proxy failed, falling back to external proxy...', localError);
       
       // Fallback to external proxy
       const fallbackUrl = `${config.fallbackProxyUrl}${encodeURIComponent(NOAA_STATIONS_API)}`;
+      console.log('🔗 Fallback proxy URL:', fallbackUrl);
       
-      const response = await fetch(fallbackUrl);
-      if (!response.ok) {
-        throw new Error(`Fallback proxy returned ${response.status}`);
+      try {
+        const response = await fetch(fallbackUrl);
+        if (!response.ok) {
+          throw new Error(`Fallback proxy returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return processStationData(data, 'fallback proxy (api.allorigins.win)');
+      } catch (fallbackError) {
+        console.error('❌ Both proxies failed:', { localError, fallbackError });
+        throw new Error(`Both proxy services failed. Local: ${localError.message}, Fallback: ${fallbackError.message}`);
       }
-      
-      const data = await response.json();
-      return processStationData(data, 'fallback proxy (api.allorigins.win)');
     }
   } else {
     // Use fallback proxy directly
     console.log('🌐 Using fallback proxy directly...');
     const fallbackUrl = `${config.fallbackProxyUrl}${encodeURIComponent(NOAA_STATIONS_API)}`;
+    console.log('🔗 Fallback proxy URL:', fallbackUrl);
     
-    const response = await fetch(fallbackUrl);
-    if (!response.ok) {
-      throw new Error(`Fallback proxy returned ${response.status}`);
+    try {
+      const response = await fetch(fallbackUrl);
+      if (!response.ok) {
+        throw new Error(`Fallback proxy returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return processStationData(data, 'fallback proxy (api.allorigins.win)');
+    } catch (error) {
+      console.error('❌ Fallback proxy failed:', error);
+      throw new Error(`Fallback proxy failed: ${error.message}`);
     }
-    
-    const data = await response.json();
-    return processStationData(data, 'fallback proxy (api.allorigins.win)');
   }
 }
 
