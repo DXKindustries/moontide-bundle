@@ -9,6 +9,7 @@ interface AppHeaderProps {
   currentLocation: SavedLocation & { id: string; country: string } | null;
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
+  onLocationClear?: () => void;
   hasError?: boolean;
   forceShowLocationSelector?: boolean;
   onLocationSelectorClose?: () => void;
@@ -17,7 +18,8 @@ interface AppHeaderProps {
 export default function AppHeader({ 
   currentLocation, 
   stationName, 
-  onLocationChange, 
+  onLocationChange,
+  onLocationClear,
   hasError,
   forceShowLocationSelector,
   onLocationSelectorClose 
