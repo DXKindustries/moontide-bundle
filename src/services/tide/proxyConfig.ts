@@ -4,19 +4,19 @@ export interface ProxyConfig {
   useLocalProxy: boolean;
   localProxyUrl: string;
   fallbackProxyUrl: string;
+  corsProxyUrl: string;
 }
 
-// Default configuration - temporarily use fallback first to debug
+// Updated configuration with better fallback options
 export const DEFAULT_PROXY_CONFIG: ProxyConfig = {
-  useLocalProxy: false, // Temporarily set to false to test fallback first
+  useLocalProxy: false, // Keep false to avoid localhost dependency
   localProxyUrl: 'http://localhost:3001/api/noaa',
-  fallbackProxyUrl: 'https://api.allorigins.win/raw?url='
+  fallbackProxyUrl: 'https://corsproxy.io/?',
+  corsProxyUrl: 'https://cors-anywhere.herokuapp.com/'
 };
 
-// Get current proxy configuration (can be extended to read from localStorage/env vars)
+// Get current proxy configuration
 export function getProxyConfig(): ProxyConfig {
-  // For now, return default config
-  // Later you can extend this to read from environment variables or localStorage
   return DEFAULT_PROXY_CONFIG;
 }
 
