@@ -43,10 +43,10 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
     const dateStr = date.toISOString().slice(0, 10); // YYYY-MM-DD
     const day = date.toLocaleDateString('en-US', { weekday: 'short' });
     
-    // Calculate actual moon phase for each day
+    // Calculate actual moon phase for each specific day
     const moonData = calculateMoonPhase(date);
     
-    // Generate realistic tide times and heights
+    // Generate realistic tide times and heights with proper progression
     const baseHighTime1 = 6 + (i * 0.8); // Gradually shifting tide times
     const baseHighTime2 = 18 + (i * 0.8);
     const baseLowTime1 = 12 + (i * 0.8);
@@ -61,8 +61,8 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
     forecast.push({
       date: dateStr,
       day,
-      moonPhase: moonData.phase,
-      illumination: moonData.illumination,
+      moonPhase: moonData.phase, // Use calculated moon phase for this specific date
+      illumination: moonData.illumination, // Use calculated illumination for this specific date
       highTide: {
         time: formatTime(baseHighTime1),
         height: 3.2 + Math.sin(i * 0.5) * 0.8 // Varying heights between 2.4-4.0m
@@ -73,6 +73,13 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
       }
     });
   }
+  
+  console.log('📅 Generated mock weekly forecast with calculated moon phases:', forecast.map(f => ({
+    date: f.date,
+    day: f.day,
+    moonPhase: f.moonPhase,
+    illumination: f.illumination
+  })));
   
   return forecast;
 };
@@ -103,7 +110,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     if (!location) {
       console.log('⚠️ No location provided, generating mock data including weekly forecast');
       
-      // Generate mock weekly forecast
+      // Generate mock weekly forecast with proper moon phase calculations
       const mockForecast = generateMockWeeklyForecast();
       console.log('📅 Generated mock weekly forecast:', mockForecast);
       
