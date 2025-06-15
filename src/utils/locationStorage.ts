@@ -63,6 +63,64 @@ export const locationStorage = {
     }
   },
 
+  // Update a specific location
+  updateLocation: (updatedLocation: LocationData): void => {
+    try {
+      const history = locationStorage.getLocationHistory();
+      const currentLocation = locationStorage.getCurrentLocation();
+      
+      // Find and update the location in history
+      const updatedHistory = history.map(loc => {
+        // Match by zipCode or city/state combination
+        const isMatch = (updatedLocation.zipCode && loc.zipCode && loc.zipCode === updatedLocation.zipCode) ||
+                       (loc.city === updatedLocation.city && loc.state === updatedLocation.state);
+        
+        if (isMatch) {
+          return { ...updatedLocation, timestamp: loc.timestamp || Date.now() };
+        }
+        return loc;
+      });
+      
+      safeLocalStorage.set(LOCATION_HISTORY_KEY, updatedHistory);
+      
+      // If this is the current location, update it too
+      if (currentLocation) {
+        const isCurrentMatch = (updatedLocation.zipCode && currentLocation.zipCode && 
+                               currentLocation.zipCode === updatedLocation.zipCode) ||
+                              (currentLocation.city === updatedLocation.city && 
+                               currentLocation.state === updatedLocation.state);
+        
+        if (isCurrentMatch) {
+          safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...updatedLocation, timestamp: currentLocation.timestamp });
+        }
+      }
+      
+      console.log('✅ Location updated successfully');
+    } catch (error) {
+      console.error('❌ Error updating location:', error);
+    }
+  },
+
+  // Delete a location from history
+  deleteLocation: (locationToDelete: LocationData): void => {
+    try {
+      const history = locationStorage.getLocationHistory();
+      
+      // Filter out the location to delete
+      const updatedHistory = history.filter(loc => {
+        // Match by zipCode or city/state combination
+        const isMatch = (locationToDelete.zipCode && loc.zipCode && loc.zipCode === locationToDelete.zipCode) ||
+                       (loc.city === locationToDelete.city && loc.state === locationToDelete.state);
+        return !isMatch;
+      });
+      
+      safeLocalStorage.set(LOCATION_HISTORY_KEY, updatedHistory);
+      console.log('✅ Location deleted successfully');
+    } catch (error) {
+      console.error('❌ Error deleting location:', error);
+    }
+  },
+
   // Clear current location
   clearCurrentLocation: (): void => {
     try {
