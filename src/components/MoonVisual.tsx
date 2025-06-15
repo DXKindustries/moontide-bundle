@@ -9,34 +9,34 @@ type MoonVisualProps = {
 const MoonVisual = ({ phase, illumination }: MoonVisualProps) => {
   console.log('🌙 MoonVisual received:', { phase, illumination });
 
-  // Calculate visual representation of moon phase with simplified Tailwind classes
+  // Calculate visual representation of moon phase with original purple/blue color scheme
   const getMoonPhaseVisual = () => {
     switch (phase) {
       case "New Moon":
-        return "bg-gray-900 border-2 border-gray-400";
+        return "bg-moon-dark border-2 border-moon-primary";
       case "Waxing Crescent":
-        return "bg-gradient-to-r from-yellow-200 via-yellow-300 to-gray-900";
+        return "bg-gradient-to-r from-moon-primary to-moon-dark";
       case "First Quarter":
-        return "bg-gradient-to-r from-yellow-200 to-gray-900";
+        return "bg-gradient-to-r from-moon-primary to-moon-dark";
       case "Waxing Gibbous":
-        return "bg-gradient-to-r from-yellow-200 via-yellow-300 to-gray-800";
+        return "bg-gradient-to-r from-moon-primary via-moon-secondary to-moon-dark";
       case "Full Moon":
-        return "bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 shadow-yellow-400/50";
+        return "bg-gradient-to-br from-moon-primary via-moon-secondary to-moon-blue shadow-moon-primary/50";
       case "Waning Gibbous":
-        return "bg-gradient-to-l from-yellow-200 via-yellow-300 to-gray-800";
+        return "bg-gradient-to-l from-moon-primary via-moon-secondary to-moon-dark";
       case "Last Quarter":
-        return "bg-gradient-to-l from-yellow-200 to-gray-900";
+        return "bg-gradient-to-l from-moon-primary to-moon-dark";
       case "Waning Crescent":
-        return "bg-gradient-to-l from-yellow-200 via-yellow-300 to-gray-900";
+        return "bg-gradient-to-l from-moon-primary via-moon-secondary to-moon-dark";
       default:
-        return "bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400";
+        return "bg-gradient-to-br from-moon-primary via-moon-secondary to-moon-blue";
     }
   };
 
   return (
     <div className="relative">
       <div className={`w-36 h-36 rounded-full animate-pulse shadow-lg ${getMoonPhaseVisual()}`}></div>
-      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-yellow-200/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
+      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
     </div>
   );
 };
