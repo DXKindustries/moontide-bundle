@@ -1,4 +1,3 @@
-
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
@@ -55,32 +54,34 @@ function buildQuery(p: PredictionParams): string {
 
 async function fetchPredictions(p: PredictionParams) {
   const noaaUrl = buildQuery(p);
+  const config = getProxyConfig();
   
-  // Try local proxy first, then fallback to public proxy
-  try {
-    console.log('🌐 Trying local proxy for tide predictions...');
-    const localProxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(noaaUrl)}`;
-    
-    const res = await fetch(localProxyUrl);
-    if (!res.ok) {
-      throw new Error(`Local proxy returned ${res.status}`);
-    }
-    
-    const data = await res.json();
-    
-    if (data.error) {
-      console.error('❌ NOAA API returned an error via local proxy:', data.error.message);
-      throw new Error(`NOAA API Error: ${data.error.message}`);
-    }
-    
-    console.log('✅ Local proxy response received for tide predictions:', data);
-    return data;
-    
-  } catch (localError) {
-    console.log('⚠️ Local proxy failed for tide predictions, trying fallback...', localError.message);
-    
+  if (config.useLocalProxy) {
+    // Try local proxy first
     try {
-      const fallbackProxyUrl = `${FALLBACK_PROXY_BASE}${encodeURIComponent(noaaUrl)}`;
+      console.log('🌐 Using local proxy for tide predictions (preferred)...');
+      const localProxyUrl = `${config.localProxyUrl}?url=${encodeURIComponent(noaaUrl)}`;
+      
+      const res = await fetch(localProxyUrl);
+      if (!res.ok) {
+        throw new Error(`Local proxy returned ${res.status}`);
+      }
+      
+      const data = await res.json();
+      
+      if (data.error) {
+        console.error('❌ NOAA API returned an error via local proxy:', data.error.message);
+        throw new Error(`NOAA API Error: ${data.error.message}`);
+      }
+      
+      console.log('✅ Local proxy response received for tide predictions:', data);
+      return data;
+      
+    } catch (localError) {
+      console.log('⚠️ Local proxy failed for tide predictions, trying fallback...', localError.message);
+      
+      // Fallback to external proxy
+      const fallbackProxyUrl = `${config.fallbackProxyUrl}${encodeURIComponent(noaaUrl)}`;
       
       const res = await fetch(fallbackProxyUrl);
       if (!res.ok) {
@@ -96,13 +97,30 @@ async function fetchPredictions(p: PredictionParams) {
         throw new Error(`NOAA API Error: ${data.error.message}`);
       }
 
-      console.log('✅ Fallback proxy response received for tide predictions:', data);
+      console.log('✅ Fallback proxy (api.allorigins.win) response received for tide predictions:', data);
       return data;
-      
-    } catch (fallbackError) {
-      console.error('❌ Both proxies failed for tide predictions:', { localError, fallbackError });
-      throw new Error('Failed to fetch tide predictions from both local and fallback proxies');
     }
+  } else {
+    // Use fallback proxy directly
+    console.log('🌐 Using fallback proxy directly for tide predictions...');
+    const fallbackProxyUrl = `${config.fallbackProxyUrl}${encodeURIComponent(noaaUrl)}`;
+    
+    const res = await fetch(fallbackProxyUrl);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ Fallback proxy request failed:', res.status, res.statusText, errorText);
+      throw new Error(`Fallback proxy request failed with status: ${res.status}. Error: ${errorText}`);
+    }
+    
+    const data = await res.json();
+
+    if (data.error) {
+      console.error('❌ NOAA API returned an error via fallback proxy:', data.error.message);
+      throw new Error(`NOAA API Error: ${data.error.message}`);
+    }
+
+    console.log('✅ Fallback proxy (api.allorigins.win) response received for tide predictions:', data);
+    return data;
   }
 }
 
