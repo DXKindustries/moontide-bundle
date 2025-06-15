@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
 import { calculateSolarTimes } from '@/utils/solarUtils';
-import { Sunrise, Sunset } from 'lucide-react';
+import { Sunrise, Sunset, MapPin, AlertCircle } from 'lucide-react';
 import FullMoonBanner from './FullMoonBanner';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type MoonPhaseProps = {
   phase: string;
@@ -14,6 +15,9 @@ type MoonPhaseProps = {
   moonset: string;
   date: string;
   className?: string;
+  currentLocation?: any;
+  stationName?: string | null;
+  error?: string | null;
 }
 
 const MoonPhase = ({ 
@@ -22,7 +26,10 @@ const MoonPhase = ({
   moonrise, 
   moonset, 
   date,
-  className 
+  className,
+  currentLocation,
+  stationName,
+  error
 }: MoonPhaseProps) => {
   // Get full moon name if applicable
   const currentDate = new Date(date);
@@ -53,6 +60,18 @@ const MoonPhase = ({
       default:
         return "moon-gradient";
     }
+  };
+
+  const formatLocationDisplay = () => {
+    if (!currentLocation) return "Select a location";
+    
+    if (currentLocation.zipCode) {
+      return `${currentLocation.name} (${currentLocation.zipCode})`;
+    }
+    if (currentLocation.name && currentLocation.country) {
+      return `${currentLocation.name}, ${currentLocation.country}`;
+    }
+    return currentLocation.name || "Select a location";
   };
 
   return (
@@ -95,8 +114,8 @@ const MoonPhase = ({
           </div>
         </div>
 
-        {/* Solar Information - Bottom Section with Icons */}
-        <div className="border-t border-muted pt-4 w-full">
+        {/* Solar Information with Location and Error - Bottom Section */}
+        <div className="border-t border-muted pt-4 w-full space-y-4">
           <div className="flex justify-between items-center text-sm">
             <div className="flex items-center gap-2">
               <Sunrise className="h-4 w-4 text-orange-400" />
@@ -117,6 +136,36 @@ const MoonPhase = ({
               <Sunset className="h-4 w-4 text-red-400" />
             </div>
           </div>
+
+          {/* Location Display */}
+          {currentLocation && (
+            <div className="flex flex-col bg-muted/50 backdrop-blur-sm py-2 px-3 rounded-lg gap-1">
+              <div className="flex items-center gap-1">
+                <MapPin size={14} className="text-moon-primary" />
+                <span className="text-xs font-medium">
+                  {formatLocationDisplay()}
+                </span>
+              </div>
+              <div className="text-xs text-muted-foreground pl-4">
+                {stationName && !error ? (
+                  <>Tide data from NOAA station: <span className="font-medium">{stationName}</span></>
+                ) : (
+                  <>No tide data available - this may be a non-coastal area. Try a coastal ZIP code for tide information.</>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && currentLocation && (
+            <Alert variant="destructive" className="text-xs">
+              <AlertCircle className="h-3 w-3" />
+              <AlertTitle className="text-xs">Error</AlertTitle>
+              <AlertDescription className="text-xs">
+                {error}. Using mock data instead.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </CardContent>
     </Card>
