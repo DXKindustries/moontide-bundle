@@ -51,11 +51,10 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Check if we have a valid location - fix the property checking to match SavedLocation structure
+  // Fix the location detection to check for properties that actually exist
   const hasLocation = currentLocation && (
     (currentLocation.zipCode && currentLocation.zipCode !== "default" && currentLocation.zipCode.length > 0) || 
     (currentLocation.name && currentLocation.name !== "Select a location" && currentLocation.name.length > 0) ||
-    (currentLocation.cityState && currentLocation.cityState.length > 0) ||
     (currentLocation.id && currentLocation.id !== "default")
   );
 
@@ -64,7 +63,6 @@ const MoonPhase = ({
     currentLocation, 
     zipCode: currentLocation?.zipCode,
     name: currentLocation?.name,
-    cityState: currentLocation?.cityState,
     id: currentLocation?.id
   });
 
