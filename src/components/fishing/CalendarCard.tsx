@@ -34,10 +34,16 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
     }
   };
 
+  const modifiersClassNames = {
+    fullMoon: "bg-yellow-400/30 text-yellow-100 border border-yellow-400/50",
+    newMoon: "bg-gray-600/30 text-gray-100 border border-gray-600/50", 
+    solarEvent: "bg-orange-400/30 text-orange-100 border border-orange-400/50"
+  };
+
   return (
     <Card className="bg-card/50 backdrop-blur-md">
       <CardHeader>
-        <CardTitle>Fishing Calendar</CardTitle>
+        <CardTitle>Calendar</CardTitle>
       </CardHeader>
       <CardContent>
         <Calendar
@@ -45,11 +51,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           selected={selectedDate}
           onSelect={onSelectDate}
           modifiers={modifiers}
-          modifiersClassNames={{
-            fullMoon: "bg-yellow-400/20 text-yellow-100",
-            newMoon: "bg-gray-600/20 text-gray-100", 
-            solarEvent: "bg-orange-400/20 text-orange-100"
-          }}
+          modifiersClassNames={modifiersClassNames}
           footer={
             <div className="mt-3 pt-3 border-t border-muted">
               <div className="flex items-center gap-2 mb-2">
