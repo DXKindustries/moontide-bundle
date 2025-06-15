@@ -17,7 +17,7 @@ const BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
 /* Public CORS proxy for development/demo. For production, host your own. */
-const PROXY_BASE = 'https://thingproxy.freeboard.io/fetch/';
+const PROXY_BASE = 'https://api.allorigins.win/raw?url=';
 
 interface PredictionParams {
   station: string;          // NOAA station ID
@@ -47,7 +47,7 @@ function buildQuery(p: PredictionParams): string {
 
 async function fetchPredictions(p: PredictionParams) {
   const noaaUrl = buildQuery(p);
-  const proxyUrl = `${PROXY_BASE}${noaaUrl}`;
+  const proxyUrl = `${PROXY_BASE}${encodeURIComponent(noaaUrl)}`;
   
   console.log('🌐 Making request through public CORS proxy:', proxyUrl);
   
