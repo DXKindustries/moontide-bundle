@@ -8,8 +8,8 @@ import { getSolarEvents } from '@/utils/solarUtils';
 
 /* 
  * Reason for this update: 
- * - Enhanced legend to show solar event descriptions when they occur in the visible month
- * - Added traditional moon names to legend when full moons occur in the visible month
+ * - Made legend truly dynamic based on the calendar's currently displayed month
+ * - Each month now shows only its specific solar events and moon names
  */
 
 type CalendarCardProps = {
@@ -23,6 +23,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   onSelectDate,
   weeklyForecast
 }) => {
+  const [displayMonth, setDisplayMonth] = React.useState(() => {
+    return selectedDate || new Date();
+  });
 
   // Functions for calendar day modifiers
   const modifiers = {
@@ -37,15 +40,13 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
     solarEvent: "calendar-solar-event"
   };
 
-  // Get the current month being displayed (use selectedDate or current date)
-  const displayDate = selectedDate || new Date();
-  const currentYear = displayDate.getFullYear();
-  const currentMonth = displayDate.getMonth() + 1;
+  // Get the current month being displayed from the calendar's internal state
+  const currentYear = displayMonth.getFullYear();
+  const currentMonth = displayMonth.getMonth() + 1;
 
-  // Check for solar events in the current month
+  // Check for solar events in the currently displayed month
   const getSolarEventsInMonth = () => {
     const events = [];
-    // Check each day of the month for solar events
     const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const checkDate = new Date(currentYear, currentMonth - 1, day);
@@ -57,15 +58,20 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
     return events;
   };
 
-  // Get traditional moon name for the current month
-  const getFullMoonNameForMonth = () => {
-    // Create a date for the current month to get the traditional name
-    const monthDate = new Date(currentYear, currentMonth - 1, 15); // Mid-month date
-    return getFullMoonName(monthDate);
+  // Check if there's actually a full moon in the currently displayed month
+  const getFullMoonInMonth = () => {
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const checkDate = new Date(currentYear, currentMonth - 1, day);
+      if (isDateFullMoon(checkDate)) {
+        return getFullMoonName(checkDate);
+      }
+    }
+    return null;
   };
 
   const solarEventsInMonth = getSolarEventsInMonth();
-  const fullMoonName = getFullMoonNameForMonth();
+  const fullMoonInMonth = getFullMoonInMonth();
 
   return (
     <Card className="bg-card/50 backdrop-blur-md">
@@ -123,6 +129,8 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
           mode="single"
           selected={selectedDate}
           onSelect={onSelectDate}
+          month={displayMonth}
+          onMonthChange={setDisplayMonth}
           modifiers={modifiers}
           modifiersClassNames={modifiersClassNames}
           footer={
@@ -131,9 +139,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">Full Moon</span>
-                  {fullMoonName && (
+                  {fullMoonInMonth && (
                     <span className="text-xs text-yellow-400 font-medium">
-                      {fullMoonName.name}
+                      {fullMoonInMonth.name}
                     </span>
                   )}
                 </div>
