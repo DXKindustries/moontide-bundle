@@ -30,3 +30,17 @@ export const formatApiDate = (apiDate: string): string => {
     day: 'numeric' 
   });
 };
+
+export const formatTimeToAmPm = (timeString: string): string => {
+  // Handle time strings in format "HH:MM" or "H:MM"
+  const [hours, minutes] = timeString.split(':').map(Number);
+  
+  if (isNaN(hours) || isNaN(minutes)) {
+    return timeString; // Return original if parsing fails
+  }
+  
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  
+  return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`;
+};

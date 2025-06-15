@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatTimeToAmPm } from '@/utils/dateTimeUtils';
 
 type MoonDataProps = {
   illumination: number;
@@ -16,11 +17,11 @@ const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
       </div>
       <div className="text-center">
         <p className="text-muted-foreground text-sm">Moonrise</p>
-        <p className="text-lg font-semibold">{moonrise}</p>
+        <p className="text-lg font-semibold">{formatTimeToAmPm(moonrise)}</p>
       </div>
       <div className="text-center">
         <p className="text-muted-foreground text-sm">Moonset</p>
-        <p className="text-lg font-semibold">{moonset}</p>
+        <p className="text-lg font-semibold">{formatTimeToAmPm(moonset)}</p>
       </div>
       <div className="text-center">
         <p className="text-muted-foreground text-sm">Next Phase</p>
