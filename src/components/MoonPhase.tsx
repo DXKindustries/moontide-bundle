@@ -51,12 +51,22 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Check if we have a valid location - could be zipCode or name
+  // Check if we have a valid location - be more thorough in checking
   const hasLocation = currentLocation && (
-    currentLocation.zipCode || 
-    currentLocation.name || 
-    currentLocation.city
+    (currentLocation.zipCode && currentLocation.zipCode !== "default") || 
+    (currentLocation.name && currentLocation.name !== "Select a location") ||
+    (currentLocation.city && currentLocation.city.length > 0) ||
+    (currentLocation.id && currentLocation.id !== "default")
   );
+
+  console.log('MoonPhase hasLocation check:', { 
+    hasLocation, 
+    currentLocation, 
+    zipCode: currentLocation?.zipCode,
+    name: currentLocation?.name,
+    city: currentLocation?.city,
+    id: currentLocation?.id
+  });
 
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
