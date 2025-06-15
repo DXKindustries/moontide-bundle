@@ -37,11 +37,15 @@ const MoonPhase = ({
   error,
   onGetStarted
 }: MoonPhaseProps) => {
-  console.log('🌙 MoonPhase render START');
-  console.log('🌙 MoonPhase render - currentLocation:', currentLocation);
-  console.log('🌙 MoonPhase render - currentLocation type:', typeof currentLocation);
-  console.log('🌙 MoonPhase render - currentLocation zipCode:', currentLocation?.zipCode);
+  // Simplified location detection - just check if currentLocation exists and has a zipCode
+  const hasLocation = !!(currentLocation?.zipCode);
   
+  console.log('🌙 MoonPhase - Simplified check:', {
+    currentLocationExists: !!currentLocation,
+    zipCode: currentLocation?.zipCode,
+    hasLocation
+  });
+
   // Get full moon name if applicable
   const currentDate = new Date(date);
   const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
@@ -52,31 +56,6 @@ const MoonPhase = ({
     currentLocation?.lat || 41.4353, 
     currentLocation?.lng || -71.4616
   );
-
-  // Improved location detection - be more explicit about what constitutes a valid location
-  const hasLocation = !!(
-    currentLocation && 
-    typeof currentLocation === 'object' && 
-    currentLocation.zipCode && 
-    typeof currentLocation.zipCode === 'string' && 
-    currentLocation.zipCode.trim() !== '' &&
-    currentLocation.zipCode !== 'default'
-  );
-
-  console.log('🌙 MoonPhase hasLocation calculation:', {
-    currentLocationExists: !!currentLocation,
-    currentLocationType: typeof currentLocation,
-    hasZipCode: !!(currentLocation?.zipCode),
-    zipCodeValue: currentLocation?.zipCode,
-    zipCodeType: typeof currentLocation?.zipCode,
-    zipCodeTrimmed: typeof currentLocation?.zipCode === 'string' ? currentLocation.zipCode.trim() : 'not-string',
-    zipCodeNotEmpty: typeof currentLocation?.zipCode === 'string' ? currentLocation.zipCode.trim() !== '' : false,
-    zipCodeNotDefault: currentLocation?.zipCode !== 'default',
-    finalHasLocation: hasLocation
-  });
-
-  console.log('🌙 MoonPhase will show:', hasLocation ? 'LocationInfo' : 'OnboardingInfo');
-  console.log('🌙 MoonPhase render END');
 
   return (
     <div className="w-full">
@@ -108,16 +87,14 @@ const MoonPhase = ({
             {/* Solar Times Row */}
             <SolarInfo solarTimes={solarTimes} />
 
-            {/* Conditional Bottom Section - Show onboarding when NO zipcode, show location info when zipcode is present */}
+            {/* Conditional Bottom Section */}
             {hasLocation ? (
-              /* Location Display and Error - Show when zipcode is present */
               <LocationInfo 
                 currentLocation={currentLocation}
                 stationName={stationName}
                 error={error}
               />
             ) : (
-              /* Onboarding Information - Show when no zipcode is present */
               <OnboardingInfo onGetStarted={onGetStarted!} />
             )}
           </div>
