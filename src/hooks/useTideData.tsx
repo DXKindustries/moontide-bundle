@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getCurrentTideData,
@@ -42,6 +43,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
 
   useEffect(() => {
     console.log('🔄 useTideData effect triggered with location:', location);
+    console.log('📍 Location details - ZIP:', location?.zipCode, 'Name:', location?.name, 'Lat/Lng:', location?.lat, location?.lng);
     
     // Always set current date and time, regardless of location
     const newDate = getCurrentDateString();
@@ -61,6 +63,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     const fetchTideData = async () => {
       try {
         console.log('🚀 Starting tide data fetch for location:', location.name);
+        console.log('🔍 Location ZIP code for station lookup:', location.zipCode);
         setIsLoading(true);
         setError(null);
         
@@ -68,6 +71,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         console.log('🏭 Calling getStationId...');
         const { stationId, stationName: foundStationName } = await getStationId(location);
         console.log('🏭 getStationId returned:', { stationId, foundStationName });
+        console.log('🎯 Station mapping result - Station ID:', stationId, 'Station Name:', foundStationName);
         
         if (foundStationName) {
           setStationName(foundStationName);
@@ -86,6 +90,11 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             currentTime: currentData.currentTime,
             sampleData: currentData.tideData.slice(0, 3)
           });
+          
+          // Log first few data points to verify they're for the right location
+          if (currentData.tideData.length > 0) {
+            console.log('🌊 First few tide data points:', currentData.tideData.slice(0, 5));
+          }
           
           setTideData(currentData.tideData);
           console.log('📊 Set tide data with length:', currentData.tideData.length);
@@ -119,6 +128,12 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             forecastLength: forecast.length,
             sampleForecast: forecast.slice(0, 2)
           });
+          
+          // Log forecast details to verify correctness
+          if (forecast.length > 0) {
+            console.log('📊 First forecast day details:', forecast[0]);
+          }
+          
           setWeeklyForecast(forecast);
           console.log('📅 Set weekly forecast with length:', forecast.length);
         } catch (forecastError) {

@@ -59,11 +59,17 @@ export async function getNearestStation(
   lat: number,
   lng: number
 ): Promise<Station | null> {
+  console.log(`🔍 getNearestStation called for ZIP: ${zip}, lat: ${lat}, lng: ${lng}`);
+  
   // Return cached result if available
-  if (nearestCache.hasOwnProperty(zip)) return nearestCache[zip];
+  if (nearestCache.hasOwnProperty(zip)) {
+    console.log(`💾 Found cached station for ZIP ${zip}:`, nearestCache[zip]);
+    return nearestCache[zip];
+  }
 
   // First priority: Check direct ZIP mapping
   if (STATION_BY_ZIP[zip]) {
+    console.log(`🎯 Found direct ZIP mapping for ${zip}:`, STATION_BY_ZIP[zip]);
     const station: Station = {
       id: STATION_BY_ZIP[zip].id,
       name: STATION_BY_ZIP[zip].name,
@@ -72,17 +78,20 @@ export async function getNearestStation(
     };
     nearestCache[zip] = station;
     saveToStorage(nearestCache);
-    console.log(`Found direct ZIP mapping for ${zip}: ${station.name} (${station.id})`);
+    console.log(`✅ Using direct mapping for ${zip}: ${station.name} (${station.id})`);
     return station;
   }
+
+  console.log(`⚠️ No direct ZIP mapping found for ${zip}, trying comprehensive search...`);
 
   // Second priority: Try comprehensive station search
   try {
     const stations = await loadMetadata();
+    console.log(`📊 Loaded ${stations.length} stations for distance search`);
     
     // If we only have local mapping data (lat/lng = 0), skip distance calculation
     if (stations.length > 0 && stations[0].lat === 0 && stations[0].lng === 0) {
-      console.log('Only local station mapping available, no distance search possible');
+      console.log('⚠️ Only local station mapping available, no distance search possible');
       nearestCache[zip] = null;
       saveToStorage(nearestCache);
       return null;
@@ -97,11 +106,13 @@ export async function getNearestStation(
         .sort((a, b) => a.distanceKm - b.distanceKm)
         .find((s) => s.distanceKm <= 50) ?? null;
 
+    console.log(`🎯 Distance search result for ZIP ${zip}:`, nearest ? `${nearest.name} (${nearest.id}) - ${nearest.distanceKm.toFixed(1)}km` : 'No station within 50km');
+    
     nearestCache[zip] = nearest;
     saveToStorage(nearestCache);
     return nearest;
   } catch (error) {
-    console.warn('Station metadata search failed:', error);
+    console.warn('❌ Station metadata search failed:', error);
     nearestCache[zip] = null;
     saveToStorage(nearestCache);
     return null;
@@ -113,5 +124,7 @@ export async function getNearestStation(
  * or null if none has been cached yet.
  */
 export function getSavedStationForLocation(zip: string): Station | null {
-  return nearestCache[zip] ?? null;
+  const saved = nearestCache[zip] ?? null;
+  console.log(`💾 getSavedStationForLocation(${zip}):`, saved);
+  return saved;
 }
