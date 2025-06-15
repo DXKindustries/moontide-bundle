@@ -8,9 +8,8 @@ import { getSolarEvents } from '@/utils/solarUtils';
 
 /* 
  * Reason for this update: 
- * - Fixes the modifiers so dots appear!
- * - Uses the correct button selector; the modifier class lands directly on the day button.
- * - Enhances code to ensure correct day matching for modifiers.
+ * - The dot for full/new moons is now a circle *over* the number, not below.
+ * - Achieved via ::before + day number opacity for full/new moon days.
  */
 
 type CalendarCardProps = {
@@ -25,17 +24,16 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   weeklyForecast
 }) => {
 
-  // These functions are called for every visible calendar day
+  // Functions for calendar day modifiers
   const modifiers = {
     fullMoon: (date: Date) => isDateFullMoon(date),
     newMoon: (date: Date) => isDateNewMoon(date),
     solarEvent: (date: Date) => !!getSolarEvents(date)
   };
 
-  // The className provided here will be directly applied on the button per react-day-picker
   const modifiersClassNames = {
-    fullMoon: "calendar-full-moon",
-    newMoon: "calendar-new-moon",
+    fullMoon: "calendar-full-moon-overlay",
+    newMoon: "calendar-new-moon-overlay",
     solarEvent: "calendar-solar-event"
   };
 
@@ -46,41 +44,59 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
       </CardHeader>
       <CardContent>
         <style>{`
-          /* The modifier classes are added directly to the calendar day button (rdp-day). */
-          .calendar-full-moon {
+          /* --- FULL MOON --- */
+          .calendar-full-moon-overlay {
             position: relative;
+            z-index: 0;
           }
-          .calendar-full-moon::after {
+          .calendar-full-moon-overlay::before {
             content: '';
-            display: block;
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 4px;
-            width: 0.5rem;
-            height: 0.5rem;
-            background-color: #facc15; /* Tailwind yellow-400 */
+            left: 50%; top: 50%;
+            transform: translate(-50%,-50%);
+            width: 2.1rem;
+            height: 2.1rem;
+            background-color: #facc15; /* yellow-400 */
             border-radius: 9999px;
-            z-index: 10;
+            z-index: 1;
             pointer-events: none;
+            box-shadow: 0 0 0 1.5px #eab30855;
           }
-          .calendar-new-moon {
+          .calendar-full-moon-overlay > span {
             position: relative;
+            z-index: 2;
+            color: #231800 !important;
+            opacity: 0.7;
+            font-weight: 700;
           }
-          .calendar-new-moon::after {
+
+          /* --- NEW MOON --- */
+          .calendar-new-moon-overlay {
+            position: relative;
+            z-index: 0;
+          }
+          .calendar-new-moon-overlay::before {
             content: '';
-            display: block;
             position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 4px;
-            width: 0.5rem;
-            height: 0.5rem;
-            background-color: #a3a3a3; /* Tailwind gray-400 */
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 2.1rem;
+            height: 2.1rem;
+            background-color: #a3a3a3; /* gray-400 */
             border-radius: 9999px;
-            z-index: 10;
+            z-index: 1;
             pointer-events: none;
+            box-shadow: 0 0 0 1.5px #73737355;
           }
+          .calendar-new-moon-overlay > span {
+            position: relative;
+            z-index: 2;
+            color: #232323 !important;
+            opacity: 0.7;
+            font-weight: 700;
+          }
+
+          /* --- SOLAR EVENT (keep below, dot under) --- */
           .calendar-solar-event {
             position: relative;
           }
@@ -93,7 +109,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
             bottom: 4px;
             width: 0.5rem;
             height: 0.5rem;
-            background-color: #f97316; /* Tailwind orange-500 */
+            background-color: #f97316; /* orange-500 */
             border-radius: 9999px;
             z-index: 10;
             pointer-events: none;
@@ -128,3 +144,4 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 };
 
 export default CalendarCard;
+
