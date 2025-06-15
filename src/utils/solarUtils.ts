@@ -92,23 +92,44 @@ export const calculateSolarTimes = (date: Date, lat: number = 41.4353, lng: numb
   return { sunrise, sunset, daylight, daylightMinutes, changeFromPrevious };
 };
 
-// Solar events (solstices and equinoxes)
+// Solar events (solstices and equinoxes) with accurate 2025 dates
 export const getSolarEvents = (date: Date): SolarEvent | null => {
+  const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
   
-  // Approximate dates for solar events
+  // 2025 solar event dates (these are the actual astronomical dates)
+  if (year === 2025) {
+    // Spring Equinox: March 20, 2025
+    if (month === 3 && day === 20) {
+      return { name: "Spring Equinox", emoji: "🌱", description: "First day of spring - equal day and night" };
+    }
+    // Summer Solstice: June 21, 2025
+    if (month === 6 && day === 21) {
+      return { name: "Summer Solstice", emoji: "☀️", description: "Longest day of the year" };
+    }
+    // Autumn Equinox: September 22, 2025
+    if (month === 9 && day === 22) {
+      return { name: "Autumn Equinox", emoji: "🍂", description: "First day of autumn - equal day and night" };
+    }
+    // Winter Solstice: December 21, 2025
+    if (month === 12 && day === 21) {
+      return { name: "Winter Solstice", emoji: "❄️", description: "Shortest day of the year" };
+    }
+  }
+  
+  // Generic dates for other years (approximate)
   if (month === 3 && day >= 19 && day <= 21) {
-    return { name: "Spring Equinox", emoji: "☀️", description: "First day of spring" };
+    return { name: "Spring Equinox", emoji: "🌱", description: "First day of spring" };
   }
   if (month === 6 && day >= 20 && day <= 22) {
     return { name: "Summer Solstice", emoji: "☀️", description: "Longest day of the year" };
   }
   if (month === 9 && day >= 21 && day <= 23) {
-    return { name: "Autumn Equinox", emoji: "☀️", description: "First day of autumn" };
+    return { name: "Autumn Equinox", emoji: "🍂", description: "First day of autumn" };
   }
   if (month === 12 && day >= 20 && day <= 22) {
-    return { name: "Winter Solstice", emoji: "☀️", description: "Shortest day of the year" };
+    return { name: "Winter Solstice", emoji: "❄️", description: "Shortest day of the year" };
   }
   
   return null;
