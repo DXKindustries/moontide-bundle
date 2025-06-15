@@ -69,17 +69,26 @@
     @apply absolute rounded-full bg-white animate-pulse-subtle;
   }
   
-  /* Calendar day indicators */
-  .day-full-moon {
-    @apply font-bold !bg-yellow-400 text-gray-800 rounded-full !border-none;
+  /* Calendar day indicators with higher specificity */
+  .rdp button[data-day].day-full-moon,
+  .rdp .rdp-day_button.day-full-moon {
+    @apply !bg-yellow-400 !text-gray-900 font-bold !important;
+    background-color: rgb(251 191 36) !important;
+    color: rgb(17 24 39) !important;
   }
   
-  .day-new-moon {
-    @apply font-bold !bg-gray-500 text-white rounded-full !border-none;
+  .rdp button[data-day].day-new-moon,
+  .rdp .rdp-day_button.day-new-moon {
+    @apply !bg-gray-500 !text-white font-bold !important;
+    background-color: rgb(107 114 128) !important;
+    color: rgb(255 255 255) !important;
   }
   
-  .day-solar-event {
-    @apply font-bold !bg-orange-400 text-gray-800 rounded-full !border-none;
+  .rdp button[data-day].day-solar-event,
+  .rdp .rdp-day_button.day-solar-event {
+    @apply !bg-orange-500 !text-white font-bold !important;
+    background-color: rgb(249 115 22) !important;
+    color: rgb(255 255 255) !important;
   }
   
   .day-optimal-fishing {
