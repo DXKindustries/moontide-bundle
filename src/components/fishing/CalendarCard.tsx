@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +8,8 @@ import { getSolarEvents } from '@/utils/solarUtils';
 
 /* 
  * Reason for this update: 
- * - The dot for full/new moons is now a circle *over* the number, not below.
- * - Achieved via ::before + day number opacity for full/new moon days.
+ * - Fixed the CSS selectors to properly target the calendar day elements
+ * - Added more specific targeting to ensure moon phase circles appear over day numbers
  */
 
 type CalendarCardProps = {
@@ -45,56 +46,28 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
         <style>{`
           /* --- FULL MOON --- */
           .calendar-full-moon-overlay {
-            position: relative;
-            z-index: 0;
+            position: relative !important;
+            background-color: #facc15 !important; /* yellow-400 */
+            border-radius: 50% !important;
+            color: #000 !important;
+            font-weight: 900 !important;
           }
-          .calendar-full-moon-overlay::before {
-            content: '';
-            position: absolute;
-            left: 50%; top: 50%;
-            transform: translate(-50%,-50%);
-            width: 2.1rem;
-            height: 2.1rem;
-            background-color: #facc15; /* yellow-400 */
-            border-radius: 9999px;
-            z-index: 1;
-            pointer-events: none;
-            box-shadow: 0 0 0 1.5px #eab30855;
-          }
-          .calendar-full-moon-overlay > span {
-            position: relative;
-            z-index: 2;
-            color: #000 !important;   /* Pure black for maximum contrast */
-            font-weight: 900 !important; /* Extra bold */
-            opacity: 1 !important;
-            text-shadow: none !important;
+          
+          .calendar-full-moon-overlay:hover {
+            background-color: #eab308 !important; /* yellow-500 for hover */
           }
 
           /* --- NEW MOON --- */
           .calendar-new-moon-overlay {
-            position: relative;
-            z-index: 0;
+            position: relative !important;
+            background-color: #a3a3a3 !important; /* gray-400 */
+            border-radius: 50% !important;
+            color: #000 !important;
+            font-weight: 900 !important;
           }
-          .calendar-new-moon-overlay::before {
-            content: '';
-            position: absolute;
-            left: 50%; top: 50%;
-            transform: translate(-50%, -50%);
-            width: 2.1rem;
-            height: 2.1rem;
-            background-color: #a3a3a3; /* gray-400 */
-            border-radius: 9999px;
-            z-index: 1;
-            pointer-events: none;
-            box-shadow: 0 0 0 1.5px #73737355;
-          }
-          .calendar-new-moon-overlay > span {
-            position: relative;
-            z-index: 2;
-            color: #000 !important;   /* Pure black for maximum contrast */
-            font-weight: 900 !important; /* Extra bold */
-            opacity: 1 !important;
-            text-shadow: none !important;
+          
+          .calendar-new-moon-overlay:hover {
+            background-color: #737373 !important; /* gray-500 for hover */
           }
 
           /* --- SOLAR EVENT (keep below, dot under) --- */
