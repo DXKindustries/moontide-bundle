@@ -78,6 +78,10 @@
     @apply font-bold !bg-gray-500 text-white rounded-full !border-none;
   }
   
+  .day-solar-event {
+    @apply font-bold !bg-orange-400 text-gray-800 rounded-full !border-none;
+  }
+  
   .day-optimal-fishing {
     @apply border-2 !border-moon-primary;
   }

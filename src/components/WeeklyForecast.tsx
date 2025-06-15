@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Info } from "lucide-react";
+import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
+import { formatApiDate } from '@/utils/dateTimeUtils';
 
 type DayForecast = {
   date: string;
@@ -98,44 +100,58 @@ const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForeca
               </p>
             </div>
           ) : (
-            forecast.map((day, index) => (
-              <div 
-                key={index} 
-                className={cn(
-                  "flex items-center p-3 rounded-md", 
-                  index === 0 ? "bg-muted" : "hover:bg-muted transition-colors"
-                )}
-              >
-                {/* Day and Date */}
-                <div className="w-20">
-                  <p className="font-medium">{day.day}</p>
-                  <p className="text-xs text-muted-foreground">{day.date}</p>
-                </div>
-                
-                {/* Moon Phase */}
-                <div className="flex items-center space-x-3 flex-1">
-                  <div className={`w-8 h-8 rounded-full ${getMoonPhaseVisual(day.moonPhase)}`}></div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Moon Phase</p>
-                    <p className="text-sm">{day.moonPhase}</p>
+            forecast.map((day, index) => {
+              // Parse the date to get full moon name if applicable
+              const dayDate = new Date(formatApiDate(day.date));
+              const fullMoonName = isFullMoon(day.moonPhase) ? getFullMoonName(dayDate) : null;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={cn(
+                    "flex items-center p-3 rounded-md", 
+                    index === 0 ? "bg-muted" : "hover:bg-muted transition-colors"
+                  )}
+                >
+                  {/* Day and Date */}
+                  <div className="w-20">
+                    <p className="font-medium">{day.day}</p>
+                    <p className="text-xs text-muted-foreground">{day.date}</p>
+                  </div>
+                  
+                  {/* Moon Phase */}
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className={`w-8 h-8 rounded-full ${getMoonPhaseVisual(day.moonPhase)}`}></div>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">Moon Phase</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">{getMoonEmoji(day.moonPhase)}</span>
+                        <span className="text-sm">
+                          {day.moonPhase}
+                          {fullMoonName && (
+                            <span className="text-yellow-400 font-medium"> – {fullMoonName.name}</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Tide Info - Always display exactly one high tide and one low tide per day */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">High Tide</p>
+                      <p className="text-sm">{day.highTide.time}</p>
+                      <p className="text-xs text-moon-blue">{day.highTide.height.toFixed(2)}m</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Low Tide</p>
+                      <p className="text-sm">{day.lowTide.time}</p>
+                      <p className="text-xs text-moon-blue">{day.lowTide.height.toFixed(2)}m</p>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Tide Info - Always display exactly one high tide and one low tide per day */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground">High Tide</p>
-                    <p className="text-sm">{day.highTide.time}</p>
-                    <p className="text-xs text-moon-blue">{day.highTide.height.toFixed(2)}m</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Low Tide</p>
-                    <p className="text-sm">{day.lowTide.time}</p>
-                    <p className="text-xs text-moon-blue">{day.lowTide.height.toFixed(2)}m</p>
-                  </div>
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       </CardContent>
