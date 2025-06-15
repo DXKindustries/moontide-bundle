@@ -8,11 +8,11 @@ import { safeLocalStorage } from '@/utils/localStorage';
 import { lookupZipCode, formatCityStateFromZip } from '@/utils/zipCodeLookup';
 
 export interface SavedLocation {
-  id?: string;         // Add id as optional for compatibility
-  name: string;        // "Narragansett"
-  country?: string;    // Add country as optional for compatibility
-  zipCode: string;     // "02882"
-  cityState: string;   // "Narragansett, RI"
+  id?: string;         
+  name: string;        
+  country?: string;    
+  zipCode: string;     
+  cityState: string;   
   lat: number;
   lng: number;
 }
@@ -35,8 +35,10 @@ export default function LocationSelector({
       const raw = safeLocalStorage.get(STORAGE_KEY);
       console.log('🏠 Raw data from storage:', raw);
       if (raw && Array.isArray(raw)) {
-        setSaved(raw);
-        console.log('✅ Successfully loaded saved locations:', raw);
+        // Filter out any default locations that might have been saved
+        const validLocations = raw.filter(loc => loc.zipCode && loc.zipCode !== "default" && loc.zipCode !== "02882");
+        setSaved(validLocations);
+        console.log('✅ Successfully loaded saved locations:', validLocations);
       } else {
         console.log('📝 No saved locations found, starting with empty array');
         setSaved([]);
@@ -50,7 +52,9 @@ export default function LocationSelector({
   useEffect(() => {
     console.log('💾 Saving locations to storage:', saved);
     try {
-      safeLocalStorage.set(STORAGE_KEY, saved);
+      // Only save non-default locations
+      const locationsToSave = saved.filter(loc => loc.zipCode && loc.zipCode !== "default" && loc.zipCode !== "02882");
+      safeLocalStorage.set(STORAGE_KEY, locationsToSave);
       console.log('✅ Successfully saved locations to storage');
     } catch (error) {
       console.error('❌ Error saving locations to storage:', error);
@@ -113,7 +117,7 @@ export default function LocationSelector({
       setSearch('');
       setIsOpen(false);
       
-      // Call onSelect to update the current location
+      // Call onSelect to update the current location immediately
       console.log('📢 Calling onSelect with location:', loc);
       onSelect(loc);
       
@@ -153,7 +157,7 @@ export default function LocationSelector({
             value={search}
             onChange={e => setSearch(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Enter ZIP…"
+            placeholder="Enter ZIP code…"
             maxLength={5}
           />
           <button
