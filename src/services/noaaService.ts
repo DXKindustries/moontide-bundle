@@ -1,4 +1,3 @@
-
 import {
   getNearestStation as _getNearestStation,
   getSavedStationForLocation,
@@ -12,10 +11,10 @@ import type { TidePoint, TideForecast } from './tide/types';
 // Used for localStorage station cache (by app location id)
 const LOC_STORAGE_KEY = 'moontide_station_by_location';
 
-export async function getNearestStation(lat: number, lng: number): Promise<Station | null> {
-  // Use lat/lng as fallback key (in case no zip)
-  const zipKey = lat + ',' + lng;
-  return _getNearestStation(zipKey, lat, lng);
+export async function getNearestStation(zipOrKey: string, lat: number, lng: number): Promise<Station | null> {
+  // Fix: Pass the ZIP code properly to the station service
+  console.log(`🔍 getNearestStation called with zipOrKey: ${zipOrKey}, lat: ${lat}, lng: ${lng}`);
+  return _getNearestStation(zipOrKey, lat, lng);
 }
 
 /**
