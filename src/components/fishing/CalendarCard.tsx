@@ -19,13 +19,19 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const modifiers = {
     fullMoon: (date: Date) => {
-      return isDateFullMoon(date);
+      const isFullMoon = isDateFullMoon(date);
+      console.log(`Checking full moon for ${date.toDateString()}: ${isFullMoon}`);
+      return isFullMoon;
     },
     newMoon: (date: Date) => {
-      return isDateNewMoon(date);
+      const isNewMoon = isDateNewMoon(date);
+      console.log(`Checking new moon for ${date.toDateString()}: ${isNewMoon}`);
+      return isNewMoon;
     },
     solarEvent: (date: Date) => {
-      return getSolarEvents(date) !== null;
+      const hasSolarEvent = getSolarEvents(date) !== null;
+      console.log(`Checking solar event for ${date.toDateString()}: ${hasSolarEvent}`);
+      return hasSolarEvent;
     }
   };
 
