@@ -55,7 +55,7 @@ const MoonPhase = ({
       <CardHeader className="pb-3">
         <CardTitle className="flex justify-between items-start">
           <div className="flex flex-col gap-2">
-            <span className="text-lg">{phase}</span>
+            <span className="text-xl md:text-2xl">{phase}</span>
             {fullMoonName && (
               <FullMoonBanner fullMoonName={fullMoonName} />
             )}
@@ -64,28 +64,30 @@ const MoonPhase = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-8">
+          {/* Moon Visual */}
           <div className="relative flex-shrink-0">
-            <div className={`w-20 h-20 md:w-24 md:h-24 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-4 bg-gradient-to-t from-moon-primary/20 to-transparent w-12 md:w-16 h-6 md:h-8 blur-md rounded-full"></div>
+            <div className={`w-32 h-32 md:w-40 md:h-40 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 bg-gradient-to-t from-moon-primary/20 to-transparent w-20 md:w-24 h-8 md:h-10 blur-md rounded-full"></div>
           </div>
           
-          <div className="flex-1 grid grid-cols-2 gap-3 text-sm">
+          {/* Stats Grid - 2x2 layout */}
+          <div className="flex-1 grid grid-cols-2 gap-6">
             <div>
-              <p className="text-muted-foreground text-xs">Illumination</p>
-              <p className="text-base font-semibold text-moon-primary">{illumination}%</p>
+              <p className="text-muted-foreground text-sm mb-1">Illumination</p>
+              <p className="text-2xl font-bold text-moon-primary">{illumination}%</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Moonrise</p>
-              <p className="text-base font-semibold">{moonrise}</p>
+              <p className="text-muted-foreground text-sm mb-1">Moonrise</p>
+              <p className="text-2xl font-bold">{moonrise}</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Moonset</p>
-              <p className="text-base font-semibold">{moonset}</p>
+              <p className="text-muted-foreground text-sm mb-1">Moonset</p>
+              <p className="text-2xl font-bold">{moonset}</p>
             </div>
             <div>
-              <p className="text-muted-foreground text-xs">Next Phase</p>
-              <p className="text-base font-semibold">In 3 days</p>
+              <p className="text-muted-foreground text-sm mb-1">Next Phase</p>
+              <p className="text-2xl font-bold">In 3 days</p>
             </div>
           </div>
         </div>
