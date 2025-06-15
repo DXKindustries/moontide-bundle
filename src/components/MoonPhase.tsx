@@ -6,7 +6,6 @@ import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import { Sunrise, Sunset, MapPin, AlertCircle } from 'lucide-react';
 import FullMoonBanner from './FullMoonBanner';
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type MoonPhaseProps = {
   phase: string;
@@ -31,6 +30,8 @@ const MoonPhase = ({
   stationName,
   error
 }: MoonPhaseProps) => {
+  console.log('MoonPhase rendering with:', { phase, illumination, currentLocation, stationName, error });
+
   // Get full moon name if applicable
   const currentDate = new Date(date);
   const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
@@ -87,15 +88,15 @@ const MoonPhase = ({
           <span className="text-moon-primary text-sm">{date}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center">
+      <CardContent className="flex flex-col items-center space-y-6">
         {/* Large Moon Visual - Center Focus */}
-        <div className="relative mb-8">
+        <div className="relative">
           <div className={`w-36 h-36 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
         </div>
         
         {/* Moon Data Grid - 2x2 Layout */}
-        <div className="grid grid-cols-2 gap-4 w-full mb-6">
+        <div className="grid grid-cols-2 gap-4 w-full">
           <div className="text-center">
             <p className="text-muted-foreground text-sm">Illumination</p>
             <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
