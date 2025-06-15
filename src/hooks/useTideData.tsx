@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getNearestStation, 
@@ -45,17 +44,41 @@ const DEFAULT_COORDINATES: Record<string, { lat: number, lng: number }> = {
 // Memory cache for station lookups during the session
 const sessionStationCache = new Map<string, string>();
 
+// Helper function to get current date string
+const getCurrentDateString = (): string => {
+  const now = new Date();
+  return now.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+};
+
+// Helper function to get current time string
+const getCurrentTimeString = (): string => {
+  const now = new Date();
+  return now.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+};
+
 export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tideData, setTideData] = useState<TidePoint[]>([]);
   const [weeklyForecast, setWeeklyForecast] = useState<TideForecast[]>([]);
-  const [currentDate, setCurrentDate] = useState<string>('');
-  const [currentTime, setCurrentTime] = useState<string>('');
+  const [currentDate, setCurrentDate] = useState<string>(getCurrentDateString());
+  const [currentTime, setCurrentTime] = useState<string>(getCurrentTimeString());
   const [stationName, setStationName] = useState<string | null>(null);
 
   useEffect(() => {
-    // If no location is provided, use mock data
+    // Always set current date and time, regardless of location
+    setCurrentDate(getCurrentDateString());
+    setCurrentTime(getCurrentTimeString());
+
+    // If no location is provided, use mock data but keep current date/time
     if (!location) {
       setIsLoading(false);
       setError(null);
@@ -145,8 +168,19 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         try {
           const currentData = await getCurrentTideData(stationId);
           setTideData(currentData.tideData);
-          setCurrentDate(currentData.date);
-          setCurrentTime(currentData.currentTime);
+          // Only update date if we got a valid date from the API
+          if (currentData.date) {
+            const apiDate = new Date(currentData.date);
+            setCurrentDate(apiDate.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            }));
+          }
+          // Only update time if we got valid time from the API
+          if (currentData.currentTime) {
+            setCurrentTime(currentData.currentTime);
+          }
         } catch (currentDataError) {
           console.error('Error getting current tide data:', currentDataError);
           throw new Error('Failed to fetch current tide data');
@@ -168,7 +202,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         
-        // Set empty data
+        // Set empty data but keep current date/time
         setTideData([]);
         setWeeklyForecast([]);
       }
