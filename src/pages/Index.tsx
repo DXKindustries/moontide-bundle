@@ -8,7 +8,7 @@ import { useLocationState } from '@/hooks/useLocationState';
 import { useLocationManager } from '@/components/LocationManager';
 
 const Index = () => {
-  console.log('🚀 Index component rendering...');
+  console.log('🚀 Index component rendering... (forced refresh)');
   
   const {
     currentLocation,
@@ -24,6 +24,11 @@ const Index = () => {
   } = useLocationManager({ setCurrentLocation, setShowLocationSelector });
 
   console.log('🌊 Current location for useTideData:', currentLocation);
+  console.log('🔍 Force refresh - location details:', {
+    hasLocation: !!currentLocation,
+    zipCode: currentLocation?.zipCode,
+    name: currentLocation?.name
+  });
 
   const {
     isLoading,
