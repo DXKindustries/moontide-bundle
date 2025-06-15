@@ -52,10 +52,10 @@ const MoonPhase = ({
 
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex justify-between items-start">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
           <div className="flex flex-col gap-2">
-            <span className="text-xl md:text-2xl">{phase}</span>
+            <span>{phase}</span>
             {fullMoonName && (
               <FullMoonBanner fullMoonName={fullMoonName} />
             )}
@@ -63,31 +63,32 @@ const MoonPhase = ({
           <span className="text-moon-primary text-sm">{date}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center gap-8">
-          {/* Moon Visual */}
-          <div className="relative flex-shrink-0">
-            <div className={`w-32 h-32 md:w-40 md:h-40 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-6 bg-gradient-to-t from-moon-primary/20 to-transparent w-20 md:w-24 h-8 md:h-10 blur-md rounded-full"></div>
+      <CardContent className="flex flex-col items-center">
+        <div className="relative">
+          <div className={`w-36 h-36 rounded-full animate-float shadow-lg ${getMoonPhaseVisual()}`}></div>
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
+        </div>
+        
+        <div className="mt-8 w-full">
+          <div className="flex justify-between text-sm mb-4">
+            <div>
+              <p className="text-muted-foreground">Illumination</p>
+              <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
+            </div>
+            <div className="text-right">
+              <p className="text-muted-foreground">Moonrise</p>
+              <p className="text-lg font-semibold">{moonrise}</p>
+            </div>
           </div>
           
-          {/* Stats Grid - 2x2 layout */}
-          <div className="flex-1 grid grid-cols-2 gap-6">
+          <div className="flex justify-between text-sm">
             <div>
-              <p className="text-muted-foreground text-sm mb-1">Illumination</p>
-              <p className="text-2xl font-bold text-moon-primary">{illumination}%</p>
+              <p className="text-muted-foreground">Moonset</p>
+              <p className="text-lg font-semibold">{moonset}</p>
             </div>
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">Moonrise</p>
-              <p className="text-2xl font-bold">{moonrise}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">Moonset</p>
-              <p className="text-2xl font-bold">{moonset}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-sm mb-1">Next Phase</p>
-              <p className="text-2xl font-bold">In 3 days</p>
+            <div className="text-right">
+              <p className="text-muted-foreground">Next Phase</p>
+              <p className="text-lg font-semibold">In 3 days</p>
             </div>
           </div>
         </div>
