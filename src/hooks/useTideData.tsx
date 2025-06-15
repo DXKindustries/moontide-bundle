@@ -36,6 +36,8 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
   const forecast: TideForecast[] = [];
   const today = new Date();
   
+  console.log(`🗓️ Generating mock forecast starting from: ${today.toISOString().slice(0, 10)}`);
+  
   for (let i = 0; i < 7; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
@@ -45,6 +47,8 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
     
     // Calculate actual moon phase for each specific day
     const moonData = calculateMoonPhase(date);
+    
+    console.log(`📅 Day ${i}: ${dateStr} (${day}) - Phase: ${moonData.phase}, Illumination: ${moonData.illumination}%`);
     
     // Generate realistic tide times and heights with proper progression
     const baseHighTime1 = 6 + (i * 0.8); // Gradually shifting tide times
@@ -74,7 +78,7 @@ const generateMockWeeklyForecast = (): TideForecast[] => {
     });
   }
   
-  console.log('📅 Generated mock weekly forecast with calculated moon phases:', forecast.map(f => ({
+  console.log('📅 Final generated mock weekly forecast with calculated moon phases:', forecast.map(f => ({
     date: f.date,
     day: f.day,
     moonPhase: f.moonPhase,

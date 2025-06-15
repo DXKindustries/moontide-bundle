@@ -1,3 +1,4 @@
+
 // Lunar calculation utilities
 
 export type FullMoonName = {
@@ -53,23 +54,27 @@ export const getMoonEmoji = (phase: string): string => {
   }
 };
 
-// Calculate actual moon phase for any given date
+// More accurate moon phase calculation using a known lunar cycle reference
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
-  // Known new moon reference: January 1, 2000 was approximately a new moon
-  const knownNewMoon = new Date(2000, 0, 6, 18, 14); // Jan 6, 2000 6:14 PM UTC
-  const lunarCycleLength = 29.53058867; // Average lunar cycle in days
+  // Use a more recent and accurate new moon reference
+  // June 6, 2024 was a new moon at 12:38 UTC
+  const knownNewMoon = new Date('2024-06-06T12:38:00.000Z');
+  const lunarCycleLength = 29.530588853; // More precise lunar cycle length in days
   
-  // Calculate days since the known new moon
-  const daysSinceKnownNewMoon = (date.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+  // Calculate milliseconds since the known new moon
+  const msSinceNewMoon = date.getTime() - knownNewMoon.getTime();
+  const daysSinceNewMoon = msSinceNewMoon / (1000 * 60 * 60 * 24);
   
-  // Calculate the current position in the lunar cycle
-  const cyclePosition = ((daysSinceKnownNewMoon % lunarCycleLength) + lunarCycleLength) % lunarCycleLength;
+  // Get position in current lunar cycle (0 to 29.53...)
+  const cyclePosition = ((daysSinceNewMoon % lunarCycleLength) + lunarCycleLength) % lunarCycleLength;
   
-  // Calculate illumination percentage
-  const illumination = Math.round((1 - Math.cos((cyclePosition / lunarCycleLength) * 2 * Math.PI)) * 50);
+  // Calculate illumination percentage (0-100)
+  const illuminationDecimal = (1 - Math.cos((cyclePosition / lunarCycleLength) * 2 * Math.PI)) / 2;
+  const illumination = Math.round(illuminationDecimal * 100);
   
-  // Determine phase based on cycle position
+  // Determine phase based on cycle position with more precise boundaries
   let phase: string;
+  
   if (cyclePosition < 1.84566) {
     phase = "New Moon";
   } else if (cyclePosition < 5.53699) {
@@ -88,8 +93,11 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
     phase = "Waning Crescent";
   }
   
+  console.log(`🌙 calculateMoonPhase for ${date.toISOString().slice(0, 10)}: cyclePosition=${cyclePosition.toFixed(2)}, phase=${phase}, illumination=${illumination}%`);
+  
   return { phase, illumination };
 };
+
 import { FULL_MOON_SET, NEW_MOON_SET } from "./moonEphemeris";
 
 // Replace isDateFullMoon and isDateNewMoon with accurate table lookups
