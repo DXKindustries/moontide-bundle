@@ -327,6 +327,11 @@ const FishingCalendar = () => {
                 selected={selectedDate}
                 onSelect={handleSelectDate}
                 modifiers={modifiers}
+                modifiersClassNames={{
+                  fullMoon: "bg-yellow-400/20 text-yellow-100",
+                  newMoon: "bg-gray-600/20 text-gray-100", 
+                  solarEvent: "bg-orange-400/20 text-orange-100"
+                }}
                 footer={
                   <div className="mt-3 pt-3 border-t border-muted">
                     <div className="flex items-center gap-2 mb-2">
@@ -338,7 +343,7 @@ const FishingCalendar = () => {
                       <span className="text-xs text-muted-foreground">New Moon</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs">☀️</span>
+                      <div className="w-3 h-3 rounded-full bg-orange-400"></div>
                       <span className="text-xs text-muted-foreground">Solar Event</span>
                     </div>
                   </div>
@@ -366,7 +371,7 @@ const FishingCalendar = () => {
                   <div className="flex items-center gap-2">
                     {/* Solar event indicator */}
                     {selectedDate && getSolarEvents(selectedDate) && (
-                      <Badge variant="outline" className="bg-yellow-500/20 text-yellow-100 border-yellow-500/30">
+                      <Badge variant="outline" className="bg-orange-500/20 text-orange-100 border-orange-500/30">
                         {getSolarEvents(selectedDate)!.emoji} {getSolarEvents(selectedDate)!.name}
                       </Badge>
                     )}
@@ -377,6 +382,17 @@ const FishingCalendar = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Solar event information - show if present */}
+                {selectedDate && getSolarEvents(selectedDate) && (
+                  <div className="p-4 rounded-md bg-orange-500/10 border border-orange-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">{getSolarEvents(selectedDate)!.emoji}</span>
+                      <h3 className="text-lg font-medium text-orange-100">{getSolarEvents(selectedDate)!.name}</h3>
+                    </div>
+                    <p className="text-orange-200">{getSolarEvents(selectedDate)!.description}</p>
+                  </div>
+                )}
+
                 {/* Moon phase info */}
                 <div className="flex items-center space-x-6">
                   <div className={`w-16 h-16 rounded-full ${getMoonPhaseVisual(selectedDateInfo.moonPhase)}`}></div>
