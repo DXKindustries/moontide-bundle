@@ -51,19 +51,13 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Fixed location detection - properly handle null currentLocation
-  const hasLocation = !!(currentLocation && 
-    currentLocation.zipCode && 
-    currentLocation.zipCode !== '' && 
-    currentLocation.zipCode !== 'default');
+  // Simple location detection - check if we have a location with a zipCode
+  const hasLocation = currentLocation && currentLocation.zipCode && currentLocation.zipCode.trim() !== '';
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
     currentLocation, 
-    zipCode: currentLocation?.zipCode,
-    name: currentLocation?.name,
-    cityState: currentLocation?.cityState,
-    id: currentLocation?.id
+    zipCode: currentLocation?.zipCode
   });
 
   return (
