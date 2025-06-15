@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
+import { getFullMoonName, isFullMoon, calculateMoonPhase } from '@/utils/lunarUtils';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FullMoonBanner from './FullMoonBanner';
 import MoonVisual from './MoonVisual';
@@ -46,9 +46,19 @@ const MoonPhase = ({
     hasLocation
   });
 
-  // Get full moon name if applicable
+  // Calculate the actual moon phase for today instead of using props
   const currentDate = new Date(date);
-  const fullMoonName = isFullMoon(phase) ? getFullMoonName(currentDate) : null;
+  const actualMoonPhase = calculateMoonPhase(currentDate);
+  
+  console.log('🌙 Calculated moon phase:', actualMoonPhase);
+  console.log('🌙 Props moon phase:', { phase, illumination });
+
+  // Use calculated values instead of props
+  const actualPhase = actualMoonPhase.phase;
+  const actualIllumination = actualMoonPhase.illumination;
+
+  // Get full moon name if applicable
+  const fullMoonName = isFullMoon(actualPhase) ? getFullMoonName(currentDate) : null;
 
   // Calculate solar times for today using actual location coordinates
   const solarTimes = calculateSolarTimes(
@@ -63,7 +73,7 @@ const MoonPhase = ({
         <CardHeader>
           <CardTitle className="flex justify-between items-center">
             <div className="flex flex-col gap-2">
-              <span>{phase}</span>
+              <span>{actualPhase}</span>
               {fullMoonName && (
                 <FullMoonBanner fullMoonName={fullMoonName} />
               )}
@@ -73,11 +83,11 @@ const MoonPhase = ({
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6">
           {/* Large Moon Visual - Center Focus */}
-          <MoonVisual phase={phase} illumination={illumination} />
+          <MoonVisual phase={actualPhase} illumination={actualIllumination} />
           
           {/* Moon Data Grid - 2x2 Layout */}
           <MoonData 
-            illumination={illumination}
+            illumination={actualIllumination}
             moonrise={moonrise}
             moonset={moonset}
           />
