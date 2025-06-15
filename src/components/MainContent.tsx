@@ -3,7 +3,6 @@ import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
-import OnboardingMessage from '@/components/OnboardingMessage';
 import { TidePoint, TideForecast } from '@/services/noaaService';
 
 interface MainContentProps {
@@ -37,15 +36,6 @@ export default function MainContent({
     date: currentDate || "May 21, 2025"
   };
 
-  // Show onboarding message if no location is selected
-  if (!currentLocation) {
-    return (
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-        <OnboardingMessage onGetStarted={onGetStarted || (() => {})} />
-      </main>
-    );
-  }
-
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -58,6 +48,7 @@ export default function MainContent({
           currentLocation={currentLocation}
           stationName={stationName}
           error={error}
+          onGetStarted={onGetStarted}
         />
 
         <TideChart
