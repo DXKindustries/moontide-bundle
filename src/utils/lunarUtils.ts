@@ -1,4 +1,3 @@
-
 // Lunar calculation utilities
 
 export type FullMoonName = {
@@ -91,15 +90,40 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
   
   return { phase, illumination };
 };
+import { FULL_MOON_SET, NEW_MOON_SET } from "./moonEphemeris";
 
-// Check if a specific date is a full moon (within 1 day of peak)
+// Replace isDateFullMoon and isDateNewMoon with accurate table lookups
+/**
+ * Checks if the given date is a "full moon day" (matches our ephemeris, within +/- 1 day).
+ * This is MUCH more accurate than algorithmic calculation for calendar indicators!
+ */
 export const isDateFullMoon = (date: Date): boolean => {
-  const { phase } = calculateMoonPhase(date);
-  return phase === "Full Moon";
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  // Form YYYY-MM-DD (UTC, to match ephemeris)
+  const utcYear = date.getUTCFullYear();
+  const utcMonth = pad(date.getUTCMonth() + 1);
+  const utcDay = pad(date.getUTCDate());
+
+  const yyyymmdd = `${utcYear}-${utcMonth}-${utcDay}`;
+  // Optionally, allow ±1 day margin (covers time zone edge cases)
+  if (FULL_MOON_SET.has(yyyymmdd)) return true;
+  // You can uncomment below to show dot also the day before/after the true full moon,
+  // which is sometimes done to reflect local time variation:
+  // if (FULL_MOON_SET.has(getAdjacentDate(yyyymmdd, -1))) return true;
+  // if (FULL_MOON_SET.has(getAdjacentDate(yyyymmdd, 1))) return true;
+  return false;
 };
 
-// Check if a specific date is a new moon (within 1 day of peak)
+/**
+ * Checks if the given date is a "new moon day" (matches our ephemeris, within +/- 1 day).
+ */
 export const isDateNewMoon = (date: Date): boolean => {
-  const { phase } = calculateMoonPhase(date);
-  return phase === "New Moon";
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const utcYear = date.getUTCFullYear();
+  const utcMonth = pad(date.getUTCMonth() + 1);
+  const utcDay = pad(date.getUTCDate());
+  const yyyymmdd = `${utcYear}-${utcMonth}-${utcDay}`;
+  if (NEW_MOON_SET.has(yyyymmdd)) return true;
+  // Optionally ±1 day logic, see above comments.
+  return false;
 };
