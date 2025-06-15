@@ -14,23 +14,26 @@ import { useTideData } from '@/hooks/useTideData';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
+// --- Fix: Ensure default 'currentLocation' has required fields: id, name, country, zipCode, lat, lng ---
+const DEFAULT_LOCATION: SavedLocation & { id: string; country: string } = {
+  id: "narragansett", // required for hook and caching
+  name: "Narragansett",
+  country: "USA",
+  zipCode: "02882",
+  cityState: "Narragansett, RI",
+  lat: 41.4501,
+  lng: -71.4495,
+};
+
 const Index = () => {
-  const [currentLocation, setCurrentLocation] = useState<SavedLocation | null>(() => {
+  const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
     try {
       const savedLocation = safeLocalStorage.getItem('moontide-current-location');
       if (savedLocation) return savedLocation;
     } catch (error) {
       console.warn('Error reading location from localStorage:', error);
     }
-    return {
-      id: "narragansett",
-      name: "Narragansett",
-      country: "USA",
-      zipCode: "02882",
-      cityState: "Narragansett, RI",
-      lat: 41.4501,
-      lng: -71.4495,
-    } as unknown as SavedLocation;
+    return DEFAULT_LOCATION; // Always fallback to a valid object
   });
 
   const {
@@ -59,6 +62,8 @@ const Index = () => {
   const handleLocationChange = (location: SavedLocation) => {
     const updatedLocation = {
       ...location,
+      id: location.id || (location.zipCode || "default"),
+      country: location.country || "USA",
       name: location.name || `${location.zipCode || "Unknown Location"}`
     };
     setCurrentLocation(updatedLocation);
@@ -162,3 +167,4 @@ const Index = () => {
 };
 
 export default Index;
+
