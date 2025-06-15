@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { lookupZipCode } from '@/utils/zipCodeLookup';
@@ -14,23 +13,31 @@ interface ZipCodeEntryProps {
   onLocationSelect: (location: LocationData) => void;
   onClose?: () => void;
   initialZip?: string;
+  skipAutoLoad?: boolean; // New prop to skip auto-loading existing location
 }
 
-export default function ZipCodeEntry({ onLocationSelect, onClose, initialZip }: ZipCodeEntryProps) {
+export default function ZipCodeEntry({ 
+  onLocationSelect, 
+  onClose, 
+  initialZip,
+  skipAutoLoad = false 
+}: ZipCodeEntryProps) {
   const [mode, setMode] = useState<EntryMode>('zip');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentZip, setCurrentZip] = useState(initialZip || '');
   const [pendingLocation, setPendingLocation] = useState<LocationData | null>(null);
 
-  // Load existing location on mount
+  // Load existing location on mount only if not skipping auto-load
   useEffect(() => {
-    const existing = locationStorage.getCurrentLocation();
-    if (existing && !initialZip) {
-      setPendingLocation(existing);
-      setMode('confirmation');
+    if (!skipAutoLoad) {
+      const existing = locationStorage.getCurrentLocation();
+      if (existing && !initialZip) {
+        setPendingLocation(existing);
+        setMode('confirmation');
+      }
     }
-  }, [initialZip]);
+  }, [initialZip, skipAutoLoad]);
 
   const handleZipLookup = async (zipCode: string): Promise<void> => {
     setIsLoading(true);
@@ -100,7 +107,7 @@ export default function ZipCodeEntry({ onLocationSelect, onClose, initialZip }: 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
+    <div className="w-full max-w-md mx-auto">
       {mode === 'zip' && (
         <ZipCodeInput
           onZipSubmit={handleZipLookup}
