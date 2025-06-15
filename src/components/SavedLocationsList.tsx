@@ -66,7 +66,8 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     return 'Just now';
   };
 
-  const getLocationDisplayName = (location: LocationData): string => {
+  const getLocationDisplayName = (location: LocationData | null): string => {
+    if (!location) return 'Unknown Location';
     if (location.nickname) return location.nickname;
     return `${location.city}, ${location.state}`;
   };
@@ -179,7 +180,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Location</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{getLocationDisplayName(deletingLocation!)}"? 
+              Are you sure you want to delete "{getLocationDisplayName(deletingLocation)}"? 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
