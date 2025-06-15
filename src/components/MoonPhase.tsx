@@ -51,11 +51,11 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Check if we have a valid location - be more thorough in checking
+  // Check if we have a valid location - fix the property checking to match SavedLocation structure
   const hasLocation = currentLocation && (
-    (currentLocation.zipCode && currentLocation.zipCode !== "default") || 
-    (currentLocation.name && currentLocation.name !== "Select a location") ||
-    (currentLocation.city && currentLocation.city.length > 0) ||
+    (currentLocation.zipCode && currentLocation.zipCode !== "default" && currentLocation.zipCode.length > 0) || 
+    (currentLocation.name && currentLocation.name !== "Select a location" && currentLocation.name.length > 0) ||
+    (currentLocation.cityState && currentLocation.cityState.length > 0) ||
     (currentLocation.id && currentLocation.id !== "default")
   );
 
@@ -64,54 +64,56 @@ const MoonPhase = ({
     currentLocation, 
     zipCode: currentLocation?.zipCode,
     name: currentLocation?.name,
-    city: currentLocation?.city,
+    cityState: currentLocation?.cityState,
     id: currentLocation?.id
   });
 
   return (
-    <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <div className="flex flex-col gap-2">
-            <span>{phase}</span>
-            {fullMoonName && (
-              <FullMoonBanner fullMoonName={fullMoonName} />
+    <div className="w-full">
+      <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
+        <CardHeader>
+          <CardTitle className="flex justify-between items-center">
+            <div className="flex flex-col gap-2">
+              <span>{phase}</span>
+              {fullMoonName && (
+                <FullMoonBanner fullMoonName={fullMoonName} />
+              )}
+            </div>
+            <span className="text-moon-primary text-sm">{date}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-6">
+          {/* Large Moon Visual - Center Focus */}
+          <MoonVisual phase={phase} illumination={illumination} />
+          
+          {/* Moon Data Grid - 2x2 Layout */}
+          <MoonData 
+            illumination={illumination}
+            moonrise={moonrise}
+            moonset={moonset}
+          />
+
+          {/* Solar Information with Integrated Location and Error - Bottom Section */}
+          <div className="border-t border-muted pt-4 w-full space-y-4">
+            {/* Solar Times Row */}
+            <SolarInfo solarTimes={solarTimes} />
+
+            {/* Conditional Bottom Section */}
+            {!hasLocation ? (
+              /* Onboarding Information - Show when no location is selected */
+              <OnboardingInfo onGetStarted={onGetStarted!} />
+            ) : (
+              /* Location Display and Error - Show when location is selected */
+              <LocationInfo 
+                currentLocation={currentLocation}
+                stationName={stationName}
+                error={error}
+              />
             )}
           </div>
-          <span className="text-moon-primary text-sm">{date}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center space-y-6">
-        {/* Large Moon Visual - Center Focus */}
-        <MoonVisual phase={phase} illumination={illumination} />
-        
-        {/* Moon Data Grid - 2x2 Layout */}
-        <MoonData 
-          illumination={illumination}
-          moonrise={moonrise}
-          moonset={moonset}
-        />
-
-        {/* Solar Information with Integrated Location and Error - Bottom Section */}
-        <div className="border-t border-muted pt-4 w-full space-y-4">
-          {/* Solar Times Row */}
-          <SolarInfo solarTimes={solarTimes} />
-
-          {/* Conditional Bottom Section */}
-          {!hasLocation ? (
-            /* Onboarding Information - Show when no location is selected */
-            <OnboardingInfo onGetStarted={onGetStarted!} />
-          ) : (
-            /* Location Display and Error - Show when location is selected */
-            <LocationInfo 
-              currentLocation={currentLocation}
-              stationName={stationName}
-              error={error}
-            />
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
