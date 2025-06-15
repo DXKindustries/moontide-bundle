@@ -71,10 +71,12 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
     console.log(`🔍 Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
     console.log(`🔍 ZIP code available: ${location.zipCode}`);
     
-    // Find nearest station - now prioritizes ZIP mapping
+    // Find nearest station - pass ZIP code as first parameter when available
     try {
       console.log('🌐 Calling getNearestStation API...');
-      const station = await getNearestStation(lat, lng);
+      // Fix: Pass ZIP code as first parameter, then lat/lng
+      const zipKey = location.zipCode || `${lat},${lng}`;
+      const station = await getNearestStation(zipKey, lat, lng);
       console.log('🌐 getNearestStation returned:', station);
       
       if (!station) {
