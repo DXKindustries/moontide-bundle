@@ -1,3 +1,4 @@
+
 interface NoaaStationMetadata {
   id: string;
   name: string;
@@ -8,6 +9,7 @@ interface NoaaStationMetadata {
 
 const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
 const LOCAL_PROXY_BASE = 'http://localhost:3001/api/noaa';
+const FALLBACK_PROXY_BASE = 'https://api.allorigins.win/raw?url=';
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
@@ -17,9 +19,14 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
     return stationCache;
   }
   
+  // Try local proxy first, then fallback to public proxy
+  let proxyUrl: string;
+  let proxyType: string;
+  
   try {
-    console.log('🌐 Fetching real NOAA station metadata via local proxy...');
-    const proxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
+    console.log('🌐 Trying local proxy first...');
+    proxyUrl = `${LOCAL_PROXY_BASE}?url=${encodeURIComponent(NOAA_STATIONS_API)}`;
+    proxyType = 'local proxy';
     
     const response = await fetch(proxyUrl);
     if (!response.ok) {
@@ -27,34 +34,54 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
     }
     
     const data = await response.json();
+    return processStationData(data, proxyType);
     
-    if (data && data.stations) {
-      // Filter for tide stations only and convert to our format
-      stationCache = data.stations
-        .filter((station: any) => 
-          station.type === 'tide' && 
-          station.lat && 
-          station.lng &&
-          station.id &&
-          station.name
-        )
-        .map((station: any) => ({
-          id: station.id,
-          name: station.name,
-          lat: parseFloat(station.lat),
-          lng: parseFloat(station.lng),
-          state: station.state
-        }));
+  } catch (localError) {
+    console.log('⚠️ Local proxy failed, trying fallback proxy...', localError.message);
+    
+    try {
+      proxyUrl = `${FALLBACK_PROXY_BASE}${encodeURIComponent(NOAA_STATIONS_API)}`;
+      proxyType = 'fallback proxy';
       
-      console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via local proxy`);
-      return stationCache;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) {
+        throw new Error(`Fallback proxy returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return processStationData(data, proxyType);
+      
+    } catch (fallbackError) {
+      console.error('❌ Both proxies failed:', { localError, fallbackError });
+      throw new Error('Failed to fetch station data from both local and fallback proxies');
     }
-    
-    throw new Error('Invalid station data format');
-  } catch (error) {
-    console.error('❌ Failed to fetch real station metadata via local proxy:', error);
-    throw error;
   }
+}
+
+function processStationData(data: any, proxyType: string): NoaaStationMetadata[] {
+  if (data && data.stations) {
+    // Filter for tide stations only and convert to our format
+    stationCache = data.stations
+      .filter((station: any) => 
+        station.type === 'tide' && 
+        station.lat && 
+        station.lng &&
+        station.id &&
+        station.name
+      )
+      .map((station: any) => ({
+        id: station.id,
+        name: station.name,
+        lat: parseFloat(station.lat),
+        lng: parseFloat(station.lng),
+        state: station.state
+      }));
+    
+    console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via ${proxyType}`);
+    return stationCache;
+  }
+  
+  throw new Error('Invalid station data format');
 }
 
 export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
