@@ -52,15 +52,25 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Simple location detection - check if we have a location with a zipCode
-  const hasLocation = currentLocation && currentLocation.zipCode && currentLocation.zipCode.trim() !== '';
+  // Improved location detection - be more explicit about what constitutes a valid location
+  const hasLocation = !!(
+    currentLocation && 
+    typeof currentLocation === 'object' && 
+    currentLocation.zipCode && 
+    typeof currentLocation.zipCode === 'string' && 
+    currentLocation.zipCode.trim() !== '' &&
+    currentLocation.zipCode !== 'default'
+  );
 
   console.log('🌙 MoonPhase hasLocation calculation:', {
     currentLocationExists: !!currentLocation,
-    hasZipCode: !!currentLocation?.zipCode,
+    currentLocationType: typeof currentLocation,
+    hasZipCode: !!(currentLocation?.zipCode),
     zipCodeValue: currentLocation?.zipCode,
-    zipCodeTrimmed: currentLocation?.zipCode?.trim(),
-    zipCodeNotEmpty: currentLocation?.zipCode?.trim() !== '',
+    zipCodeType: typeof currentLocation?.zipCode,
+    zipCodeTrimmed: typeof currentLocation?.zipCode === 'string' ? currentLocation.zipCode.trim() : 'not-string',
+    zipCodeNotEmpty: typeof currentLocation?.zipCode === 'string' ? currentLocation.zipCode.trim() !== '' : false,
+    zipCodeNotDefault: currentLocation?.zipCode !== 'default',
     finalHasLocation: hasLocation
   });
 
