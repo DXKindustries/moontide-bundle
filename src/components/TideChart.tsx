@@ -95,9 +95,15 @@ const TideChart = ({
         ) : todayData.length === 0 ? (
           <div className="h-64 flex flex-col items-center justify-center text-center px-4">
             <Info className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground font-medium">No tide data available</p>
+            <p className="text-muted-foreground font-medium">
+              No tide data to display for this day.
+            </p>
             <p className="text-sm text-muted-foreground mt-1">
-              There might be an issue connecting to the NOAA API.
+              This may be a temporary issue with the NOAA API or an unsupported location.<br />
+              Please try another location, check your connection, or refresh the page.
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              If you continue to see this, the tide station list may be unavailable.
             </p>
           </div>
         ) : (
