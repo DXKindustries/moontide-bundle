@@ -5,6 +5,7 @@ import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
+import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import { toast } from 'sonner';
 import { useTideData } from '@/hooks/useTideData';
@@ -17,8 +18,26 @@ const Index = () => {
   const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
     console.log('📍 Initializing currentLocation state...');
     try {
+      // First try the new location storage system
+      const newLocation = locationStorage.getCurrentLocation();
+      if (newLocation && newLocation.zipCode && newLocation.zipCode !== "default") {
+        console.log('✅ Found location in new storage system:', newLocation);
+        // Convert LocationData to SavedLocation format
+        const convertedLocation = {
+          id: newLocation.zipCode,
+          name: newLocation.nickname || newLocation.city,
+          country: "USA",
+          zipCode: newLocation.zipCode,
+          cityState: `${newLocation.city}, ${newLocation.state}`,
+          lat: newLocation.lat || 0,
+          lng: newLocation.lng || 0
+        };
+        return convertedLocation;
+      }
+
+      // Fallback to old storage system
       const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-      console.log('💾 Saved location from localStorage:', saved);
+      console.log('💾 Saved location from old localStorage:', saved);
       if (saved && saved.zipCode && saved.zipCode !== "default") {
         // Ensure the saved location has all required fields
         const location = {
@@ -26,7 +45,7 @@ const Index = () => {
           id: saved.id || saved.zipCode,
           country: saved.country || "USA",
         };
-        console.log('✅ Using saved location:', location);
+        console.log('✅ Using saved location from old system:', location);
         return location;
       }
     } catch (error) {
@@ -79,10 +98,23 @@ const Index = () => {
     // Update state first
     setCurrentLocation(updatedLocation);
     
-    // Then save to localStorage
+    // Save to both storage systems for backward compatibility
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, updatedLocation);
-      console.log('💾 Successfully saved updated location to localStorage');
+      
+      // Also save to new location storage system
+      const locationData: LocationData = {
+        zipCode: updatedLocation.zipCode,
+        city: updatedLocation.name,
+        state: updatedLocation.cityState.split(', ')[1] || 'Unknown',
+        lat: updatedLocation.lat,
+        lng: updatedLocation.lng,
+        isManual: false,
+        nickname: updatedLocation.name
+      };
+      locationStorage.saveCurrentLocation(locationData);
+      
+      console.log('💾 Successfully saved updated location to both storage systems');
     } catch (error) {
       console.error('❌ Error saving location to localStorage:', error);
     }
@@ -97,10 +129,11 @@ const Index = () => {
     console.log('🗑️ Clearing current location from Index');
     setCurrentLocation(null);
     
-    // Clear from localStorage
+    // Clear from both storage systems
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
-      console.log('💾 Successfully cleared location from localStorage');
+      locationStorage.clearCurrentLocation();
+      console.log('💾 Successfully cleared location from both storage systems');
     } catch (error) {
       console.error('❌ Error clearing location from localStorage:', error);
     }
