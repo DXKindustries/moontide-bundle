@@ -36,6 +36,8 @@ export default function MainContent({
     date: currentDate || "May 21, 2025"
   };
 
+  console.log('MainContent onGetStarted function:', onGetStarted);
+
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
