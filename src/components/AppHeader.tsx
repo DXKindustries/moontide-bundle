@@ -10,9 +10,10 @@ interface AppHeaderProps {
   currentLocation: SavedLocation & { id: string; country: string } | null;
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
+  hasError?: boolean; // Add error prop
 }
 
-export default function AppHeader({ currentLocation, stationName, onLocationChange }: AppHeaderProps) {
+export default function AppHeader({ currentLocation, stationName, onLocationChange, hasError }: AppHeaderProps) {
   return (
     <header className="py-4 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
@@ -33,6 +34,7 @@ export default function AppHeader({ currentLocation, stationName, onLocationChan
             <LocationDisplay 
               currentLocation={currentLocation}
               stationName={stationName}
+              hasError={hasError}
             />
             <LocationSelector onSelect={onLocationChange} />
           </div>
