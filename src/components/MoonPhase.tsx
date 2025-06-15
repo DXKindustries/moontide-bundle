@@ -114,8 +114,9 @@ const MoonPhase = ({
           </div>
         </div>
 
-        {/* Solar Information with Location and Error - Bottom Section */}
+        {/* Solar Information with Integrated Location and Error - Bottom Section */}
         <div className="border-t border-muted pt-4 w-full space-y-4">
+          {/* Solar Times Row */}
           <div className="flex justify-between items-center text-sm">
             <div className="flex items-center gap-2">
               <Sunrise className="h-4 w-4 text-orange-400" />
@@ -137,34 +138,36 @@ const MoonPhase = ({
             </div>
           </div>
 
-          {/* Location Display */}
+          {/* Location Display - Integrated into Solar Section */}
           {currentLocation && (
-            <div className="flex flex-col bg-muted/50 backdrop-blur-sm py-2 px-3 rounded-lg gap-1">
-              <div className="flex items-center gap-1">
-                <MapPin size={14} className="text-moon-primary" />
-                <span className="text-xs font-medium">
+            <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
+              <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate">
                   {formatLocationDisplay()}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground pl-4">
-                {stationName && !error ? (
-                  <>Tide data from NOAA station: <span className="font-medium">{stationName}</span></>
-                ) : (
-                  <>No tide data available - this may be a non-coastal area. Try a coastal ZIP code for tide information.</>
-                )}
+                </div>
+                <div className="text-muted-foreground mt-1">
+                  {stationName && !error ? (
+                    <>NOAA station: <span className="font-medium">{stationName}</span></>
+                  ) : (
+                    <>No tide data - try a coastal ZIP code</>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Error Message */}
+          {/* Error Message - Integrated into Solar Section */}
           {error && currentLocation && (
-            <Alert variant="destructive" className="text-xs">
-              <AlertCircle className="h-3 w-3" />
-              <AlertTitle className="text-xs">Error</AlertTitle>
-              <AlertDescription className="text-xs">
-                {error}. Using mock data instead.
-              </AlertDescription>
-            </Alert>
+            <div className="flex items-start gap-2 text-xs bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
+              <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="font-medium text-red-400">Error</div>
+                <div className="text-red-300 mt-1">
+                  {error}. Using mock data instead.
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>
