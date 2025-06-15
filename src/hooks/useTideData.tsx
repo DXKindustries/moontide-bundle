@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getNearestStation, 
@@ -74,12 +75,15 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
   const [stationName, setStationName] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🔄 useTideData effect triggered with location:', location);
+    
     // Always set current date and time, regardless of location
     setCurrentDate(getCurrentDateString());
     setCurrentTime(getCurrentTimeString());
 
     // If no location is provided, use mock data but keep current date/time
     if (!location) {
+      console.log('⚠️ No location provided, using mock data');
       setIsLoading(false);
       setError(null);
       return;
@@ -87,6 +91,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
 
     const fetchTideData = async () => {
       try {
+        console.log('🚀 Starting tide data fetch for location:', location.name);
         setIsLoading(true);
         setError(null);
         
@@ -95,7 +100,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         // First check the in-memory session cache (fastest and most reliable)
         if (location.id && sessionStationCache.has(location.id)) {
           stationId = sessionStationCache.get(location.id);
-          console.log(`Using cached station ID from memory for ${location.id}: ${stationId}`);
+          console.log(`✅ Using cached station ID from memory for ${location.id}: ${stationId}`);
         }
         
         // If not in memory cache, try localStorage cache
@@ -105,10 +110,10 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             if (stationId) {
               // Cache it in memory for this session
               sessionStationCache.set(location.id, stationId);
-              console.log(`Found station ID for location ${location.id} in localStorage: ${stationId}`);
+              console.log(`✅ Found station ID for location ${location.id} in localStorage: ${stationId}`);
             }
           } catch (error) {
-            console.warn('Error getting station for location from localStorage:', error);
+            console.warn('⚠️ Error getting station for location from localStorage:', error);
           }
         }
         
@@ -122,83 +127,108 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             // Use provided coordinates
             lat = location.lat;
             lng = location.lng;
+            console.log(`📍 Using provided coordinates: ${lat}, ${lng}`);
           } else {
             // Use default coordinates based on country
             const defaultCoord = DEFAULT_COORDINATES[location.country] || 
                               DEFAULT_COORDINATES['USA'];
             lat = defaultCoord.lat;
             lng = defaultCoord.lng;
+            console.log(`📍 Using default coordinates for ${location.country}: ${lat}, ${lng}`);
           }
           
-          console.log(`Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
+          console.log(`🔍 Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
           
           // Find nearest station - now prioritizes ZIP mapping
           try {
-            // Use ZIP code if available for more accurate station mapping
-            const lookupKey = location.zipCode || `${lat},${lng}`;
+            console.log('🌐 Calling getNearestStation API...');
             const station = await getNearestStation(lat, lng);
             
             if (!station) {
+              console.error('❌ No nearby tide stations found');
               throw new Error('No nearby tide stations found');
             }
             
             stationId = station.id;
             setStationName(station.name);
-            console.log(`Found nearest station: ${station.name} (${stationId})`);
+            console.log(`✅ Found nearest station: ${station.name} (${stationId})`);
             
             // Cache it both in localStorage and memory
             if (location.id) {
               try {
                 saveStationForLocation(location.id, stationId);
-                // Always update the session cache
                 sessionStationCache.set(location.id, stationId);
+                console.log(`💾 Saved station mapping to cache: ${location.id} -> ${stationId}`);
               } catch (error) {
-                console.warn('Error saving station for location to localStorage:', error);
-                // Still update the session cache
+                console.warn('⚠️ Error saving station for location to localStorage:', error);
                 sessionStationCache.set(location.id, stationId);
               }
             }
           } catch (stationError) {
-            console.error('Error finding nearest station:', stationError);
+            console.error('❌ Error finding nearest station:', stationError);
             throw new Error('Could not find a nearby tide station');
           }
         }
         
+        console.log(`🌊 Fetching tide data for station: ${stationId}`);
+        
         // Get current tide data for chart
         try {
+          console.log('📊 Calling getCurrentTideData API...');
           const currentData = await getCurrentTideData(stationId);
+          console.log('📊 getCurrentTideData response:', {
+            tideDataLength: currentData.tideData.length,
+            date: currentData.date,
+            currentTime: currentData.currentTime,
+            sampleData: currentData.tideData.slice(0, 3)
+          });
+          
           setTideData(currentData.tideData);
+          
           // Only update date if we got a valid date from the API
           if (currentData.date) {
             const apiDate = new Date(currentData.date);
-            setCurrentDate(apiDate.toLocaleDateString('en-US', { 
+            const formattedDate = apiDate.toLocaleDateString('en-US', { 
               year: 'numeric', 
               month: 'long', 
               day: 'numeric' 
-            }));
+            });
+            setCurrentDate(formattedDate);
+            console.log(`📅 Updated date from API: ${formattedDate}`);
+          } else {
+            console.log('📅 No date from API, keeping current date');
           }
+          
           // Only update time if we got valid time from the API
           if (currentData.currentTime) {
             setCurrentTime(currentData.currentTime);
+            console.log(`⏰ Updated time from API: ${currentData.currentTime}`);
+          } else {
+            console.log('⏰ No time from API, keeping current time');
           }
         } catch (currentDataError) {
-          console.error('Error getting current tide data:', currentDataError);
+          console.error('❌ Error getting current tide data:', currentDataError);
           throw new Error('Failed to fetch current tide data');
         }
         
         // Get weekly forecast
         try {
+          console.log('📅 Calling getWeeklyTideForecast API...');
           const forecast = await getWeeklyTideForecast(stationId);
+          console.log('📅 getWeeklyTideForecast response:', {
+            forecastLength: forecast.length,
+            sampleForecast: forecast.slice(0, 2)
+          });
           setWeeklyForecast(forecast);
         } catch (forecastError) {
-          console.error('Error getting weekly forecast:', forecastError);
-          // Don't fail completely if just the forecast fails
+          console.error('⚠️ Error getting weekly forecast (non-fatal):', forecastError);
           setWeeklyForecast([]);
         }
         
+        console.log('✅ Tide data fetch completed successfully');
         setIsLoading(false);
       } catch (err) {
-        console.error('Error fetching tide data:', err);
+        console.error('💥 Fatal error fetching tide data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         
