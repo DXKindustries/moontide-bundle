@@ -51,11 +51,11 @@ const MoonPhase = ({
     currentLocation?.lng || -71.4616
   );
 
-  // Simplified location detection - show onboarding when NO zipcode, hide when zipcode is present
-  const hasLocation = currentLocation && 
+  // Fixed location detection - properly handle null currentLocation
+  const hasLocation = !!(currentLocation && 
     currentLocation.zipCode && 
     currentLocation.zipCode !== '' && 
-    currentLocation.zipCode !== 'default';
+    currentLocation.zipCode !== 'default');
 
   console.log('MoonPhase hasLocation check:', { 
     hasLocation, 
