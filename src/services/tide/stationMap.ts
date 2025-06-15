@@ -1,30 +1,13 @@
 
-//--------------------------------------------------------------
-// src/services/tide/stationMap.ts
-//--------------------------------------------------------------
-
 /**
- * Direct ZIP → NOAA station mapping for locations where the
- * radius search sometimes fails or is too slow.
- *
- * Each entry must include the official NOAA station ID *and*
- * a human-readable name you'd like shown in the UI.
+ * This file previously contained hardcoded station mappings.
+ * We now use real NOAA station data fetched from their API.
+ * 
+ * Keeping this file for backwards compatibility, but it's no longer used
+ * for station lookups. Real station data is fetched from realStationService.ts
  */
-export const STATION_BY_ZIP: Record<
-  string,
-  { id: string; name: string }
-> = {
-  // Narragansett, Rhode Island  (South Ferry)
-  '02882': {
-    id: '8452660',
-    name: 'SOUTH FERRY, NARRAGANSETT BAY',
-  },
-  
-  // Newport, Rhode Island - Using Newport specific station
-  '02840': {
-    id: '8452660', // This is correct - Newport uses the same NOAA station
-    name: 'NEWPORT - NARRAGANSETT BAY', // But let's make the name more specific to Newport
-  },
-};
 
-console.log('🗺️ Station mapping loaded:', STATION_BY_ZIP);
+// Empty mapping - we now use real NOAA data
+export const STATION_BY_ZIP: Record<string, { id: string; name: string }> = {};
+
+console.log('🗺️ Station mapping is now using real NOAA data instead of hardcoded values');
