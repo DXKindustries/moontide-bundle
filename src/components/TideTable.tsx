@@ -1,3 +1,4 @@
+
 // src/components/TideTable.tsx
 // --------------------------------------------------
 // 4. Tide-table UI with friendly fallbacks
@@ -18,6 +19,14 @@ interface Props {
 }
 
 const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
+  const formatTimeToAMPM = (timeString: string) => {
+    return new Date(timeString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center p-4">
@@ -42,7 +51,7 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
   if (readings.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground">
-        Tide data isn’t available for the selected date.
+        Tide data isn't available for the selected date.
       </div>
     );
   }
@@ -59,10 +68,7 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
         {readings.map(({ time, height }) => (
           <tr key={time}>
             <td className="px-4 py-2">
-              {new Date(time).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {formatTimeToAMPM(time)}
             </td>
             <td className="px-4 py-2">{height.toFixed(2)}</td>
           </tr>
@@ -73,4 +79,3 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
 };
 
 export default TideTable;
-

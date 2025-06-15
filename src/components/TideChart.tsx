@@ -46,6 +46,15 @@ const detectTidePeaks = (points: TidePoint[], type: "high" | "low") => {
   return peaks.slice(0, 2).sort((a, b) => a.time.localeCompare(b.time));
 };
 
+const formatTimeToAMPM = (timeString: string) => {
+  const date = new Date(timeString);
+  return date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true 
+  });
+};
+
 const TideChart = ({
   data,
   date,
@@ -70,7 +79,7 @@ const TideChart = ({
     if (active && payload && payload.length) {
       return (
         <div className="bg-card p-2 rounded shadow text-sm">
-          <p className="font-bold">{label}</p>
+          <p className="font-bold">{formatTimeToAMPM(label)}</p>
           <p className="text-moon-primary">
             Height: {payload[0].value.toFixed(2)} ft
           </p>
@@ -119,7 +128,14 @@ const TideChart = ({
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                 <XAxis
                   dataKey="time"
-                  tickFormatter={(t) => t.slice(11, 16)}
+                  tickFormatter={(t) => {
+                    const date = new Date(t);
+                    return date.toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: true 
+                    });
+                  }}
                   tick={{ fill: '#cbd5e1', fontSize: 12 }}
                   axisLine={{ stroke: '#475569' }}
                 />
@@ -165,7 +181,7 @@ const TideChart = ({
               <h4 className="text-sm font-medium text-muted-foreground">Low Tides</h4>
               {lowTides.map((tide, i) => (
                 <div key={`low-${i}`} className="grid grid-cols-2 text-sm text-muted-foreground">
-                  <span>{tide.time.slice(11, 16)}</span>
+                  <span>{formatTimeToAMPM(tide.time)}</span>
                   <span className="font-semibold text-right">
                     {tide.height.toFixed(2)} ft
                   </span>
@@ -176,7 +192,7 @@ const TideChart = ({
               <h4 className="text-sm font-medium text-muted-foreground">High Tides</h4>
               {highTides.map((tide, i) => (
                 <div key={`high-${i}`} className="grid grid-cols-2 text-sm text-muted-foreground">
-                  <span>{tide.time.slice(11, 16)}</span>
+                  <span>{formatTimeToAMPM(tide.time)}</span>
                   <span className="font-semibold text-right">
                     {tide.height.toFixed(2)} ft
                   </span>
