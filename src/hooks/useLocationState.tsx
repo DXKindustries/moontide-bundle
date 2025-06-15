@@ -8,6 +8,8 @@ import { LocationData } from '@/types/locationTypes';
 const CURRENT_LOCATION_KEY = 'moontide-current-location';
 
 export const useLocationState = () => {
+  console.log('🏗️ useLocationState hook initializing...');
+  
   const [currentLocation, setCurrentLocation] = useState<SavedLocation & { id: string; country: string } | null>(() => {
     console.log('📍 Initializing currentLocation state...');
     try {
@@ -50,16 +52,25 @@ export const useLocationState = () => {
 
   const [showLocationSelector, setShowLocationSelector] = useState(false);
 
+  // Add a custom setter that includes logging
+  const setCurrentLocationWithLogging = (location: SavedLocation & { id: string; country: string } | null) => {
+    console.log('🔄 setCurrentLocation called with:', location);
+    console.log('🔄 Previous location was:', currentLocation);
+    setCurrentLocation(location);
+    console.log('🔄 State update triggered');
+  };
+
   // Update document title when location changes
   useEffect(() => {
     console.log('📝 Setting document title for location:', currentLocation?.name);
     document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
-    console.log("Current location in useLocationState:", currentLocation);
+    console.log("Current location in useLocationState useEffect:", currentLocation);
+    console.log("Location state change detected - hasLocation:", !!currentLocation);
   }, [currentLocation]);
 
   return {
     currentLocation,
-    setCurrentLocation,
+    setCurrentLocation: setCurrentLocationWithLogging,
     showLocationSelector,
     setShowLocationSelector
   };
