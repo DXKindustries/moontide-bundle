@@ -30,9 +30,9 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
   };
 
   const modifiersClassNames = {
-    fullMoon: "bg-yellow-400/30 text-yellow-100 border border-yellow-400/50",
-    newMoon: "bg-gray-600/30 text-gray-100 border border-gray-600/50", 
-    solarEvent: "bg-orange-400/30 text-orange-100 border border-orange-400/50"
+    fullMoon: "!bg-yellow-400 !text-gray-900 font-bold",
+    newMoon: "!bg-gray-400 !text-gray-900 font-bold", 
+    solarEvent: "!bg-orange-500 !text-white font-bold"
   };
 
   return (
@@ -54,11 +54,11 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
                 <span className="text-xs text-muted-foreground">Full Moon</span>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
                 <span className="text-xs text-muted-foreground">New Moon</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-orange-400"></div>
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
                 <span className="text-xs text-muted-foreground">Solar Event</span>
               </div>
             </div>
