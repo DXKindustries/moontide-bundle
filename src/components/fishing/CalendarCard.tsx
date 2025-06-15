@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,19 +18,18 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
 }) => {
   const { modifiers, modifiersClassNames } = useCalendarModifiers();
 
-  // Forward ALL props from DayPicker. Only wrap children in .calendar-day-inner span.
-  function DayCustom(props: any) {
-    // Remove only data attributes React doesn't allow on <button> (for full DayPicker compatibility)
-    // Otherwise, spread everything, especially event handlers, aria, tabIndex, ref, etc.
+  // THIS FIXES: Make DayCustom forward ref and be DayPicker compatible!
+  // DayPicker expects a React.forwardRef component for Day override.
+  const DayCustom = React.forwardRef<HTMLButtonElement, any>((props, ref) => {
     const { children, ...otherProps } = props;
-
-    // Use a React ref if provided by DayPicker—preserve as much default behavior as possible
+    // Only spread props that are valid on <button>; DayPicker should be clean but just in case
     return (
-      <button {...otherProps}>
+      <button ref={ref} {...otherProps}>
         <span className="calendar-day-inner relative z-20">{children}</span>
       </button>
     );
-  }
+  });
+  DayCustom.displayName = "DayCustom";
 
   return (
     <Card className="bg-card/50 backdrop-blur-md relative">
