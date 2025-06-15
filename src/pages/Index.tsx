@@ -112,28 +112,39 @@ const Index = () => {
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
       
-      <AppHeader 
-        currentLocation={currentLocation}
-        stationName={stationName}
-        onLocationChange={handleLocationChange}
-        hasError={!!error}
-        forceShowLocationSelector={showLocationSelector}
-        onLocationSelectorClose={() => setShowLocationSelector(false)}
-      />
-
       {!currentLocation ? (
-        <OnboardingMessage onGetStarted={handleGetStarted} />
+        <>
+          <AppHeader 
+            currentLocation={currentLocation}
+            stationName={stationName}
+            onLocationChange={handleLocationChange}
+            hasError={!!error}
+            forceShowLocationSelector={showLocationSelector}
+            onLocationSelectorClose={() => setShowLocationSelector(false)}
+          />
+          <OnboardingMessage onGetStarted={handleGetStarted} />
+        </>
       ) : (
-        <MainContent 
-          error={error}
-          isLoading={isLoading}
-          tideData={tideData}
-          weeklyForecast={weeklyForecast}
-          currentDate={currentDate}
-          currentTime={currentTime}
-          currentLocation={currentLocation}
-          stationName={stationName}
-        />
+        <>
+          <AppHeader 
+            currentLocation={currentLocation}
+            stationName={stationName}
+            onLocationChange={handleLocationChange}
+            hasError={!!error}
+            forceShowLocationSelector={showLocationSelector}
+            onLocationSelectorClose={() => setShowLocationSelector(false)}
+          />
+          <MainContent 
+            error={error}
+            isLoading={isLoading}
+            tideData={tideData}
+            weeklyForecast={weeklyForecast}
+            currentDate={currentDate}
+            currentTime={currentTime}
+            currentLocation={currentLocation}
+            stationName={stationName}
+          />
+        </>
       )}
     </div>
   );
