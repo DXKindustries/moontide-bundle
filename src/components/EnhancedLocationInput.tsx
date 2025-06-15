@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, MapPin, Navigation, X, Edit, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -25,10 +24,16 @@ export default function EnhancedLocationInput({ onLocationSelect, onClose }: Enh
   const [nicknameInput, setNicknameInput] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved locations on mount
+  // Load saved locations on mount and auto-focus input
   useEffect(() => {
     const history = locationStorage.getLocationHistory();
     setSavedLocations(history as SavedLocationWithNickname[]);
+    
+    // Auto-focus the input field
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select(); // Select any existing text
+    }
   }, []);
 
   // Parse different input formats
@@ -263,6 +268,7 @@ export default function EnhancedLocationInput({ onLocationSelect, onClose }: Enh
             placeholder="02840 or Newport, RI"
             className="flex-1"
             disabled={isLoading}
+            autoFocus
           />
           <Button 
             onClick={handleLocationSearch}
