@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
 import { calculateSolarTimes } from '@/utils/solarUtils';
-import { Sunrise, Sunset, MapPin, AlertCircle } from 'lucide-react';
+import { Sunrise, Sunset, MapPin, AlertCircle, Info } from 'lucide-react';
 import FullMoonBanner from './FullMoonBanner';
 
 type MoonPhaseProps = {
@@ -170,6 +170,25 @@ const MoonPhase = ({
                 <div className="font-medium text-red-400">Error</div>
                 <div className="text-red-300 mt-1">
                   {error}. Using mock data instead.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Onboarding Information - Show helpful tips */}
+          {!currentLocation && (
+            <div className="flex items-start gap-2 text-xs bg-moon-primary/10 border border-moon-primary/20 py-2 px-3 rounded-lg">
+              <Info className="h-3 w-3 text-moon-primary flex-shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-1">
+                <div className="font-medium text-moon-primary">Welcome to MoonTide!</div>
+                <div className="text-muted-foreground">
+                  • Enter a coastal ZIP code for tide data
+                </div>
+                <div className="text-muted-foreground">
+                  • Moon and solar data available for all locations
+                </div>
+                <div className="text-muted-foreground">
+                  • Track phases, tides, and fishing conditions
                 </div>
               </div>
             </div>
