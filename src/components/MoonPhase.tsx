@@ -139,27 +139,27 @@ const MoonPhase = ({
             </div>
           </div>
 
-          {/* Location Display - Integrated into Solar Section */}
-          {currentLocation && (
-            <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
-              <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">
-                  {formatLocationDisplay()}
-                </div>
-                <div className="text-muted-foreground mt-1">
-                  {stationName && !error ? (
-                    <>NOAA station: <span className="font-medium">{stationName}</span></>
-                  ) : (
-                    <>No tide data - try a coastal ZIP code</>
-                  )}
-                </div>
+          {/* Location Display - Always show this section */}
+          <div className="flex items-start gap-2 text-xs bg-muted/30 backdrop-blur-sm py-2 px-3 rounded-lg">
+            <MapPin size={12} className="text-moon-primary flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="font-medium truncate">
+                {formatLocationDisplay()}
+              </div>
+              <div className="text-muted-foreground mt-1">
+                {currentLocation && stationName && !error ? (
+                  <>NOAA station: <span className="font-medium">{stationName}</span></>
+                ) : currentLocation ? (
+                  <>No tide data - try a coastal ZIP code</>
+                ) : (
+                  <>Enter a ZIP code to get started</>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Error Message - Integrated into Solar Section */}
-          {error && currentLocation && (
+          {/* Error Message - Show when there's an error */}
+          {error && (
             <div className="flex items-start gap-2 text-xs bg-red-500/10 border border-red-500/20 py-2 px-3 rounded-lg">
               <AlertCircle className="h-3 w-3 text-red-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
