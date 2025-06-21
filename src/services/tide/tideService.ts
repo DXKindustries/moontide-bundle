@@ -2,7 +2,7 @@
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
-/*  Fetch daily and weekly tide predictions from NOAA with better error handling */
+/*  Fetch daily and weekly tide predictions from NOAA - LIVE DATA ONLY */
 
 import { getProxyConfig } from './proxyConfig';
 
@@ -50,46 +50,11 @@ function buildQuery(p: PredictionParams): string {
   return `${BASE}?${qs.toString()}`;
 }
 
-// Generate mock data when API fails
-function generateMockTideData(station: NoaaStation, date: Date, interval: 'hilo' | '6' = 'hilo') {
-  console.log('🔄 Generating mock tide data for testing...');
-  
-  const dateStr = date.toISOString().slice(0, 10);
-  const mockData = [];
-  
-  if (interval === 'hilo') {
-    // Generate 2 highs and 2 lows for the day
-    mockData.push(
-      { t: `${dateStr} 06:15`, v: '5.2', type: 'H' },
-      { t: `${dateStr} 12:30`, v: '0.8', type: 'L' },
-      { t: `${dateStr} 18:45`, v: '4.8', type: 'H' },
-      { t: `${dateStr} 23:59`, v: '1.2', type: 'L' }
-    );
-  } else {
-    // Generate hourly data points
-    for (let hour = 0; hour < 24; hour += 3) {
-      const time = String(hour).padStart(2, '0') + ':00';
-      const height = (3 + 2 * Math.sin((hour / 24) * 2 * Math.PI)).toFixed(1);
-      mockData.push({ t: `${dateStr} ${time}`, v: height });
-    }
-  }
-  
-  return {
-    predictions: mockData,
-    metadata: {
-      id: station.id,
-      name: station.name,
-      lat: station.lat,
-      lng: station.lng
-    }
-  };
-}
-
 async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
   const noaaUrl = buildQuery(p);
-  console.log('🌐 Attempting to fetch tide data from NOAA...');
+  console.log('🌐 Fetching live tide data from NOAA...');
   
-  // Try direct NOAA API first (might work in some cases)
+  // Try direct NOAA API first
   try {
     console.log('🎯 Trying direct NOAA API call...');
     const response = await fetch(noaaUrl);
@@ -129,9 +94,9 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
     console.log('⚠️ CORS proxy failed:', error.message);
   }
 
-  // If all network attempts fail, return mock data
-  console.log('🔄 All network attempts failed, using mock data for development');
-  return generateMockTideData(station, new Date(p.beginDate.slice(0,4) + '-' + p.beginDate.slice(4,6) + '-' + p.beginDate.slice(6,8)), p.interval);
+  // Phase 1: No more mock data fallbacks - throw error if no live data available
+  console.error('❌ All attempts to fetch live NOAA data failed');
+  throw new Error('Unable to fetch live tide data from NOAA. Please check your internet connection.');
 }
 
 /* -------------------------- PUBLIC EXPORTS ------------------------------- */

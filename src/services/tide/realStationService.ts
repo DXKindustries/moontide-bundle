@@ -13,25 +13,13 @@ const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/weba
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
-// Mock station data for fallback when API is unavailable
-const MOCK_STATIONS: NoaaStationMetadata[] = [
-  { id: '8518750', name: 'The Battery, NY', lat: 40.7002, lng: -74.0142, state: 'NY' },
-  { id: '8443970', name: 'Boston, MA', lat: 42.3601, lng: -71.0589, state: 'MA' },
-  { id: '8570283', name: 'Ocean City Inlet, MD', lat: 38.3289, lng: -75.0919, state: 'MD' },
-  { id: '8665530', name: 'Charleston, SC', lat: 32.7822, lng: -79.9250, state: 'SC' },
-  { id: '8661070', name: 'Springmaid Pier, SC', lat: 33.6550, lng: -78.9181, state: 'SC' },
-  { id: '9414290', name: 'San Francisco, CA', lat: 37.8063, lng: -122.4659, state: 'CA' },
-  { id: '9410170', name: 'San Diego, CA', lat: 32.7142, lng: -117.1736, state: 'CA' },
-  { id: '9447130', name: 'Seattle, WA', lat: 47.6025, lng: -122.3389, state: 'WA' },
-];
-
 export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]> {
   if (stationCache) {
     console.log('📊 Using cached station metadata');
     return stationCache;
   }
   
-  console.log('🌐 Attempting to fetch real station metadata...');
+  console.log('🌐 Fetching live NOAA station metadata...');
   
   // Try direct API call first
   try {
@@ -66,10 +54,9 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
     console.log('⚠️ Proxy call failed:', error.message);
   }
   
-  // Fallback to mock data
-  console.log('🔄 Using mock station data for development');
-  stationCache = MOCK_STATIONS;
-  return stationCache;
+  // Phase 1: No more mock data fallbacks - throw error if no live data available
+  console.error('❌ All attempts to fetch live NOAA station data failed');
+  throw new Error('Unable to fetch live station data from NOAA. Please check your internet connection.');
 }
 
 function processStationData(data: any, source: string): NoaaStationMetadata[] {
@@ -153,6 +140,6 @@ export async function findNearestRealStation(lat: number, lng: number): Promise<
     return null;
   } catch (error) {
     console.error('❌ Error finding nearest station:', error);
-    return null;
+    throw error; // Re-throw to let caller handle the error appropriately
   }
 }
