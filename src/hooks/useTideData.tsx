@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { TidePoint, TideForecast } from '@/services/noaaService';
 import { fetchTideDataForLocation } from '@/services/tideDataService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
-import { generateWeeklyForecastFromCurrentDate } from '@/utils/mockForecastGenerator';
 
 type UseTideDataParams = {
   location: {
@@ -79,17 +78,13 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     setCurrentDate(newDate);
     setCurrentTime(newTime);
 
-    // Always use calculated forecast with proper dates and moon phases
-    const calculatedForecast = generateWeeklyForecastFromCurrentDate();
-    console.log('📅 Setting calculated weekly forecast');
-    setWeeklyForecast(calculatedForecast);
-
     // If no location is provided, just set loading to false
     if (!location) {
-      console.log('⚠️ No location provided, using calculated forecast only');
+      console.log('⚠️ No location provided');
       setIsLoading(false);
       setError(null);
       setTideData([]);
+      setWeeklyForecast([]);
       setStationName(null);
       return;
     }
@@ -100,6 +95,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
       setIsLoading(false);
       setError(null);
       setTideData([]); // Empty array will trigger the inland message in TideChart
+      setWeeklyForecast([]);
       setStationName(null);
       return;
     }
@@ -112,8 +108,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         const result = await fetchTideDataForLocation(location, newDate, newTime);
         
         setTideData(result.tideData);
-        // Always use calculated forecast for consistency
-        setWeeklyForecast(calculatedForecast);
+        setWeeklyForecast(result.weeklyForecast);
         setCurrentDate(result.currentDate);
         setCurrentTime(result.currentTime);
         
@@ -128,9 +123,9 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         
-        // Set empty tide data but use calculated forecast for weekly forecast
+        // Set empty tide data on error
         setTideData([]);
-        setWeeklyForecast(calculatedForecast);
+        setWeeklyForecast([]);
         setStationName(null);
       }
     };

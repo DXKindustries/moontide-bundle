@@ -7,7 +7,6 @@ import {
 } from '@/services/noaaService';
 import { getStationId } from '@/services/locationService';
 import { formatApiDate } from '@/utils/dateTimeUtils';
-import { generateWeeklyForecastFromCurrentDate } from '@/utils/mockForecastGenerator';
 
 type Location = {
   id: string;
@@ -31,7 +30,7 @@ export const fetchTideDataForLocation = async (
   currentDate: string,
   currentTime: string
 ): Promise<TideDataResult> => {
-  console.log('🚀 Starting tide data fetch for location:', location.name);
+  console.log('🚀 Starting live tide data fetch for location:', location.name);
   console.log('🔍 Location ZIP code for station lookup:', location.zipCode);
   
   // Get station ID using the location service
@@ -40,11 +39,12 @@ export const fetchTideDataForLocation = async (
   console.log('🏭 getStationId returned:', { stationId, foundStationName });
   console.log('🎯 Station mapping result - Station ID:', stationId, 'Station Name:', foundStationName);
   
-  console.log(`🌊 Fetching tide data for station: ${stationId}`);
+  console.log(`🌊 Fetching live tide data for station: ${stationId}`);
   
   let resultDate = currentDate;
   let resultTime = currentTime;
   let tideData: TidePoint[] = [];
+  let weeklyForecast: TideForecast[] = [];
   
   // Get current tide data for chart
   try {
@@ -86,13 +86,18 @@ export const fetchTideDataForLocation = async (
     throw new Error('Failed to fetch current tide data');
   }
   
-  // ALWAYS use calculated forecast with proper dates and moon phases
-  // This ensures consistency regardless of API responses
-  console.log('📅 Using calculated weekly forecast with accurate moon phases');
-  const weeklyForecast = generateWeeklyForecastFromCurrentDate();
-  console.log('📅 Generated calculated weekly forecast:', weeklyForecast.slice(0, 2));
+  // Get weekly forecast from NOAA API
+  try {
+    console.log('📅 Calling getWeeklyTideForecast API...');
+    weeklyForecast = await getWeeklyTideForecast(stationId);
+    console.log('📅 Got weekly forecast from NOAA:', weeklyForecast.slice(0, 2));
+  } catch (weeklyError) {
+    console.error('❌ Error getting weekly forecast:', weeklyError);
+    // Don't throw - allow the app to work with just daily data
+    weeklyForecast = [];
+  }
   
-  console.log('✅ Tide data fetch completed successfully');
+  console.log('✅ Live tide data fetch completed successfully');
   
   return {
     tideData,

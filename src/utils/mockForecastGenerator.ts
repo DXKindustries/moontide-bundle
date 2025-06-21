@@ -1,4 +1,3 @@
-
 import { TideForecast } from '@/services/noaaService';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
