@@ -5,6 +5,7 @@ import {
   getStationForLocation,
   saveStationForLocation 
 } from '@/services/noaaService';
+import { getFallbackStation } from '@/services/tide/fallbackStations';
 
 type Location = {
   id: string;
@@ -16,7 +17,7 @@ type Location = {
 };
 
 // Memory cache for station lookups during the session
-const sessionStationCache = new Map<string, string>();
+const sessionStationCache = new Map<string, { stationId: string; stationName: string }>();
 
 export const getStationId = async (location: Location): Promise<{ stationId: string; stationName?: string }> => {
   console.log('🏭 getStationId called with location:', location);
@@ -26,9 +27,30 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
   
   // First check the in-memory session cache (fastest and most reliable)
   if (location.id && sessionStationCache.has(location.id)) {
-    stationId = sessionStationCache.get(location.id);
-    console.log(`✅ Using cached station ID from memory for ${location.id}: ${stationId}`);
-    return { stationId: stationId! };
+    const cached = sessionStationCache.get(location.id);
+    console.log(`✅ Using cached station from memory for ${location.id}: ${cached?.stationId}`);
+    return { stationId: cached!.stationId, stationName: cached!.stationName };
+  }
+  
+  // Check fallback stations first for known coastal ZIP codes
+  if (location.zipCode) {
+    const fallback = getFallbackStation(location.zipCode);
+    if (fallback) {
+      console.log(`✅ Using fallback station for ZIP ${location.zipCode}: ${fallback.id} (${fallback.name})`);
+      const result = { stationId: fallback.id, stationName: fallback.name };
+      
+      // Cache it in memory for this session
+      sessionStationCache.set(location.id, result);
+      
+      // Save to localStorage as well
+      try {
+        saveStationForLocation(location.id, fallback.id);
+      } catch (error) {
+        console.warn('⚠️ Error saving fallback station to localStorage:', error);
+      }
+      
+      return result;
+    }
   }
   
   // If not in memory cache, try localStorage cache
@@ -36,10 +58,11 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
     try {
       stationId = getStationForLocation(location.id);
       if (stationId) {
-        // Cache it in memory for this session
-        sessionStationCache.set(location.id, stationId);
         console.log(`✅ Found station ID for location ${location.id} in localStorage: ${stationId}`);
-        return { stationId };
+        const result = { stationId, stationName: 'NOAA Station' };
+        // Cache it in memory for this session
+        sessionStationCache.set(location.id, result);
+        return result;
       } else {
         console.log(`📭 No cached station found for location ${location.id}`);
       }
@@ -48,7 +71,7 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
     }
   }
   
-  // If no saved station, find nearest based on coords and ZIP
+  // If no saved station, try to find nearest based on coords and ZIP
   if (!stationId) {
     // Determine coordinates to use
     let lat = 0;
@@ -69,43 +92,47 @@ export const getStationId = async (location: Location): Promise<{ stationId: str
     }
     
     console.log(`🔍 Looking up nearest station for ${location.name} at coordinates: ${lat}, ${lng}`);
-    console.log(`🔍 ZIP code available: ${location.zipCode}`);
     
     // Find nearest station - pass ZIP code as first parameter when available
     try {
       console.log('🌐 Calling getNearestStation API...');
-      // Fix: Pass ZIP code as first parameter, then lat/lng
       const zipKey = location.zipCode || `${lat},${lng}`;
       const station = await getNearestStation(zipKey, lat, lng);
       console.log('🌐 getNearestStation returned:', station);
       
-      if (!station) {
-        console.error('❌ No nearby tide stations found');
-        throw new Error('No nearby tide stations found');
-      }
-      
-      stationId = station.id;
-      stationName = station.name;
-      console.log(`✅ Found nearest station: ${station.name} (${stationId})`);
-      
-      // Cache it both in localStorage and memory
-      if (location.id) {
-        try {
-          saveStationForLocation(location.id, stationId);
-          sessionStationCache.set(location.id, stationId);
-          console.log(`💾 Saved station mapping to cache: ${location.id} -> ${stationId}`);
-        } catch (error) {
-          console.warn('⚠️ Error saving station for location to localStorage:', error);
-          sessionStationCache.set(location.id, stationId);
+      if (station) {
+        stationId = station.id;
+        stationName = station.name;
+        console.log(`✅ Found nearest station: ${station.name} (${stationId})`);
+        
+        const result = { stationId, stationName };
+        
+        // Cache it both in localStorage and memory
+        if (location.id) {
+          try {
+            saveStationForLocation(location.id, stationId);
+            sessionStationCache.set(location.id, result);
+            console.log(`💾 Saved station mapping to cache: ${location.id} -> ${stationId}`);
+          } catch (error) {
+            console.warn('⚠️ Error saving station for location to localStorage:', error);
+            sessionStationCache.set(location.id, result);
+          }
         }
+        
+        return result;
       }
-      
-      return { stationId, stationName };
     } catch (stationError) {
-      console.error('❌ Error finding nearest station:', stationError);
-      throw new Error('Could not find a nearby tide station');
+      console.warn('⚠️ Error finding nearest station via API:', stationError);
     }
   }
   
-  return { stationId: stationId! };
+  // Final fallback - if we still don't have a station, provide a default coastal station
+  console.log('⚠️ No station found via API or cache, using default fallback');
+  const defaultStation = { stationId: '8452660', stationName: 'Newport, RI (Default)' };
+  
+  if (location.id) {
+    sessionStationCache.set(location.id, defaultStation);
+  }
+  
+  return defaultStation;
 };
