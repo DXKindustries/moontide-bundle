@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Info, Search } from 'lucide-react';
-import LocationEntryModal from './LocationEntryModal';
+import { Info, Search, X } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import UnifiedLocationInput from './UnifiedLocationInput';
 import { LocationData } from '@/types/locationTypes';
 import { locationStorage } from '@/utils/locationStorage';
 
@@ -14,12 +15,12 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const handleEnterLocationClick = () => {
-    console.log('Enter Your Location button clicked - opening modal');
+    console.log('Enter Your Location button clicked - opening unified modal');
     setShowLocationModal(true);
   };
 
   const handleLocationSelect = (location: LocationData) => {
-    console.log('Location selected in modal:', location);
+    console.log('Location selected in unified modal:', location);
     
     // Save the location
     locationStorage.saveCurrentLocation(location);
@@ -57,11 +58,28 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
         </Button>
       </div>
 
-      <LocationEntryModal
-        isOpen={showLocationModal}
-        onClose={handleModalClose}
-        onLocationSelect={handleLocationSelect}
-      />
+      <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+        <DialogContent className="w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Enter Your Location</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleModalClose}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <UnifiedLocationInput
+            onLocationSelect={handleLocationSelect}
+            onClose={handleModalClose}
+            placeholder="02840 or Newport, RI"
+            autoFocus={true}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
