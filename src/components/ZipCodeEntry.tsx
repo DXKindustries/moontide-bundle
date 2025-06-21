@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { lookupZipCode } from '@/utils/zipCodeLookup';
 import { locationStorage } from '@/utils/locationStorage';
-import { LocationData, ZipLookupResult } from '@/types/locationTypes';
+import { LocationData } from '@/types/locationTypes';
 import ZipCodeInput from './ZipCodeInput';
 import ManualLocationEntry from './ManualLocationEntry';
 import LocationConfirmation from './LocationConfirmation';
@@ -18,6 +17,13 @@ interface ZipCodeEntryProps {
   skipAutoLoad?: boolean;
 }
 
+type ParsedInput = {
+  type: 'zip' | 'cityState' | 'cityStateZip';
+  zipCode?: string;
+  city?: string;
+  state?: string;
+};
+
 export default function ZipCodeEntry({ 
   onLocationSelect, 
   onLocationClear,
@@ -28,7 +34,7 @@ export default function ZipCodeEntry({
   const [mode, setMode] = useState<EntryMode>('zip');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentZip, setCurrentZip] = useState(initialZip || '');
+  const [currentInput, setCurrentInput] = useState(initialZip || '');
   const [pendingLocation, setPendingLocation] = useState<LocationData | null>(null);
 
   // Load existing location on mount only if not skipping auto-load
@@ -42,39 +48,113 @@ export default function ZipCodeEntry({
     }
   }, [initialZip, skipAutoLoad]);
 
-  const handleZipLookup = async (zipCode: string): Promise<void> => {
+  // Parse different input formats
+  const parseLocationInput = (input: string): ParsedInput | null => {
+    const trimmed = input.trim();
+    
+    // ZIP code only (5 digits)
+    if (/^\d{5}$/.test(trimmed)) {
+      return { type: 'zip', zipCode: trimmed };
+    }
+    
+    // City, State ZIP (e.g., "Newport, RI 02840")
+    const cityStateZipMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})\s+(\d{5})$/);
+    if (cityStateZipMatch) {
+      return {
+        type: 'cityStateZip',
+        city: cityStateZipMatch[1].trim(),
+        state: cityStateZipMatch[2].toUpperCase(),
+        zipCode: cityStateZipMatch[3]
+      };
+    }
+    
+    // City, State (e.g., "Newport, RI")
+    const cityStateMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})$/);
+    if (cityStateMatch) {
+      return {
+        type: 'cityState',
+        city: cityStateMatch[1].trim(),
+        state: cityStateMatch[2].toUpperCase()
+      };
+    }
+    
+    return null;
+  };
+
+  const handleInputLookup = async (input: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
-    setCurrentZip(zipCode);
+    setCurrentInput(input);
 
-    console.log(`🔍 Looking up ZIP code: ${zipCode}`);
+    console.log(`🔍 Looking up input: ${input}`);
+
+    const parsed = parseLocationInput(input);
+    
+    if (!parsed) {
+      setError('Please use format: ZIP, "City, ST", or "City, ST ZIP"');
+      setMode('manual');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const result = await lookupZipCode(zipCode);
-      
-      if (result && result.places && result.places.length > 0) {
-        const place = result.places[0];
-        const location: LocationData = {
-          zipCode,
-          city: place['place name'],
-          state: place.state,
-          lat: parseFloat(place.latitude),
-          lng: parseFloat(place.longitude),
-          isManual: false
-        };
+      let location: LocationData | null = null;
 
-        console.log(`✅ ZIP lookup successful:`, location);
+      if (parsed.type === 'zip') {
+        // ZIP code lookup
+        const result = await lookupZipCode(parsed.zipCode!);
+        if (result && result.places && result.places.length > 0) {
+          const place = result.places[0];
+          location = {
+            zipCode: parsed.zipCode!,
+            city: place['place name'],
+            state: place.state,
+            lat: parseFloat(place.latitude),
+            lng: parseFloat(place.longitude),
+            isManual: false
+          };
+          console.log(`✅ ZIP lookup successful:`, location);
+        }
+      } else if (parsed.type === 'cityStateZip') {
+        // Verify ZIP code and use provided city/state
+        const result = await lookupZipCode(parsed.zipCode!);
+        if (result && result.places && result.places.length > 0) {
+          const place = result.places[0];
+          location = {
+            zipCode: parsed.zipCode!,
+            city: parsed.city!,
+            state: parsed.state!,
+            lat: parseFloat(place.latitude),
+            lng: parseFloat(place.longitude),
+            isManual: false
+          };
+          console.log(`✅ City/State/ZIP verification successful:`, location);
+        }
+      } else if (parsed.type === 'cityState') {
+        // Manual entry for city/state
+        location = {
+          zipCode: '',
+          city: parsed.city!,
+          state: parsed.state!,
+          lat: null,
+          lng: null,
+          isManual: true
+        };
+        console.log(`✅ Manual city/state entry:`, location);
+      }
+
+      if (location) {
         setPendingLocation(location);
         setMode('confirmation');
         toast.success(`Found ${location.city}, ${location.state}`);
       } else {
-        console.log(`❌ ZIP lookup failed - no results for ${zipCode}`);
-        setError(`ZIP code ${zipCode} not found. Please enter location manually.`);
+        console.log(`❌ Lookup failed for input: ${input}`);
+        setError(`Unable to find location. Please enter manually.`);
         setMode('manual');
       }
     } catch (err) {
-      console.error(`💥 ZIP lookup error:`, err);
-      setError(`Unable to look up ZIP code. Please enter location manually.`);
+      console.error(`💥 Lookup error:`, err);
+      setError(`Unable to look up location. Please enter manually.`);
       setMode('manual');
     } finally {
       setIsLoading(false);
@@ -85,7 +165,7 @@ export default function ZipCodeEntry({
     console.log('🗑️ Clearing location from ZipCodeEntry');
     setMode('zip');
     setError(null);
-    setCurrentZip('');
+    setCurrentInput('');
     setPendingLocation(null);
     
     // Clear the stored location
@@ -123,14 +203,14 @@ export default function ZipCodeEntry({
   const handleCancel = (): void => {
     setMode('zip');
     setError(null);
-    setCurrentZip('');
+    setCurrentInput('');
   };
 
   return (
     <div className="w-full max-w-md mx-auto">
       {mode === 'zip' && (
         <ZipCodeInput
-          onZipSubmit={handleZipLookup}
+          onZipSubmit={handleInputLookup}
           onClear={handleClear}
           isLoading={isLoading}
           error={error}
@@ -139,7 +219,7 @@ export default function ZipCodeEntry({
 
       {mode === 'manual' && (
         <ManualLocationEntry
-          zipCode={currentZip}
+          zipCode={currentInput}
           onSave={handleManualSave}
           onCancel={handleCancel}
         />
