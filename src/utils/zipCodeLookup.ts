@@ -1,9 +1,7 @@
-//--------------------------------------------------------------
-// src/utils/zipCodeLookup.ts
-//--------------------------------------------------------------
 
 import { safeLocalStorage } from '@/utils/localStorage';
-import { LOCAL_ZIP_DB } from '@/data/zipLocal';          //  ← new import
+import { LOCAL_ZIP_DB } from '@/data/zipLocal';
+import { cacheService } from '@/services/cacheService';
 
 /** zippopotam.us response shape (minimal) */
 interface ZipApiResponse {
@@ -18,8 +16,10 @@ interface ZipApiResponse {
   }[];
 }
 
+const ZIP_API_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 /*───────────────────────────────────────────────────────────*/
-/*  Small cache stored in localStorage                       */
+/*  Small cache stored in localStorage (legacy support)      */
 /*───────────────────────────────────────────────────────────*/
 
 const ZIP_CACHE_KEY = 'zipCache';
@@ -35,7 +35,7 @@ function saveZipCache(zip: string, data: ZipApiResponse) {
 }
 
 /*───────────────────────────────────────────────────────────*/
-/*  Main function                                            */
+/*  Main function with enhanced caching                      */
 /*───────────────────────────────────────────────────────────*/
 
 export const lookupZipCode = async (
@@ -58,12 +58,21 @@ export const lookupZipCode = async (
   }
 
   const cleanZip = String(zipCode).trim();
-  if (!/^\d{5}$/.test(cleanZip)) return null;      // not a 5-digit ZIP
+  if (!/^\d{5}$/.test(cleanZip)) return null;
 
-  // ── 1. LOCAL FALLBACK TABLE ──────────────────────────────
+  const cacheKey = `zip-api:${cleanZip}`;
+
+  // ── 1. NEW CACHE SYSTEM ──────────────────────────────────
+  const cached = cacheService.get<ZipApiResponse>(cacheKey);
+  if (cached) {
+    console.log(`✅ ZIP ${cleanZip} found in new cache system`);
+    return cached;
+  }
+
+  // ── 2. LOCAL FALLBACK TABLE ──────────────────────────────
   if (LOCAL_ZIP_DB[cleanZip]) {
     const z = LOCAL_ZIP_DB[cleanZip];
-    return {
+    const result = {
       'post code': cleanZip,
       country: 'United States',
       'country abbreviation': 'US',
@@ -71,24 +80,41 @@ export const lookupZipCode = async (
         {
           'place name': z.city,
           state: z.state,
-          latitude:  String(z.lat),
+          latitude: String(z.lat),
           longitude: String(z.lng),
         },
       ],
     };
+    
+    // Cache the local result
+    cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);
+    console.log(`✅ ZIP ${cleanZip} found in local database and cached`);
+    return result;
   }
 
-  // ── 2. LOCAL CACHE ───────────────────────────────────────
-  const cache = getZipCache();
-  if (cache[cleanZip]) return cache[cleanZip];
+  // ── 3. LEGACY LOCAL CACHE ────────────────────────────────
+  const legacyCache = getZipCache();
+  if (legacyCache[cleanZip]) {
+    const result = legacyCache[cleanZip];
+    // Migrate to new cache system
+    cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);
+    console.log(`✅ ZIP ${cleanZip} found in legacy cache and migrated`);
+    return result;
+  }
 
-  // ── 3. REMOTE LOOK-UP ────────────────────────────────────
+  // ── 4. REMOTE LOOK-UP ────────────────────────────────────
   try {
+    console.log(`🌐 Fetching ZIP ${cleanZip} from remote API`);
     const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
-    if (!res.ok) return null;               // graceful 404
+    if (!res.ok) return null;
 
     const data = (await res.json()) as ZipApiResponse;
+    
+    // Save to both cache systems
+    cacheService.set(cacheKey, data, ZIP_API_CACHE_TTL);
     saveZipCache(cleanZip, data);
+    
+    console.log(`✅ ZIP ${cleanZip} fetched and cached successfully`);
     return data;
   } catch (err) {
     console.error('ZIP lookup network error:', err);
