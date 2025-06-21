@@ -37,12 +37,17 @@ const MoonPhase = ({
   error,
   onGetStarted
 }: MoonPhaseProps) => {
-  // Simplified location detection - just check if currentLocation exists and has a zipCode
-  const hasLocation = !!(currentLocation?.zipCode);
+  // Enhanced location detection - check if location exists and has either ZIP or city/state
+  const hasLocation = !!(currentLocation && (
+    (currentLocation.zipCode && currentLocation.zipCode.length > 0) ||
+    (currentLocation.city && currentLocation.state)
+  ));
   
-  console.log('🌙 MoonPhase - Simplified check:', {
+  console.log('🌙 MoonPhase - Enhanced location check:', {
     currentLocationExists: !!currentLocation,
     zipCode: currentLocation?.zipCode,
+    city: currentLocation?.city,
+    state: currentLocation?.state,
     hasLocation
   });
 
@@ -60,12 +65,11 @@ const MoonPhase = ({
   // Get full moon name if applicable
   const fullMoonName = isFullMoon(actualPhase) ? getFullMoonName(currentDate) : null;
 
-  // Calculate solar times for today using actual location coordinates
-  const solarTimes = calculateSolarTimes(
-    currentDate, 
-    currentLocation?.lat || 41.4353, 
-    currentLocation?.lng || -71.4616
-  );
+  // Calculate solar times for today using actual location coordinates or defaults
+  const lat = currentLocation?.lat || 41.4353; // Default to Newport, RI
+  const lng = currentLocation?.lng || -71.4616;
+  
+  const solarTimes = calculateSolarTimes(currentDate, lat, lng);
 
   return (
     <div className="w-full">

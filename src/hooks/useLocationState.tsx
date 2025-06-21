@@ -15,11 +15,11 @@ export const useLocationState = () => {
     try {
       // First try the new location storage system
       const newLocation = locationStorage.getCurrentLocation();
-      if (newLocation && newLocation.zipCode && newLocation.zipCode !== "default") {
+      if (newLocation && (newLocation.zipCode || (newLocation.city && newLocation.state))) {
         console.log('✅ Found location in new storage system:', newLocation);
         // Convert LocationData to SavedLocation format
         const convertedLocation = {
-          id: newLocation.zipCode,
+          id: newLocation.zipCode || `${newLocation.city}-${newLocation.state}`,
           name: newLocation.nickname || newLocation.city,
           country: "USA",
           zipCode: newLocation.zipCode,
@@ -33,11 +33,11 @@ export const useLocationState = () => {
       // Fallback to old storage system
       const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
       console.log('💾 Saved location from old localStorage:', saved);
-      if (saved && saved.zipCode && saved.zipCode !== "default") {
+      if (saved && (saved.zipCode || (saved.city && saved.state))) {
         // Ensure the saved location has all required fields
         const location = {
           ...saved,
-          id: saved.id || saved.zipCode,
+          id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
           country: saved.country || "USA",
         };
         console.log('✅ Using saved location from old system:', location);

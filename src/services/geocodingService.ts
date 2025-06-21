@@ -49,3 +49,24 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
     return null;
   }
 }
+
+export async function getCoordinatesForCity(city: string, state: string): Promise<GeocodeResult | null> {
+  console.log(`🏙️ Getting coordinates for city: ${city}, ${state}`);
+  
+  // First try to find a matching ZIP in our local database
+  const matchingEntry = Object.entries(LOCAL_ZIP_DB).find(([_, data]) => 
+    data.city.toLowerCase() === city.toLowerCase() && 
+    data.state.toLowerCase() === state.toLowerCase()
+  );
+  
+  if (matchingEntry) {
+    const [zipCode, data] = matchingEntry;
+    console.log(`✅ Found ${city}, ${state} in local database with ZIP ${zipCode}`);
+    return data;
+  }
+  
+  // For now, return null since we don't have a reliable free API for city/state geocoding
+  // In a production app, you'd use Google Geocoding API or similar
+  console.log(`⚠️ No coordinates found for ${city}, ${state} in local database`);
+  return null;
+}
