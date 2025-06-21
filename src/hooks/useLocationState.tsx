@@ -54,18 +54,32 @@ export const useLocationState = () => {
 
   // Add a custom setter that includes logging
   const setCurrentLocationWithLogging = (location: SavedLocation & { id: string; country: string } | null) => {
-    console.log('🔄 setCurrentLocation called with:', location);
-    console.log('🔄 Previous location was:', currentLocation);
+    console.log('🔄 useLocationState: setCurrentLocation called with:', location);
+    console.log('🔄 useLocationState: Previous location was:', currentLocation);
     setCurrentLocation(location);
-    console.log('🔄 State update triggered');
+    console.log('🔄 useLocationState: State update triggered - component should re-render');
+    
+    // Additional debugging
+    if (location) {
+      console.log('✅ useLocationState: User now has a location - onboarding should hide');
+    } else {
+      console.log('🎯 useLocationState: User has no location - onboarding should show');
+    }
   };
 
   // Update document title when location changes
   useEffect(() => {
-    console.log('📝 Setting document title for location:', currentLocation?.name);
+    console.log('📝 useLocationState useEffect: Setting document title for location:', currentLocation?.name);
     document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
-    console.log("Current location in useLocationState useEffect:", currentLocation);
-    console.log("Location state change detected - hasLocation:", !!currentLocation);
+    console.log("🔄 useLocationState useEffect: Current location:", currentLocation);
+    console.log("🔄 useLocationState useEffect: Location state change detected - hasLocation:", !!currentLocation);
+    
+    // Additional state debugging
+    if (currentLocation) {
+      console.log('✅ useLocationState useEffect: Location exists, main content should show');
+    } else {
+      console.log('🎯 useLocationState useEffect: No location, onboarding should show');
+    }
   }, [currentLocation]);
 
   return {

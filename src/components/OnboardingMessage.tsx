@@ -7,6 +7,8 @@ interface OnboardingMessageProps {
 }
 
 const OnboardingMessage = ({ onGetStarted }: OnboardingMessageProps) => {
+  console.log('🎯 OnboardingMessage rendered - user has no location set');
+  
   return (
     <div className="flex items-center justify-center min-h-[80vh] p-4">
       <div className="max-w-md w-full text-center space-y-8 bg-card/20 backdrop-blur-md border border-moon-primary/20 rounded-2xl p-8">
@@ -19,7 +21,7 @@ const OnboardingMessage = ({ onGetStarted }: OnboardingMessageProps) => {
           </h1>
           <p className="text-muted-foreground leading-relaxed text-lg">
             Track moon phases, tides, and solar information for any location. 
-            To get started, please enter your ZIP code or location.
+            Enter your ZIP code, city and state, or use GPS to get started.
           </p>
         </div>
         
@@ -34,12 +36,16 @@ const OnboardingMessage = ({ onGetStarted }: OnboardingMessageProps) => {
           
           <div className="text-sm text-muted-foreground space-y-2 opacity-80">
             <div className="flex items-center justify-center gap-2">
-              <span>💡</span>
-              <span>For coastal areas, enter your ZIP code for tide data</span>
+              <span>📍</span>
+              <span>ZIP codes: <code>02840</code></span>
             </div>
             <div className="flex items-center justify-center gap-2">
-              <span>🌙</span>
-              <span>Moon and solar data available for all locations</span>
+              <span>🏙️</span>
+              <span>City/State: <code>Newport RI</code></span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <span>🌊</span>
+              <span>Coastal ZIP codes provide tide data</span>
             </div>
           </div>
         </div>

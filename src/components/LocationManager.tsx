@@ -14,17 +14,19 @@ interface LocationManagerProps {
 
 export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
   const handleLocationChange = (location: SavedLocation) => {
-    console.log('📍 Location change requested:', location);
+    console.log('🔄 LocationManager: Location change requested:', location);
     const updatedLocation = {
       ...location,
       id: location.id || location.zipCode || "temp",
       country: location.country || "USA",
       name: location.name || `${location.zipCode || "Unknown Location"}`
     };
-    console.log('📍 Updated location object:', updatedLocation);
+    console.log('🔄 LocationManager: Updated location object:', updatedLocation);
     
     // Update state first
+    console.log('🔄 LocationManager: Calling setCurrentLocation with updated location');
     setCurrentLocation(updatedLocation);
+    console.log('🔄 LocationManager: setCurrentLocation called - state should update');
     
     // Save to both storage systems for backward compatibility
     try {
@@ -42,9 +44,9 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
       };
       locationStorage.saveCurrentLocation(locationData);
       
-      console.log('💾 Successfully saved updated location to both storage systems');
+      console.log('💾 LocationManager: Successfully saved updated location to both storage systems');
     } catch (error) {
-      console.error('❌ Error saving location to localStorage:', error);
+      console.error('❌ LocationManager: Error saving location to localStorage:', error);
     }
     
     // Close the location selector if it was opened from onboarding
@@ -54,30 +56,30 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
   };
 
   const handleLocationClear = () => {
-    console.log('🗑️ Clearing current location from LocationManager');
+    console.log('🔄 LocationManager: Clearing current location');
     
     // Clear from both storage systems first
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
       locationStorage.clearCurrentLocation();
-      console.log('💾 Successfully cleared location from both storage systems');
+      console.log('💾 LocationManager: Successfully cleared location from both storage systems');
     } catch (error) {
-      console.error('❌ Error clearing location from localStorage:', error);
+      console.error('❌ LocationManager: Error clearing location from localStorage:', error);
     }
     
     // IMPORTANT: Update the component state to null to trigger re-render
-    console.log('🔄 About to call setCurrentLocation(null)');
+    console.log('🔄 LocationManager: About to call setCurrentLocation(null)');
     setCurrentLocation(null);
-    console.log('🔄 Component state updated to null - onboarding should now show');
+    console.log('🔄 LocationManager: Component state updated to null - onboarding should now show');
     
     // Force a small delay to ensure state propagation
     setTimeout(() => {
-      console.log('🔄 Delayed check - location should be null now');
+      console.log('🔄 LocationManager: Delayed check - location should be null now');
     }, 100);
   };
 
   const handleGetStarted = (location?: LocationData) => {
-    console.log('🎯 handleGetStarted called with location:', location);
+    console.log('🔄 LocationManager: handleGetStarted called with location:', location);
     
     if (location) {
       // Convert LocationData to SavedLocation format and update current location
@@ -91,10 +93,12 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
         lng: location.lng || 0
       };
       
-      console.log('🔄 Converting LocationData to SavedLocation and updating state:', savedLocation);
+      console.log('🔄 LocationManager: Converting LocationData to SavedLocation and updating state:', savedLocation);
       handleLocationChange(savedLocation);
+      console.log('🔄 LocationManager: handleLocationChange called - onboarding should now hide');
     } else {
       // No location provided, just show the location selector
+      console.log('🔄 LocationManager: No location provided, showing location selector');
       setShowLocationSelector(true);
     }
   };

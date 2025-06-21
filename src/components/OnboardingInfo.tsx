@@ -15,22 +15,27 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const handleEnterLocationClick = () => {
-    console.log('Enter Your Location button clicked - opening unified modal');
+    console.log('🔄 OnboardingInfo: Enter Your Location button clicked - opening unified modal');
     setShowLocationModal(true);
   };
 
   const handleLocationSelect = (location: LocationData) => {
-    console.log('Location selected in unified modal:', location);
+    console.log('🔄 OnboardingInfo: Location selected in unified modal:', location);
+    console.log('🔄 OnboardingInfo: About to save location and trigger onGetStarted');
     
     // Save the location
     locationStorage.saveCurrentLocation(location);
+    console.log('💾 OnboardingInfo: Location saved to storage');
     
     // Close modal and trigger location change with the actual location data
     setShowLocationModal(false);
+    console.log('🔄 OnboardingInfo: Modal closed, calling onGetStarted with location data');
     onGetStarted(location);
+    console.log('🔄 OnboardingInfo: onGetStarted called - onboarding should now hide');
   };
 
   const handleModalClose = () => {
+    console.log('🔄 OnboardingInfo: Modal closed without location selection');
     setShowLocationModal(false);
   };
 
@@ -42,9 +47,10 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
           <div className="flex-1 space-y-2">
             <div className="font-medium text-moon-primary">Welcome to MoonTide!</div>
             <div className="text-muted-foreground space-y-1">
-              <div>• Enter a coastal ZIP code for tide data</div>
-              <div>• Moon and solar data available for all locations</div>
-              <div>• Track phases, tides, and fishing conditions</div>
+              <div>• Enter ZIP code: <code>02840</code></div>
+              <div>• City/State: <code>Newport RI</code></div>
+              <div>• Full format: <code>Newport RI 02840</code></div>
+              <div>• Moon and solar data for all locations</div>
             </div>
           </div>
         </div>
