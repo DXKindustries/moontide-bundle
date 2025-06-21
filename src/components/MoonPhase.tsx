@@ -37,35 +37,27 @@ const MoonPhase = ({
   error,
   onGetStarted
 }: MoonPhaseProps) => {
-  // Enhanced location detection - check if location exists and has either ZIP or city/state
-  const hasLocation = !!(currentLocation && (
-    (currentLocation.zipCode && currentLocation.zipCode.length > 0) ||
-    (currentLocation.city && currentLocation.state)
-  ));
+  // Simplified location detection - just check if location exists and has basic data
+  const hasLocation = Boolean(currentLocation && (currentLocation.zipCode || (currentLocation.city && currentLocation.state)));
   
-  console.log('🌙 MoonPhase - Enhanced location check:', {
-    currentLocationExists: !!currentLocation,
+  console.log('🌙 MoonPhase - Location check:', {
+    hasCurrentLocation: !!currentLocation,
+    hasLocation,
     zipCode: currentLocation?.zipCode,
-    city: currentLocation?.city,
-    state: currentLocation?.state,
-    hasLocation
+    city: currentLocation?.city
   });
 
-  // Calculate the actual moon phase for today instead of using props
+  // Calculate the actual moon phase for today
   const currentDate = new Date(date);
   const actualMoonPhase = calculateMoonPhase(currentDate);
   
-  console.log('🌙 Calculated moon phase:', actualMoonPhase);
-  console.log('🌙 Props moon phase:', { phase, illumination });
-
-  // Use calculated values instead of props
   const actualPhase = actualMoonPhase.phase;
   const actualIllumination = actualMoonPhase.illumination;
 
   // Get full moon name if applicable
   const fullMoonName = isFullMoon(actualPhase) ? getFullMoonName(currentDate) : null;
 
-  // Calculate solar times for today using actual location coordinates or defaults
+  // Calculate solar times using location coordinates or defaults
   const lat = currentLocation?.lat || 41.4353; // Default to Newport, RI
   const lng = currentLocation?.lng || -71.4616;
   
@@ -86,22 +78,17 @@ const MoonPhase = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6">
-          {/* Large Moon Visual - Center Focus */}
           <MoonVisual phase={actualPhase} illumination={actualIllumination} />
           
-          {/* Moon Data Grid - 2x2 Layout */}
           <MoonData 
             illumination={actualIllumination}
             moonrise={moonrise}
             moonset={moonset}
           />
 
-          {/* Solar Information with Integrated Location and Error - Bottom Section */}
           <div className="border-t border-muted pt-4 w-full space-y-4">
-            {/* Solar Times Row */}
             <SolarInfo solarTimes={solarTimes} />
 
-            {/* Conditional Bottom Section */}
             {hasLocation ? (
               <LocationInfo 
                 currentLocation={currentLocation}
@@ -109,7 +96,7 @@ const MoonPhase = ({
                 error={error}
               />
             ) : (
-              <OnboardingInfo onGetStarted={onGetStarted!} />
+              <OnboardingInfo onGetStarted={onGetStarted || (() => {})} />
             )}
           </div>
         </CardContent>

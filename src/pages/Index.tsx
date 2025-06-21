@@ -8,7 +8,7 @@ import { useLocationState } from '@/hooks/useLocationState';
 import { useLocationManager } from '@/components/LocationManager';
 
 const Index = () => {
-  console.log('🚀 Index component rendering... (forced refresh)');
+  console.log('🚀 Index component rendering...');
   
   const {
     currentLocation,
@@ -24,11 +24,6 @@ const Index = () => {
   } = useLocationManager({ setCurrentLocation, setShowLocationSelector });
 
   console.log('🌊 Current location for useTideData:', currentLocation);
-  console.log('🔍 Force refresh - location details:', {
-    hasLocation: !!currentLocation,
-    zipCode: currentLocation?.zipCode,
-    name: currentLocation?.name
-  });
 
   const {
     isLoading,
@@ -44,19 +39,7 @@ const Index = () => {
     isLoading,
     error,
     tideDataLength: tideData?.length || 0,
-    weeklyForecastLength: weeklyForecast?.length || 0,
-    currentDate,
-    currentTime,
-    stationName
-  });
-
-  console.log('🎨 About to render Index component with:', {
-    hasCurrentLocation: !!currentLocation,
-    locationName: currentLocation?.name,
-    isLoading,
-    hasError: !!error,
-    hasTideData: tideData?.length > 0,
-    hasWeeklyForecast: weeklyForecast?.length > 0
+    hasCurrentLocation: !!currentLocation
   });
 
   return (
