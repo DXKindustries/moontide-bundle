@@ -12,8 +12,14 @@ export default function CacheManagement() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const loadStats = () => {
-    const cacheStats = getCacheStats();
-    setStats(cacheStats);
+    try {
+      const cacheStats = getCacheStats();
+      setStats(cacheStats);
+      console.log('📊 Cache stats loaded:', cacheStats);
+    } catch (error) {
+      console.error('❌ Error loading cache stats:', error);
+      setStats({ size: 0, entries: [] });
+    }
   };
 
   useEffect(() => {
@@ -21,14 +27,21 @@ export default function CacheManagement() {
   }, [refreshKey]);
 
   const handleClearCache = () => {
-    clearGeocodingCache();
-    setRefreshKey(prev => prev + 1);
-    toast.success('Cache cleared successfully');
+    try {
+      clearGeocodingCache();
+      setRefreshKey(prev => prev + 1);
+      toast.success('Cache cleared successfully');
+      console.log('🧹 Cache cleared successfully');
+    } catch (error) {
+      console.error('❌ Error clearing cache:', error);
+      toast.error('Failed to clear cache');
+    }
   };
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
     toast.success('Cache stats refreshed');
+    console.log('🔄 Cache stats refreshed');
   };
 
   const formatTime = (ms: number) => {
@@ -63,7 +76,7 @@ export default function CacheManagement() {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted p-3 rounded">
                 <div className="text-sm font-medium">Total Entries</div>
-                <div className="text-2xl font-bold">{stats.size}</div>
+                <div className="text-2xl font-bold">{stats.size || 0}</div>
               </div>
               <div className="bg-muted p-3 rounded">
                 <div className="text-sm font-medium">Cache Type</div>
@@ -71,7 +84,7 @@ export default function CacheManagement() {
               </div>
             </div>
 
-            {stats.entries.length > 0 && (
+            {stats.entries && stats.entries.length > 0 && (
               <div>
                 <h4 className="font-medium mb-2">Cache Entries</h4>
                 <div className="max-h-60 overflow-y-auto space-y-2">
@@ -86,6 +99,12 @@ export default function CacheManagement() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {(!stats.entries || stats.entries.length === 0) && (
+              <div className="text-center text-muted-foreground py-4">
+                No cache entries found
               </div>
             )}
           </div>
