@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, MapPin, Navigation, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { lookupZipCode } from '@/utils/zipCodeLookup';
+import { getCoordinatesForCity } from '@/services/geocodingService';
 import { LocationData } from '@/types/locationTypes';
 
 interface UnifiedLocationInputProps {
@@ -125,23 +125,43 @@ export default function UnifiedLocationInput({
           console.log('✅ City/State/ZIP verification successful:', location);
         }
       } else if (parsed.type === 'cityState') {
-        // Manual entry for city/state (no coordinates)
-        console.log('📝 Manual city/state entry:', parsed);
-        location = {
-          zipCode: '',
-          city: parsed.city!,
-          state: parsed.state!,
-          lat: null,
-          lng: null,
-          isManual: true,
-          timestamp: Date.now()
-        };
-        console.log('✅ Manual location created:', location);
+        // Try to geocode city/state first
+        console.log('🏙️ Attempting to geocode city/state:', parsed);
+        const geocodeResult = await getCoordinatesForCity(parsed.city!, parsed.state!);
+        
+        if (geocodeResult) {
+          location = {
+            zipCode: '',
+            city: parsed.city!,
+            state: parsed.state!,
+            lat: geocodeResult.lat,
+            lng: geocodeResult.lng,
+            isManual: false,
+            timestamp: Date.now()
+          };
+          console.log('✅ City/State geocoding successful:', location);
+        } else {
+          // Fallback to manual entry (no coordinates)
+          console.log('📝 Fallback to manual city/state entry:', parsed);
+          location = {
+            zipCode: '',
+            city: parsed.city!,
+            state: parsed.state!,
+            lat: null,
+            lng: null,
+            isManual: true,
+            timestamp: Date.now()
+          };
+          console.log('✅ Manual location created:', location);
+          toast.success(`Location saved: ${location.city}, ${location.state} (manual entry)`);
+        }
       }
 
       if (location) {
         onLocationSelect(location);
-        toast.success(`Location saved: ${location.city}, ${location.state}`);
+        if (!location.isManual) {
+          toast.success(`Location saved: ${location.city}, ${location.state}`);
+        }
         onClose?.();
       } else {
         toast.error('Location not found. Please check your input and try again.');
