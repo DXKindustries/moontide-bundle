@@ -5,25 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Search, Loader2, X } from 'lucide-react';
 
 interface ZipCodeInputProps {
-  onZipSubmit: (zipCode: string) => Promise<void>;
-  onClear?: () => void; // New prop to handle clearing
+  onZipSubmit: (input: string) => Promise<void>; // Changed from zipCode to input
+  onClear?: () => void;
   isLoading: boolean;
   error: string | null;
 }
 
 export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }: ZipCodeInputProps) {
-  const [zipCode, setZipCode] = useState('');
+  const [input, setInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (zipCode.trim() && !isLoading) {
-      await onZipSubmit(zipCode.trim());
+    if (input.trim() && !isLoading) {
+      await onZipSubmit(input.trim());
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 5);
-    setZipCode(value);
+    const value = e.target.value;
+    setInput(value);
     
     // If the user clears the input completely, notify parent
     if (value === '' && onClear) {
@@ -32,18 +32,34 @@ export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }:
   };
 
   const handleClear = () => {
-    setZipCode('');
+    setInput('');
     if (onClear) {
       onClear();
     }
   };
 
+  // Helper to validate input format
+  const isValidInput = (input: string): boolean => {
+    const trimmed = input.trim();
+    
+    // ZIP code only (5 digits)
+    if (/^\d{5}$/.test(trimmed)) return true;
+    
+    // City, State ZIP (e.g., "Newport, RI 02840")
+    if (/^.+,\s*[A-Za-z]{2}\s+\d{5}$/.test(trimmed)) return true;
+    
+    // City, State (e.g., "Newport, RI")
+    if (/^.+,\s*[A-Za-z]{2}$/.test(trimmed)) return true;
+    
+    return false;
+  };
+
   return (
     <div className="space-y-3">
       <div className="text-center">
-        <h3 className="text-lg font-semibold">Enter Your ZIP Code</h3>
+        <h3 className="text-lg font-semibold">Enter Your Location</h3>
         <p className="text-sm text-muted-foreground">
-          We'll automatically find your city and coordinates
+          ZIP, City/State, or "City, ST ZIP"
         </p>
       </div>
       
@@ -51,14 +67,13 @@ export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }:
         <div className="relative flex-1">
           <Input
             type="text"
-            value={zipCode}
+            value={input}
             onChange={handleInputChange}
-            placeholder="12345"
-            maxLength={5}
-            className="text-center text-lg font-mono pr-8"
+            placeholder="02840 or Newport, RI"
+            className="text-center pr-8"
             disabled={isLoading}
           />
-          {zipCode && (
+          {input && (
             <Button
               type="button"
               variant="ghost"
@@ -72,7 +87,7 @@ export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }:
         </div>
         <Button 
           type="submit" 
-          disabled={zipCode.length !== 5 || isLoading}
+          disabled={!input.trim() || !isValidInput(input) || isLoading}
           size="default"
         >
           {isLoading ? (
@@ -88,6 +103,16 @@ export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }:
           {error}
         </div>
       )}
+
+      {/* Input Format Help */}
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p><strong>Supported formats:</strong></p>
+        <ul className="list-disc list-inside space-y-0.5 ml-2">
+          <li>ZIP: <code>02840</code></li>
+          <li>City, State: <code>Newport, RI</code></li>
+          <li>Full: <code>Newport, RI 02840</code></li>
+        </ul>
+      </div>
     </div>
   );
 }

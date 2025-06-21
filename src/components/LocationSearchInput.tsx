@@ -14,6 +14,13 @@ interface LocationSearchInputProps {
   onClose: () => void;
 }
 
+type ParsedInput = {
+  type: 'zip' | 'cityState' | 'cityStateZip';
+  zipCode?: string;
+  city?: string;
+  state?: string;
+};
+
 export default function LocationSearchInput({
   search,
   setSearch,
@@ -21,64 +28,160 @@ export default function LocationSearchInput({
   savedLocations,
   onClose
 }: LocationSearchInputProps) {
+
+  // Parse different input formats
+  const parseLocationInput = (input: string): ParsedInput | null => {
+    const trimmed = input.trim();
+    
+    // ZIP code only (5 digits)
+    if (/^\d{5}$/.test(trimmed)) {
+      return { type: 'zip', zipCode: trimmed };
+    }
+    
+    // City, State ZIP (e.g., "Newport, RI 02840")
+    const cityStateZipMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})\s+(\d{5})$/);
+    if (cityStateZipMatch) {
+      return {
+        type: 'cityStateZip',
+        city: cityStateZipMatch[1].trim(),
+        state: cityStateZipMatch[2].toUpperCase(),
+        zipCode: cityStateZipMatch[3]
+      };
+    }
+    
+    // City, State (e.g., "Newport, RI")
+    const cityStateMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})$/);
+    if (cityStateMatch) {
+      return {
+        type: 'cityState',
+        city: cityStateMatch[1].trim(),
+        state: cityStateMatch[2].toUpperCase()
+      };
+    }
+    
+    return null;
+  };
+
   const addLocation = async () => {
     console.log('🏁 addLocation triggered.');
-    const zip = search.trim();
-    console.log('🔍 Attempting to add location for ZIP:', zip);
+    const input = search.trim();
+    console.log('🔍 Attempting to add location for input:', input);
     
-    if (!/^\d{5}$/.test(zip)) {
-      console.error('❌ Invalid ZIP format:', zip);
-      toast.error('Enter a valid 5-digit U.S. ZIP');
+    const parsed = parseLocationInput(input);
+    
+    if (!parsed) {
+      console.error('❌ Invalid input format:', input);
+      toast.error('Use format: ZIP, "City, ST", or "City, ST ZIP"');
       return;
     }
 
     try {
-      console.log('🌐 Looking up ZIP code:', zip);
-      const geo = await lookupZipCode(zip);
-      console.log('📍 ZIP lookup result:', geo);
-      
-      if (!geo || !geo.places || geo.places.length === 0) {
-        console.error('❌ ZIP not found in lookup service');
-        toast.error('ZIP code not found. Please check and try again.');
-        return;
+      let location: SavedLocation | null = null;
+
+      if (parsed.type === 'zip') {
+        // ZIP code lookup
+        console.log('🌐 Looking up ZIP code:', parsed.zipCode);
+        const geo = await lookupZipCode(parsed.zipCode!);
+        console.log('📍 ZIP lookup result:', geo);
+        
+        if (!geo || !geo.places || geo.places.length === 0) {
+          console.error('❌ ZIP not found in lookup service');
+          toast.error('ZIP code not found. Please check and try again.');
+          return;
+        }
+        
+        const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
+        
+        // De-dup on zip
+        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {
+          console.log('⚠️ ZIP already exists in saved locations');
+          toast.info('ZIP already saved');
+          setSearch('');
+          onClose();
+          return;
+        }
+
+        location = {
+          id: parsed.zipCode!,
+          name: geo.places[0]['place name'],
+          country: 'USA',
+          zipCode: parsed.zipCode!,
+          cityState,
+          lat: parseFloat(geo.places[0].latitude),
+          lng: parseFloat(geo.places[0].longitude),
+        };
+      } else if (parsed.type === 'cityStateZip') {
+        // Verify ZIP code and use provided city/state
+        console.log('🌐 Verifying ZIP code for city/state:', parsed);
+        const geo = await lookupZipCode(parsed.zipCode!);
+        
+        if (!geo || !geo.places || geo.places.length === 0) {
+          console.error('❌ ZIP not found in lookup service');
+          toast.error('ZIP code not found. Please check and try again.');
+          return;
+        }
+
+        const cityState = `${parsed.city}, ${parsed.state}`;
+        
+        // De-dup on zip
+        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {
+          console.log('⚠️ ZIP already exists in saved locations');
+          toast.info('Location already saved');
+          setSearch('');
+          onClose();
+          return;
+        }
+
+        location = {
+          id: parsed.zipCode!,
+          name: parsed.city!,
+          country: 'USA',
+          zipCode: parsed.zipCode!,
+          cityState,
+          lat: parseFloat(geo.places[0].latitude),
+          lng: parseFloat(geo.places[0].longitude),
+        };
+      } else if (parsed.type === 'cityState') {
+        // Manual entry without ZIP
+        const cityState = `${parsed.city}, ${parsed.state}`;
+        const locationId = `${parsed.city}-${parsed.state}`.toLowerCase();
+        
+        // De-dup on city/state combination
+        if (savedLocations.some(l => l.id === locationId)) {
+          console.log('⚠️ City/State already exists in saved locations');
+          toast.info('Location already saved');
+          setSearch('');
+          onClose();
+          return;
+        }
+
+        location = {
+          id: locationId,
+          name: parsed.city!,
+          country: 'USA',
+          zipCode: '', // No ZIP for manual entry
+          cityState,
+          lat: 0, // Manual entries don't have coordinates
+          lng: 0,
+        };
       }
       
-      const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
-      console.log('🏙️ Formatted city/state:', cityState);
-      
-      // De-dup on zip
-      if (savedLocations.some(l => l.zipCode === zip)) {
-        console.log('⚠️ ZIP already exists in saved locations');
-        toast.info('ZIP already saved');
+      if (location) {
+        console.log('✅ Created location object:', location);
+        
+        // Clear search and close dropdown
         setSearch('');
         onClose();
-        return;
+        
+        // Call onLocationAdd
+        console.log('📢 Calling onLocationAdd with location:', location);
+        onLocationAdd(location);
+        
+        toast.success(`Added ${location.cityState}`);
       }
-
-      const loc: SavedLocation = {
-        id: zip, // Use ZIP as ID
-        name: geo.places[0]['place name'],
-        country: 'USA',
-        zipCode: zip,
-        cityState,
-        lat: parseFloat(geo.places[0].latitude),
-        lng: parseFloat(geo.places[0].longitude),
-      };
-      
-      console.log('✅ Created location object:', loc);
-      
-      // Clear search and close dropdown
-      setSearch('');
-      onClose();
-      
-      // Call onLocationAdd
-      console.log('📢 Calling onLocationAdd with location:', loc);
-      onLocationAdd(loc);
-      
-      toast.success(`Added ${cityState}`);
     } catch (err) {
       console.error('💥 Error in addLocation:', err);
-      toast.error('ZIP code not found. Please check and try again.');
+      toast.error('Unable to add location. Please try again.');
     }
   };
 
@@ -96,7 +199,7 @@ export default function LocationSearchInput({
     if (search.trim()) {
       addLocation();
     } else {
-      toast.error('Enter a ZIP code first');
+      toast.error('Enter a location first');
     }
   };
 
@@ -106,8 +209,7 @@ export default function LocationSearchInput({
         value={search}
         onChange={e => setSearch(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Enter ZIP code…"
-        maxLength={5}
+        placeholder="ZIP, City/State, or City/State ZIP"
       />
       <button
         className="p-2 rounded bg-primary text-white"
