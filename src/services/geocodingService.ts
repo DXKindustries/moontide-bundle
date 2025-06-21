@@ -29,8 +29,14 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
   if (LOCAL_ZIP_DB[zipCode]) {
     console.log(`✅ Found ZIP ${zipCode} in local database`);
     const result = LOCAL_ZIP_DB[zipCode];
-    cacheService.set(cacheKey, result, ZIP_CACHE_TTL);
-    return result;
+    const geocodeResult = {
+      lat: result.lat,
+      lng: result.lng,
+      city: result.city,
+      state: result.state
+    };
+    cacheService.set(cacheKey, geocodeResult, ZIP_CACHE_TTL);
+    return geocodeResult;
   }
   
   // Try the free geocoding API
@@ -86,8 +92,14 @@ export async function getCoordinatesForCity(city: string, state: string): Promis
   if (matchingEntry) {
     const [zipCode, data] = matchingEntry;
     console.log(`✅ Found ${city}, ${state} in local database with ZIP ${zipCode}`);
-    cacheService.set(cacheKey, data, CITY_CACHE_TTL);
-    return data;
+    const geocodeResult = {
+      lat: data.lat,
+      lng: data.lng,
+      city: data.city,
+      state: data.state
+    };
+    cacheService.set(cacheKey, geocodeResult, CITY_CACHE_TTL);
+    return geocodeResult;
   }
   
   // For now, return null since we don't have a reliable free API for city/state geocoding

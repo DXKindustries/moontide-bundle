@@ -30,17 +30,28 @@ export default function LocationInputForm({
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      onSearch(input);
+      e.preventDefault();
+      if (input.trim()) {
+        onSearch(input.trim());
+      }
     }
   };
 
   const handleClear = () => {
     setInput('');
-    inputRef.current?.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const handleSearchClick = () => {
-    onSearch(input);
+    if (input.trim()) {
+      onSearch(input.trim());
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
   };
 
   return (
@@ -58,7 +69,7 @@ export default function LocationInputForm({
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             className="pr-8"
@@ -71,6 +82,7 @@ export default function LocationInputForm({
               size="sm"
               className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
               onClick={handleClear}
+              disabled={isLoading}
             >
               <X className="h-3 w-3" />
             </Button>
