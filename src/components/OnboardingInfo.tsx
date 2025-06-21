@@ -15,27 +15,25 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   const handleEnterLocationClick = () => {
-    console.log('🔄 OnboardingInfo: Enter Your Location button clicked - opening unified modal');
+    console.log('🔄 OnboardingInfo: Enter Your Location button clicked');
     setShowLocationModal(true);
   };
 
   const handleLocationSelect = (location: LocationData) => {
-    console.log('🔄 OnboardingInfo: Location selected in unified modal:', location);
-    console.log('🔄 OnboardingInfo: About to save location and trigger onGetStarted');
+    console.log('🔄 OnboardingInfo: Location selected:', location);
     
     // Save the location
     locationStorage.saveCurrentLocation(location);
     console.log('💾 OnboardingInfo: Location saved to storage');
     
-    // Close modal and trigger location change with the actual location data
+    // Close modal and trigger location change
     setShowLocationModal(false);
-    console.log('🔄 OnboardingInfo: Modal closed, calling onGetStarted with location data');
     onGetStarted(location);
-    console.log('🔄 OnboardingInfo: onGetStarted called - onboarding should now hide');
+    console.log('🔄 OnboardingInfo: onGetStarted called');
   };
 
   const handleModalClose = () => {
-    console.log('🔄 OnboardingInfo: Modal closed without location selection');
+    console.log('🔄 OnboardingInfo: Modal closed');
     setShowLocationModal(false);
   };
 
