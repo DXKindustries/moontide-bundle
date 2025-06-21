@@ -75,7 +75,7 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
           <UnifiedLocationInput
             onLocationSelect={handleLocationSelect}
             onClose={handleModalClose}
-            placeholder="02840 or Newport, RI"
+            placeholder="02840 or Newport RI"
             autoFocus={true}
           />
         </DialogContent>
