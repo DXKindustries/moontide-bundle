@@ -21,11 +21,21 @@ export default function ZipCodeEntry({
   
   console.log('🏗️ ZipCodeEntry rendering with props:', { initialZip, skipAutoLoad });
 
+  const handleLocationSelect = (location: LocationData) => {
+    console.log('📍 ZipCodeEntry: Location selected:', location);
+    onLocationSelect(location);
+  };
+
+  const handleClose = () => {
+    console.log('🔒 ZipCodeEntry: Close requested');
+    onClose?.();
+  };
+
   return (
     <div className="w-full max-w-md mx-auto">
       <UnifiedLocationInput
-        onLocationSelect={onLocationSelect}
-        onClose={onClose}
+        onLocationSelect={handleLocationSelect}
+        onClose={handleClose}
         placeholder={initialZip || "ZIP, City State, or City State ZIP"}
         autoFocus={true}
       />
