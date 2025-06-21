@@ -24,7 +24,7 @@ type ParsedInput = {
 export default function UnifiedLocationInput({ 
   onLocationSelect, 
   onClose, 
-  placeholder = "ZIP, City/State, or City/State ZIP",
+  placeholder = "ZIP, City State, or City State ZIP",
   autoFocus = true
 }: UnifiedLocationInputProps) {
   const [input, setInput] = useState('');
@@ -46,8 +46,8 @@ export default function UnifiedLocationInput({
       return { type: 'zip', zipCode: trimmed };
     }
     
-    // City, State ZIP (e.g., "Newport, RI 02840")
-    const cityStateZipMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})\s+(\d{5})$/);
+    // City, State ZIP (e.g., "Newport, RI 02840" OR "Newport RI 02840")
+    const cityStateZipMatch = trimmed.match(/^(.+?)(?:,\s*|\s+)([A-Za-z]{2})\s+(\d{5})$/);
     if (cityStateZipMatch) {
       return {
         type: 'cityStateZip',
@@ -57,8 +57,8 @@ export default function UnifiedLocationInput({
       };
     }
     
-    // City, State (e.g., "Newport, RI")
-    const cityStateMatch = trimmed.match(/^(.+),\s*([A-Za-z]{2})$/);
+    // City, State (e.g., "Newport, RI" OR "Newport RI")
+    const cityStateMatch = trimmed.match(/^(.+?)(?:,\s*|\s+)([A-Za-z]{2})$/);
     if (cityStateMatch) {
       return {
         type: 'cityState',
@@ -79,7 +79,7 @@ export default function UnifiedLocationInput({
     const parsed = parseLocationInput(input);
     
     if (!parsed) {
-      toast.error('Please use format: ZIP, "City, ST", or "City, ST ZIP"');
+      toast.error('Please use format: ZIP, "City ST", or "City ST ZIP"');
       return;
     }
 
@@ -209,7 +209,7 @@ export default function UnifiedLocationInput({
       <div className="text-center">
         <h3 className="text-lg font-semibold">Enter Location</h3>
         <p className="text-sm text-muted-foreground">
-          ZIP, City/State, or "City, ST ZIP"
+          ZIP, City State, or City State ZIP
         </p>
       </div>
       
@@ -264,8 +264,8 @@ export default function UnifiedLocationInput({
         <p><strong>Supported formats:</strong></p>
         <ul className="list-disc list-inside space-y-0.5 ml-2">
           <li>ZIP: <code>02840</code></li>
-          <li>City, State: <code>Newport, RI</code></li>
-          <li>Full: <code>Newport, RI 02840</code></li>
+          <li>City State: <code>Newport RI</code></li>
+          <li>Full: <code>Newport RI 02840</code></li>
         </ul>
       </div>
     </div>
