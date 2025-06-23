@@ -1,5 +1,3 @@
-
-import { LOCAL_ZIP_DB } from '@/data/zipLocal';
 import { cacheService } from './cacheService';
 
 interface GeocodeResult {
@@ -25,19 +23,6 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
     return cached;
   }
   
-  // Check our local database
-  if (LOCAL_ZIP_DB[zipCode]) {
-    console.log(`✅ Found ZIP ${zipCode} in local database`);
-    const result = LOCAL_ZIP_DB[zipCode];
-    const geocodeResult = {
-      lat: result.lat,
-      lng: result.lng,
-      city: result.city,
-      state: result.state
-    };
-    cacheService.set(cacheKey, geocodeResult, ZIP_CACHE_TTL);
-    return geocodeResult;
-  }
   
   // Try the free geocoding API
   try {
@@ -83,27 +68,8 @@ export async function getCoordinatesForCity(city: string, state: string): Promis
     return cached;
   }
   
-  // Try to find a matching ZIP in our local database
-  const matchingEntry = Object.entries(LOCAL_ZIP_DB).find(([_, data]) => 
-    data.city.toLowerCase() === city.toLowerCase() && 
-    data.state.toLowerCase() === state.toLowerCase()
-  );
-  
-  if (matchingEntry) {
-    const [zipCode, data] = matchingEntry;
-    console.log(`✅ Found ${city}, ${state} in local database with ZIP ${zipCode}`);
-    const geocodeResult = {
-      lat: data.lat,
-      lng: data.lng,
-      city: data.city,
-      state: data.state
-    };
-    cacheService.set(cacheKey, geocodeResult, CITY_CACHE_TTL);
-    return geocodeResult;
-  }
-  
-  // For now, return null since we don't have a reliable free API for city/state geocoding
-  console.log(`⚠️ No coordinates found for ${city}, ${state} in local database`);
+  // For now we don't have a reliable free API for city/state geocoding
+  console.log(`⚠️ No coordinates found for ${city}, ${state}`);
   return null;
 }
 

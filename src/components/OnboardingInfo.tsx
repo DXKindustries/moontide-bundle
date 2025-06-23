@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Info, Search, X } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UnifiedLocationInput from './UnifiedLocationInput';
 import { LocationData } from '@/types/locationTypes';
 import { locationStorage } from '@/utils/locationStorage';
@@ -21,19 +20,17 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
 
   const handleLocationSelect = (location: LocationData) => {
     console.log('🔄 OnboardingInfo: Location selected:', location);
-    
+
     // Save the location
     locationStorage.saveCurrentLocation(location);
     console.log('💾 OnboardingInfo: Location saved to storage');
-    
+
     // Close modal and trigger location change
     setShowLocationModal(false);
     onGetStarted(location);
-    console.log('🔄 OnboardingInfo: onGetStarted called');
   };
 
   const handleModalClose = () => {
-    console.log('🔄 OnboardingInfo: Modal closed');
     setShowLocationModal(false);
   };
 
@@ -64,17 +61,22 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
 
       <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
         <DialogContent className="w-full max-w-md">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Enter Your Location</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleModalClose}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              Enter Your Location
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleModalClose}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+            <DialogDescription>
+              Type a ZIP code, city and state, or both. Example: <code>02840</code>, <code>Newport RI</code>, or <code>Newport RI 02840</code>.
+            </DialogDescription>
+          </DialogHeader>
           
           <UnifiedLocationInput
             onLocationSelect={handleLocationSelect}
