@@ -1,4 +1,3 @@
-
 import express from 'express';
 import axios from 'axios';
 import cors from 'cors';
@@ -18,8 +17,12 @@ app.get('/api/noaa', async (req, res) => {
   try {
     const response = await axios.get(url);
     res.json(response.data);
-  } catch (error: any) {
-    console.error("NOAA proxy error:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("NOAA proxy error:", error.message);
+    } else {
+      console.error("NOAA proxy error:", error);
+    }
     res.status(500).json({ error: 'Failed to fetch from NOAA API' });
   }
 });

@@ -1,10 +1,10 @@
-
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
 /*  Fetch daily and weekly tide predictions from NOAA - LIVE DATA ONLY */
 
 import { getProxyConfig } from './proxyConfig';
+import { cacheService } from '../cacheService';
 
 // Use an inline type instead of external import to avoid build issues
 type NoaaStation = {
@@ -16,6 +16,8 @@ type NoaaStation = {
 
 /* Cloud host — note the mandatory `/prod/` segment */
 const BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 interface PredictionParams {
   station: string;          // NOAA station ID
@@ -50,8 +52,13 @@ function buildQuery(p: PredictionParams): string {
   return `${BASE}?${qs.toString()}`;
 }
 
+function getCacheKey(p: PredictionParams): string {
+  return `${p.station}:${p.beginDate}:${p.endDate}:${p.interval ?? 'hilo'}:${p.units ?? 'english'}`;
+}
+
 async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
   const noaaUrl = buildQuery(p);
+  const cacheKey = getCacheKey(p);
   console.log('🌐 Fetching live tide data from NOAA...');
   
   // Try direct NOAA API first
@@ -63,6 +70,7 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
       const data = await response.json();
       if (data.predictions && data.predictions.length > 0) {
         console.log('✅ Direct NOAA API call successful');
+        cacheService.set(cacheKey, data, CACHE_TTL);
         return data;
       }
     }
@@ -87,6 +95,7 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
       const data = await response.json();
       if (data.predictions && data.predictions.length > 0) {
         console.log('✅ CORS proxy successful');
+        cacheService.set(cacheKey, data, CACHE_TTL);
         return data;
       }
     }
@@ -94,7 +103,12 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
     console.log('⚠️ CORS proxy failed:', error.message);
   }
 
-  // Phase 1: No more mock data fallbacks - throw error if no live data available
+  const cached = cacheService.get<any>(cacheKey);
+  if (cached) {
+    console.warn('⚠️ Serving cached tide data due to live fetch failure');
+    return cached;
+  }
+
   console.error('❌ All attempts to fetch live NOAA data failed');
   throw new Error('Unable to fetch live tide data from NOAA. Please check your internet connection.');
 }
@@ -120,23 +134,3 @@ export async function fetchDailyTides(
 }
 
 /**
- * Fetch high / low events for a 7-day span (date + next 6 days).
- */
-export async function fetchWeeklyTides(
-  station: NoaaStation,
-  start: Date,
-  units: 'english' | 'metric' = 'english'
-) {
-  const begin = dateToYYYYMMDD(start);
-  const endObj = new Date(start);
-  endObj.setDate(endObj.getDate() + 6);
-  const end = dateToYYYYMMDD(endObj);
-
-  return fetchPredictions({
-    station: station.id,
-    beginDate: begin,
-    endDate: end,
-    interval: 'hilo',
-    units,
-  }, station);
-}

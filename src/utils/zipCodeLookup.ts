@@ -1,6 +1,4 @@
-
 import { safeLocalStorage } from '@/utils/localStorage';
-import { LOCAL_ZIP_DB } from '@/data/zipLocal';
 import { cacheService } from '@/services/cacheService';
 
 /** zippopotam.us response shape (minimal) */
@@ -29,21 +27,14 @@ function getZipCache(): Record<string, ZipApiResponse> {
 }
 
 function saveZipCache(zip: string, data: ZipApiResponse) {
-  const cache = getZipCache();
+  const cache = safeLocalStorage.get(ZIP_CACHE_KEY) ?? {};
   cache[zip] = data;
   safeLocalStorage.set(ZIP_CACHE_KEY, cache);
 }
 
-/*───────────────────────────────────────────────────────────*/
-/*  Main function with enhanced caching                      */
-/*───────────────────────────────────────────────────────────*/
-
 export const lookupZipCode = async (
   zipCode: string | number | Promise<any> | Record<string, unknown>
 ): Promise<ZipApiResponse | null> => {
-  console.log('DEBUG lookupZipCode param →', zipCode);
-
-  // unwrap Promise
   if (typeof (zipCode as any)?.then === 'function') {
     zipCode = await zipCode;
   }
@@ -69,30 +60,7 @@ export const lookupZipCode = async (
     return cached;
   }
 
-  // ── 2. LOCAL FALLBACK TABLE ──────────────────────────────
-  if (LOCAL_ZIP_DB[cleanZip]) {
-    const z = LOCAL_ZIP_DB[cleanZip];
-    const result = {
-      'post code': cleanZip,
-      country: 'United States',
-      'country abbreviation': 'US',
-      places: [
-        {
-          'place name': z.city,
-          state: z.state,
-          latitude: String(z.lat),
-          longitude: String(z.lng),
-        },
-      ],
-    };
-    
-    // Cache the local result
-    cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);
-    console.log(`✅ ZIP ${cleanZip} found in local database and cached`);
-    return result;
-  }
-
-  // ── 3. LEGACY LOCAL CACHE ────────────────────────────────
+  // ── 2. LEGACY LOCAL CACHE ────────────────────────────────
   const legacyCache = getZipCache();
   if (legacyCache[cleanZip]) {
     const result = legacyCache[cleanZip];
@@ -102,7 +70,7 @@ export const lookupZipCode = async (
     return result;
   }
 
-  // ── 4. REMOTE LOOK-UP ────────────────────────────────────
+  // ── 3. REMOTE LOOK-UP ────────────────────────────────────
   try {
     console.log(`🌐 Fetching ZIP ${cleanZip} from remote API`);
     const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
@@ -128,13 +96,6 @@ export const lookupZipCode = async (
 
 export async function formatCityStateFromZip(
   zipCode: string | number | Promise<any> | Record<string, unknown>
-): Promise<string | null> {
-  const data = await lookupZipCode(zipCode);
-  if (!data) return null;
-
-  const place = data.places[0]['place name'];
-  const state = data.places[0].state;
-  const clean = String(zipCode).trim();
-
-  return `${place}, ${state} ${clean}`;
+) {
+  // ...rest of your function
 }
