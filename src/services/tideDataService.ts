@@ -1,9 +1,9 @@
 // src/services/tideDataService.ts
 
-// Fetches 7-day tide data for the selected location and station from backend
-export async function getTideData(locationInput: string, stationId: string) {
+// Fetches 7-day tide data for the selected station from backend
+export async function getTideData(stationId: string, dateIso: string) {
   const response = await fetch(
-    `/tides?locationInput=${encodeURIComponent(locationInput)}&stationId=${encodeURIComponent(stationId)}`
+    `/tides?stationId=${encodeURIComponent(stationId)}&date=${encodeURIComponent(dateIso)}`
   );
   if (!response.ok) throw new Error("Unable to fetch tide data.");
   const data = await response.json();
