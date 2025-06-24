@@ -2,12 +2,14 @@ import express from 'express';
 import axios from 'axios';
 import cors from 'cors';
 import stationsRouter from './noaaStations';
+import tidesRouter from './tides';
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(stationsRouter);
+app.use(tidesRouter);
 
 app.get('/api/noaa', async (req, res) => {
   const { url } = req.query;
