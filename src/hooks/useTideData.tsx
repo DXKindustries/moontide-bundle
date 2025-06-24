@@ -71,15 +71,21 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           return;
         }
 
-        // Otherwise, fetch tide data for the selected station
-        const stationId = location.id;
-        const result = await getTideData(location.name, stationId);
+        // Otherwise, fetch tide data for the nearest station
+        const station = stations[0];
+        if (!station?.id) {
+          console.warn('No station ID available for location', location);
+          setIsLoading(false);
+          return;
+        }
+        const dateIso = new Date().toISOString().split('T')[0];
+        const result = await getTideData(station.id, dateIso);
 
         setTideData(result.data?.tideData || []);
         setWeeklyForecast(result.data?.weeklyForecast || []);
         setCurrentDate(result.data?.currentDate || getCurrentDateString());
         setCurrentTime(result.data?.currentTime || getCurrentTimeString());
-        setStationName(result.data?.stationName || location.name || null);
+        setStationName(result.data?.stationName || station.name || location.name || null);
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
