@@ -11,7 +11,8 @@ app.get('/api/noaa', async (req, res) => {
   const { url } = req.query;
 
   if (!url || typeof url !== 'string') {
-    return res.status(400).json({ error: 'Missing or invalid NOAA API URL' });
+    res.status(400).json({ error: 'Missing or invalid NOAA API URL' });
+    return;
   }
 
   try {
