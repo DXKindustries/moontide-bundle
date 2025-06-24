@@ -16,8 +16,10 @@ let stationCache: StationMeta[] | null = null;
 
 async function loadStations(): Promise<StationMeta[]> {
   if (stationCache) {
+    console.log('Using cached NOAA station list');
     return stationCache;
   }
+  console.log('Loading NOAA stations list');
   const res = await axios.get(STATIONS_URL);
   const data = res.data;
   if (Array.isArray(data?.stations)) {
@@ -33,6 +35,7 @@ async function loadStations(): Promise<StationMeta[]> {
   } else {
     stationCache = [];
   }
+  console.log(`Loaded ${stationCache.length} NOAA stations`);
   return stationCache ?? [];
 }
 
@@ -48,10 +51,12 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 async function geocode(input: string): Promise<{ lat: number; lng: number } | null> {
+  console.log('Geocode attempt:', input);
   const coordMatch = input.match(/^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*$/);
   if (coordMatch) {
     const lat = parseFloat(coordMatch[1]);
     const lng = parseFloat(coordMatch[2]);
+    console.log('Geocode resolved (coords):', { lat, lng });
     return { lat, lng };
   }
 
@@ -60,7 +65,9 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
       const res = await axios.get(`https://api.zippopotam.us/us/${input.trim()}`);
       const place = res.data.places?.[0];
       if (place) {
-        return { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        console.log('Geocode resolved (zip):', result);
+        return result;
       }
     } catch {
       return null;
@@ -74,17 +81,22 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
     });
     const loc = res.data[0];
     if (loc) {
-      return { lat: parseFloat(loc.lat), lng: parseFloat(loc.lon) };
+      const result = { lat: parseFloat(loc.lat), lng: parseFloat(loc.lon) };
+      console.log('Geocode resolved (search):', result);
+      return result;
     }
   } catch {
+    console.log('Geocode lookup failed for', input);
     return null;
   }
+  console.log('Geocode lookup failed for', input);
   return null;
 }
 
 router.get('/api/noaa-stations', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const input = (req.query.locationInput as string) || '';
+  console.log('/api/noaa-stations request:', input);
   if (!input) {
     res.status(400).json({ error: 'Missing locationInput' });
     return;
