@@ -93,10 +93,10 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
   return null;
 }
 
-router.get('/api/noaa-stations', async (req, res) => {
+router.get('/noaa-stations', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const input = (req.query.locationInput as string) || '';
-  console.log('/api/noaa-stations request:', input);
+  console.log('/noaa-stations request:', input);
   if (!input) {
     res.status(400).json({ error: 'Missing locationInput' });
     return;

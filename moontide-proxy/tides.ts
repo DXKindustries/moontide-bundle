@@ -10,7 +10,7 @@ function formatDate(d: Date): string {
   return `${y}${m}${day}`;
 }
 
-router.get('/api/tides', async (req, res) => {
+router.get('/tides', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const locationInput = req.query.locationInput as string | undefined; // not used but required by interface
   const stationId = req.query.stationId as string | undefined;
