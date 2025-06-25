@@ -2,8 +2,12 @@
 
 // Fetches 7-day tide data for the selected station from backend
 export async function getTideData(stationId: string, dateIso: string) {
+  const yyyymmdd = dateIso.replace(/-/g, '');
+  if (!stationId || yyyymmdd.length !== 8) {
+    throw new Error('Invalid parameters for tide data request');
+  }
   const response = await fetch(
-    `/tides?stationId=${encodeURIComponent(stationId)}&date=${encodeURIComponent(dateIso)}`
+    `/tides?stationId=${stationId}&date=${yyyymmdd}`
   );
   if (!response.ok) throw new Error("Unable to fetch tide data.");
   const data = await response.json();
