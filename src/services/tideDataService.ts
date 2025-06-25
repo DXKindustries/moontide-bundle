@@ -1,37 +1,43 @@
 // src/services/tideDataService.ts
+//--------------------------------------------------------------
+//  Fetch 7-day tide data for the given NOAA station
+//--------------------------------------------------------------
 
-// Fetches 7-day tide data for the selected station from backend
 export interface Prediction {
-  timeIso: string;   // ISO string, local time
-  valueFt: number;   // feet (already in response)
-  kind: 'H' | 'L';   // NOAA's type field
+  /** ISO date-time in the station’s local time zone (e.g. “2025-06-25T04:36:00”) */
+  timeIso: string;
+  /** Height in feet */
+  valueFt: number;
+  /** High (H) or Low (L) */
+  kind: 'H' | 'L';
 }
 
 export async function getTideData(
   stationId: string,
+  /** date string from the UI in YYYY-MM-DD form */
   dateIso: string
 ): Promise<Prediction[]> {
+  /* --- basic validation --------------------------------------------------- */
   const yyyymmdd = dateIso.replace(/-/g, '');
   if (!stationId || yyyymmdd.length !== 8) {
     throw new Error('Invalid parameters for tide data request');
   }
 
-  const response = await fetch(
-    `/tides?stationId=${stationId}&date=${yyyymmdd}`
-  );
+  /* --- hit our proxy ------------------------------------------------------ */
+  const resp = await fetch(`/tides?stationId=${stationId}&date=${yyyymmdd}`);
+  if (!resp.ok) throw new Error('Unable to fetch tide data');
 
-  if (!response.ok) throw new Error('Unable to fetch tide data.');
+  const raw = await resp.json();
 
-  const data = await response.json();
-  const predictions = Array.isArray(data?.predictions) ? data.predictions : [];
+  /* --- NOAA returns: { predictions:[{ t:"YYYY-MM-DD HH:mm", v:"x.xx", type:"H|L" }, … ] } */
+  const list = Array.isArray(raw?.predictions) ? raw.predictions : [];
 
-  return predictions.map((p: { t: string; v: string; type: 'H' | 'L' }) => ({
-    timeIso: `${p.t.replace(' ', 'T')}:00`,
+  return list.map((p: { t: string; v: string; type: 'H' | 'L' }): Prediction => ({
+    timeIso: `${p.t.replace(' ', 'T')}:00`,  // “YYYY-MM-DDTHH:mm:00”
     valueFt: parseFloat(p.v),
     kind: p.type,
   }));
 }
 
-// If you need to get station options in this file:
-import { getStationsForUserLocation } from "./noaaService";
-// Usage: await getStationsForUserLocation(locationInput)
+/* ------------- optional helper re-export ---------------------------------- */
+export { getStationsForUserLocation } from './noaaService';
