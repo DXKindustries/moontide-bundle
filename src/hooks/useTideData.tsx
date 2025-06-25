@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getTideData } from '@/services/tideDataService';
+import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
-
-// Types (adjust if you have real types)
-type TidePoint = any;
+import { TidePoint } from '@/services/tide/types';
 type TideForecast = any;
 
 type UseTideDataParams = {
@@ -79,13 +77,19 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           return;
         }
         const dateIso = new Date().toISOString().split('T')[0];
-        const result = await getTideData(station.id, dateIso);
+        const predictions: Prediction[] = await getTideData(station.id, dateIso);
 
-        setTideData(result.data?.tideData || []);
-        setWeeklyForecast(result.data?.weeklyForecast || []);
-        setCurrentDate(result.data?.currentDate || getCurrentDateString());
-        setCurrentTime(result.data?.currentTime || getCurrentTimeString());
-        setStationName(result.data?.stationName || station.name || location.name || null);
+        const tidePoints: TidePoint[] = predictions.map((p) => ({
+          time: p.timeIso,
+          height: p.valueFt,
+          isHighTide: p.kind === 'H' ? true : p.kind === 'L' ? false : null,
+        }));
+
+        setTideData(tidePoints);
+        setWeeklyForecast([]);
+        setCurrentDate(getCurrentDateString());
+        setCurrentTime(getCurrentTimeString());
+        setStationName(station.name || location.name || null);
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
