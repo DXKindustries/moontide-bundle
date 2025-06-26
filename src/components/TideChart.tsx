@@ -11,13 +11,9 @@ import {
   ReferenceLine
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Waves, MapPin } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type TidePoint = {
-  time: string;
-  height: number; // already in feet
-};
+import { TidePoint } from '@/services/tide/types';
 
 type TideChartProps = {
   data: TidePoint[];
@@ -27,24 +23,6 @@ type TideChartProps = {
   className?: string;
 };
 
-const detectTidePeaks = (points: TidePoint[], type: "high" | "low") => {
-  const peaks: TidePoint[] = [];
-
-  for (let i = 1; i < points.length - 1; i++) {
-    const prev = points[i - 1].height;
-    const curr = points[i].height;
-    const next = points[i + 1].height;
-
-    if (
-      (type === "high" && curr > prev && curr > next) ||
-      (type === "low" && curr < prev && curr < next)
-    ) {
-      peaks.push(points[i]);
-    }
-  }
-
-  return peaks.slice(0, 2).sort((a, b) => a.time.localeCompare(b.time));
-};
 
 const formatTimeToAMPM = (timeString: string) => {
   const date = new Date(timeString);
@@ -68,8 +46,9 @@ const TideChart = ({
     typeof point.time === "string" && point.time.slice(0, 10) === today
   );
 
-  const highTides = detectTidePeaks(todayData, "high");
-  const lowTides = detectTidePeaks(todayData, "low");
+  // We already receive only high/low events, so just separate them
+  const highTides = todayData.filter(tp => tp.isHighTide).slice(0, 2);
+  const lowTides = todayData.filter(tp => tp.isHighTide === false).slice(0, 2);
 
   const currentTimeIndex = currentTime
     ? todayData.findIndex(p => p.time === currentTime)
