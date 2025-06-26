@@ -83,7 +83,9 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           setIsLoading(false);
           return;
         }
-        const dateIso = new Date().toISOString().split('T')[0];
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
+        const dateIso = startDate.toISOString().split('T')[0];
         const predictions: Prediction[] = await getTideData(
           station.id,
           dateIso,
@@ -123,8 +125,10 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           }
         });
 
+        const todayStr = getCurrentDateString();
         const forecast: TideForecast[] = Object.keys(cyclesByDate)
           .sort()
+          .filter(d => d >= todayStr)
           .slice(0, 7)
           .map((date) => {
             const dayObj = new Date(`${date}T00:00:00`);
