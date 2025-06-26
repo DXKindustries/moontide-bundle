@@ -43,6 +43,10 @@ const TideChart = ({
   className
 }: TideChartProps) => {
   const today = new Date(date + 'T00:00:00');
+  if (isNaN(today.getTime())) {
+    const fallback = new Date(date);
+    if (!isNaN(fallback.getTime())) today.setTime(fallback.getTime());
+  }
   const startOfDay = new Date(today);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(startOfDay);
