@@ -37,7 +37,7 @@ router.get('/tides', async (req, res) => {
     return res.status(400).json({ error: 'Invalid date format (expect yyyymmdd)' });
   }
   const end = new Date(start);
-  end.setDate(start.getDate() + 6);      // 7-day window
+  end.setDate(start.getDate() + 7);      // 8-day window to capture cross-midnight cycles
 
   /* ---- build NOAA API call --------------------------------------- */
   const params = new URLSearchParams({
