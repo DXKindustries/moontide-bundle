@@ -46,23 +46,18 @@ const TideChart = ({
   const endOfDay = new Date(startOfDay);
   endOfDay.setDate(endOfDay.getDate() + 1);
 
-  const rawTodayData = (data || []).filter((point) => {
-    const ts = new Date(point.time).getTime();
-    return ts >= startOfDay.getTime() && ts < endOfDay.getTime();
-  });
-
-  const chartData = rawTodayData
+  const allPoints = (data || [])
     .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
-  if (chartData.length > 0) {
-    if (chartData[0].ts > startOfDay.getTime()) {
-      chartData.unshift({ ...chartData[0], ts: startOfDay.getTime(), time: new Date(startOfDay).toISOString() });
-    }
-    if (chartData[chartData.length - 1].ts < endOfDay.getTime()) {
-      chartData.push({ ...chartData[chartData.length - 1], ts: endOfDay.getTime(), time: new Date(endOfDay).toISOString() });
-    }
-  }
+  const rawTodayData = allPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
+
+  const prevPoint = allPoints.filter(p => p.ts < startOfDay.getTime()).slice(-1)[0];
+  const nextPoint = allPoints.find(p => p.ts >= endOfDay.getTime());
+
+  const chartData = [...rawTodayData];
+  if (prevPoint) chartData.unshift(prevPoint);
+  if (nextPoint) chartData.push(nextPoint);
 
   // We already receive only high/low events, so just separate them
   const highTides = rawTodayData.filter(tp => tp.isHighTide).slice(0, 2);
