@@ -7,7 +7,12 @@
  * for station lookups. Real station data is fetched from realStationService.ts
  */
 
-// Empty mapping - we now use real NOAA data
-export const STATION_BY_ZIP: Record<string, { id: string; name: string }> = {};
+// Basic ZIP -> station mapping used as a fallback when live
+// station lookups fail. Only contains a few well known ZIP
+// codes and their associated NOAA station ids.
+export const STATION_BY_ZIP: Record<string, { id: string; name: string }> = {
+  // Newport, Rhode Island
+  '02840': { id: '8452660', name: 'Newport, RI' },
+};
 
 console.log('🗺️ Station mapping is now using real NOAA data instead of hardcoded values');
