@@ -134,3 +134,21 @@ export async function fetchDailyTides(
 }
 
 /**
+ * Fetch continuous six-minute tide height data for a date range.
+ */
+export async function fetchSixMinuteRange(
+  station: NoaaStation,
+  start: Date,
+  end: Date,
+  units: 'english' | 'metric' = 'english'
+) {
+  const beginDate = dateToYYYYMMDD(start);
+  const endDate = dateToYYYYMMDD(end);
+  return fetchPredictions({
+    station: station.id,
+    beginDate,
+    endDate,
+    interval: '6',
+    units,
+  }, station);
+}

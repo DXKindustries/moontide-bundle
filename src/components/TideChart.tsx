@@ -16,7 +16,8 @@ import { cn } from "@/lib/utils";
 import { TidePoint } from '@/services/tide/types';
 
 type TideChartProps = {
-  data: TidePoint[];
+  curve: TidePoint[]; // continuous six-minute data
+  events: TidePoint[]; // high/low tide events
   date: string;
   currentTime?: string;
   isLoading?: boolean;
@@ -34,19 +35,20 @@ const formatTimeToAMPM = (time: string | number) => {
 };
 
 const TideChart = ({
-  data,
+  curve,
+  events,
   date,
   currentTime,
   isLoading = false,
   className
 }: TideChartProps) => {
-  const today = new Date();
+  const today = new Date(date + 'T00:00:00');
   const startOfDay = new Date(today);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(startOfDay);
   endOfDay.setDate(endOfDay.getDate() + 1);
 
-  const allPoints = (data || [])
+  const allPoints = (curve || [])
     .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
@@ -60,8 +62,13 @@ const TideChart = ({
   if (nextPoint) chartData.push(nextPoint);
 
   // We already receive only high/low events, so just separate them
-  const highTides = rawTodayData.filter(tp => tp.isHighTide).slice(0, 2);
-  const lowTides = rawTodayData.filter(tp => tp.isHighTide === false).slice(0, 2);
+  const eventPoints = (events || [])
+    .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
+    .sort((a, b) => a.ts - b.ts);
+
+  const todayEvents = eventPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
+  const highTides = todayEvents.filter(tp => tp.isHighTide).slice(0, 2);
+  const lowTides = todayEvents.filter(tp => tp.isHighTide === false).slice(0, 2);
 
   const parseCurrentTime = (timeStr: string | undefined) => {
     if (!timeStr) return null;
