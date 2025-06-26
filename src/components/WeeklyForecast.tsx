@@ -51,6 +51,15 @@ const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForeca
     }
   };
 
+  const formatTimeToAMPM = (timeString: string) => {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   const renderSkeletonForecast = () => {
     return Array(7).fill(0).map((_, index) => (
       <div 
@@ -143,12 +152,11 @@ const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForeca
                   {/* Tide Info - display two low-high cycles per day */}
                   <div className="grid grid-cols-2 gap-3">
                     {day.cycles.map((cycle, idx) => (
-                      <div key={idx}>
-                        <p className="text-xs text-muted-foreground">Cycle {idx + 1}</p>
-                        <p className="text-sm">Low: {cycle.low.time}</p>
-                        <p className="text-xs text-moon-blue mb-1">{cycle.low.height.toFixed(2)}m</p>
-                        <p className="text-sm">High: {cycle.high.time}</p>
-                        <p className="text-xs text-moon-blue">{cycle.high.height.toFixed(2)}m</p>
+                      <div key={idx} className="text-sm">
+                        <p className="text-xs text-muted-foreground mb-1">Cycle {idx + 1}</p>
+                        <p>
+                          Low {formatTimeToAMPM(cycle.low.time)} - High {formatTimeToAMPM(cycle.high.time)}
+                        </p>
                       </div>
                     ))}
                   </div>
