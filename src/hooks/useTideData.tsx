@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
+import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
 import { TidePoint, TideForecast, TideCycle } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
@@ -27,6 +28,7 @@ type UseTideDataReturn = {
   isLoading: boolean;
   error: string | null;
   tideData: TidePoint[];
+  tideEvents: TidePoint[];
   weeklyForecast: TideForecast[];
   currentDate: string;
   currentTime: string;
@@ -38,6 +40,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tideData, setTideData] = useState<TidePoint[]>([]);
+  const [tideEvents, setTideEvents] = useState<TidePoint[]>([]);
   const [weeklyForecast, setWeeklyForecast] = useState<TideForecast[]>([]);
   const [currentDate, setCurrentDate] = useState<string>(getCurrentDateString());
   const [currentTime, setCurrentTime] = useState<string>(getCurrentTimeString());
@@ -52,6 +55,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
       setIsLoading(false);
       setError(null);
       setTideData([]);
+      setTideEvents([]);
       setWeeklyForecast([]);
       setStationName(null);
       setIsInland(false);
@@ -70,6 +74,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         if (!stations || stations.length === 0) {
           setIsInland(true);
           setTideData([]);
+          setTideEvents([]);
           setWeeklyForecast([]);
           setStationName(null);
           setIsLoading(false);
@@ -91,6 +96,29 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           dateIso,
           7
         );
+
+        // Fetch detailed six-minute data around today for smooth chart lines
+        const rangeStart = new Date();
+        rangeStart.setDate(rangeStart.getDate() - 1);
+        const rangeEnd = new Date();
+        rangeEnd.setDate(rangeEnd.getDate() + 1);
+        const detailedRaw = await fetchSixMinuteRange(
+          {
+            id: station.id,
+            name: station.name,
+            lat: station.latitude,
+            lng: station.longitude
+          },
+          rangeStart,
+          rangeEnd
+        );
+        const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
+          ? detailedRaw.predictions.map((p: any) => ({
+              time: `${p.t.replace(' ', 'T')}:00`,
+              height: parseFloat(p.v),
+              isHighTide: null
+            }))
+          : [];
 
         const tidePoints: TidePoint[] = predictions
           .map((p) => ({
@@ -144,7 +172,8 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
             } as TideForecast;
           });
 
-        setTideData(tidePoints);
+        setTideData(detailedPoints);
+        setTideEvents(tidePoints);
         setWeeklyForecast(forecast);
         setCurrentDate(getCurrentDateString());
         setCurrentTime(getCurrentTimeString());
@@ -155,6 +184,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         setTideData([]);
+        setTideEvents([]);
         setWeeklyForecast([]);
         setStationName(null);
         setIsInland(false);
@@ -168,6 +198,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     isLoading,
     error,
     tideData,
+    tideEvents,
     weeklyForecast,
     currentDate,
     currentTime,

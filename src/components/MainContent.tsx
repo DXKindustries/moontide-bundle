@@ -10,6 +10,7 @@ interface MainContentProps {
   error: string | null;
   isLoading: boolean;
   tideData: TidePoint[];
+  tideEvents: TidePoint[];
   weeklyForecast: TideForecast[];
   currentDate: string;
   currentTime: string;
@@ -18,12 +19,13 @@ interface MainContentProps {
   onGetStarted?: (location?: LocationData) => void;
 }
 
-export default function MainContent({ 
-  error, 
-  isLoading, 
-  tideData, 
-  weeklyForecast, 
-  currentDate, 
+export default function MainContent({
+  error,
+  isLoading,
+  tideData,
+  tideEvents,
+  weeklyForecast,
+  currentDate,
   currentTime,
   currentLocation,
   stationName,
@@ -55,7 +57,8 @@ export default function MainContent({
         />
 
         <TideChart
-          data={tideData}
+          curve={tideData}
+          events={tideEvents}
           date={currentDate || moonPhaseData.date}
           currentTime={currentTime}
           isLoading={isLoading}

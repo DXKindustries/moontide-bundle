@@ -29,6 +29,7 @@ const Index = () => {
     isLoading,
     error,
     tideData,
+    tideEvents,
     weeklyForecast,
     currentDate,
     currentTime,
@@ -60,6 +61,7 @@ const Index = () => {
         error={error}
         isLoading={isLoading}
         tideData={tideData}
+        tideEvents={tideEvents}
         weeklyForecast={weeklyForecast}
         currentDate={currentDate}
         currentTime={currentTime}
