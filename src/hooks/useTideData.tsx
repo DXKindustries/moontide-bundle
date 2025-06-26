@@ -125,6 +125,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
 
         const forecast: TideForecast[] = Object.keys(cyclesByDate)
           .sort()
+          .slice(0, 7)
           .map((date) => {
             const dayObj = new Date(`${date}T00:00:00`);
             const day = dayObj.toLocaleDateString('en-US', { weekday: 'short' });
