@@ -3,7 +3,18 @@ import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
 import { TidePoint } from '@/services/tide/types';
-type TideForecast = any;
+
+// Shape for grouped daily tide data
+type TideEvent = {
+  time: string;
+  height: number;
+  isHighTide: boolean | null;
+};
+
+type TideForecast = {
+  date: string;
+  events: TideEvent[];
+};
 
 type UseTideDataParams = {
   location: {
@@ -77,7 +88,11 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           return;
         }
         const dateIso = new Date().toISOString().split('T')[0];
-        const predictions: Prediction[] = await getTideData(station.id, dateIso);
+        const predictions: Prediction[] = await getTideData(
+          station.id,
+          dateIso,
+          7
+        );
 
         const tidePoints: TidePoint[] = predictions.map((p) => ({
           time: p.timeIso,
@@ -85,8 +100,23 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           isHighTide: p.kind === 'H' ? true : p.kind === 'L' ? false : null,
         }));
 
+        // Group the tide points by date for weekly forecast
+        const byDate: Record<string, TideEvent[]> = {};
+        tidePoints.forEach((tp) => {
+          const day = tp.time.slice(0, 10);
+          if (!byDate[day]) byDate[day] = [];
+          byDate[day].push({
+            time: tp.time,
+            height: tp.height,
+            isHighTide: tp.isHighTide,
+          });
+        });
+        const forecast: TideForecast[] = Object.keys(byDate)
+          .sort()
+          .map((date) => ({ date, events: byDate[date] }));
+
         setTideData(tidePoints);
-        setWeeklyForecast([]);
+        setWeeklyForecast(forecast);
         setCurrentDate(getCurrentDateString());
         setCurrentTime(getCurrentTimeString());
         setStationName(station.name || location.name || null);
