@@ -23,7 +23,7 @@ const getNextPhaseInfo = (currentPhase: string, currentDate: Date) => {
   
   // Calculate actual days to next phase by checking each upcoming day
   let daysToNext = 1;
-  let checkDate = new Date(currentDate);
+  const checkDate = new Date(currentDate);
   
   // Check up to 30 days ahead to find the next phase change
   for (let i = 1; i <= 30; i++) {
