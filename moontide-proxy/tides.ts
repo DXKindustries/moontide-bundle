@@ -46,6 +46,8 @@ router.get('/tides', async (req, res) => {
     format:     'json',
     datum:      'MLLW',
     time_zone:  'lst_ldt',
+    // Return only high/low events so callers get two cycles per day
+    interval:   'hilo',
     units:      'english',
     station:    stationId,
     begin_date: yyyymmdd(start),
