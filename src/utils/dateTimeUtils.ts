@@ -3,11 +3,15 @@
 
 export const getCurrentDateString = (): string => {
   const now = new Date();
-  return now.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  return now.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
+};
+
+export const getCurrentIsoDateString = (): string => {
+  return new Date().toISOString().split('T')[0];
 };
 
 export const getCurrentTimeString = (): string => {

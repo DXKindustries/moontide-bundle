@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
-import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
+import {
+  getCurrentIsoDateString,
+  getCurrentTimeString,
+} from '@/utils/dateTimeUtils';
 import { TidePoint, TideForecast, TideCycle } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
@@ -42,13 +45,13 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
   const [tideData, setTideData] = useState<TidePoint[]>([]);
   const [tideEvents, setTideEvents] = useState<TidePoint[]>([]);
   const [weeklyForecast, setWeeklyForecast] = useState<TideForecast[]>([]);
-  const [currentDate, setCurrentDate] = useState<string>(getCurrentDateString());
+  const [currentDate, setCurrentDate] = useState<string>(getCurrentIsoDateString());
   const [currentTime, setCurrentTime] = useState<string>(getCurrentTimeString());
   const [stationName, setStationName] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
 
   useEffect(() => {
-    setCurrentDate(getCurrentDateString());
+    setCurrentDate(getCurrentIsoDateString());
     setCurrentTime(getCurrentTimeString());
 
     if (!location) {
@@ -153,7 +156,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           }
         });
 
-        const todayStr = getCurrentDateString();
+        const todayStr = getCurrentIsoDateString();
         const forecast: TideForecast[] = Object.keys(cyclesByDate)
           .sort()
           .filter(d => d >= todayStr)
@@ -175,7 +178,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setTideData(detailedPoints);
         setTideEvents(tidePoints);
         setWeeklyForecast(forecast);
-        setCurrentDate(getCurrentDateString());
+        setCurrentDate(getCurrentIsoDateString());
         setCurrentTime(getCurrentTimeString());
         setStationName(station.name || location.name || null);
         setIsInland(false);
