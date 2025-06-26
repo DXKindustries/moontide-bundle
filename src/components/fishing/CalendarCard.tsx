@@ -2,7 +2,7 @@
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TideForecast } from '@/services/noaaService';
+import { TideForecast } from '@/services/tide/types';
 import { isDateFullMoon, isDateNewMoon, getFullMoonName } from '@/utils/lunarUtils';
 import { getSolarEvents } from '@/utils/solarUtils';
 
