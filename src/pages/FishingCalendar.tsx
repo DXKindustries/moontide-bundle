@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useTideData } from '@/hooks/useTideData';
-import { TideForecast, TidePoint } from '@/services/tide/types';
+import { TideForecast } from '@/services/tide/types';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
 import CalendarCard from '@/components/fishing/CalendarCard';
@@ -50,7 +50,7 @@ const Calendar = () => {
   });
 
   // Fetch real tide data from NOAA
-  const { isLoading, error, weeklyForecast, tideData, stationName } = useTideData({ location: currentLocation });
+  const { isLoading, error, weeklyForecast, stationName } = useTideData({ location: currentLocation });
 
   // Helper function to add hours to a date
   const addHours = (date: Date, hours: number): Date => {
@@ -99,36 +99,20 @@ const Calendar = () => {
 
   // Generate info combining moon data and real tide data
   const generateFishingInfoForDate = useCallback(
-    (date: Date, forecasts: TideForecast[], tides: TidePoint[]): DayFishingInfo => {
+    (date: Date, forecasts: TideForecast[]): DayFishingInfo => {
       // Get moon phase from forecasts with fallback
       const { phase: moonPhase, illumination } =
         forecasts.length > 0
           ? getMoonPhaseFromForecast(date, forecasts)
           : { phase: 'Waxing Crescent' as MoonPhase, illumination: 35 };
 
-      // Generate high and low tides
-      const highTides: { time: string; height: number }[] = [];
-      const lowTides: { time: string; height: number }[] = [];
-
-      if (tides && tides.length > 0) {
-        tides
-          .filter((tide) => tide.isHighTide)
-          .forEach((tide) => {
-            highTides.push({
-              time: tide.time,
-              height: tide.height,
-            });
-          });
-
-        tides
-          .filter((tide) => !tide.isHighTide)
-          .forEach((tide) => {
-            lowTides.push({
-              time: tide.time,
-              height: tide.height,
-            });
-          });
-      }
+      // Pull tides for this date from the weekly forecast
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const dayForecast = forecasts.find((f) => f.date === dateStr);
+      const highTides: { time: string; height: number }[] =
+        dayForecast?.cycles.map((c) => ({ time: c.high.time, height: c.high.height })) || [];
+      const lowTides: { time: string; height: number }[] =
+        dayForecast?.cycles.map((c) => ({ time: c.low.time, height: c.low.height })) || [];
 
       // Calculate solar times
       const solarTimes = calculateSolarTimes(date, currentLocation);
@@ -186,13 +170,13 @@ const Calendar = () => {
       const dateStr = format(date, 'yyyy-MM-dd');
 
       // Generate info using real tide data
-      const newInfo = generateFishingInfoForDate(date, weeklyForecast, tideData);
+      const newInfo = generateFishingInfoForDate(date, weeklyForecast);
       setFishingInfo((prev) => ({
         ...prev,
         [dateStr]: newInfo,
       }));
     },
-    [generateFishingInfoForDate, weeklyForecast, tideData]
+    [generateFishingInfoForDate, weeklyForecast]
   );
 
   // Generate info when tide data is loaded

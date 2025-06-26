@@ -90,46 +90,42 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           7
         );
 
-        const tidePoints: TidePoint[] = predictions.map((p) => ({
-          time: p.timeIso,
-          height: p.valueFt,
-          isHighTide: p.kind === 'H' ? true : p.kind === 'L' ? false : null,
-        }));
+        const tidePoints: TidePoint[] = predictions
+          .map((p) => ({
+            time: p.timeIso,
+            height: p.valueFt,
+            isHighTide: p.kind === 'H' ? true : p.kind === 'L' ? false : null,
+          }))
+          .sort((a, b) => a.time.localeCompare(b.time));
 
-        // Group the tide points by date for weekly forecast
-        const byDate: Record<string, TideEvent[]> = {};
+        // Build tide cycles across the full dataset so pairs can cross midnight
+        const cyclesByDate: Record<string, TideCycle[]> = {};
+        let pendingLow: TideEvent | null = null;
+
         tidePoints.forEach((tp) => {
-          const day = tp.time.slice(0, 10);
-          if (!byDate[day]) byDate[day] = [];
-          byDate[day].push({
+          const event: TideEvent = {
             time: tp.time,
             height: tp.height,
             isHighTide: tp.isHighTide,
-          });
+          };
+
+          if (event.isHighTide === false) {
+            // store low tide until the next high tide appears
+            pendingLow = event;
+          } else if (event.isHighTide === true && pendingLow) {
+            const date = pendingLow.time.slice(0, 10);
+            if (!cyclesByDate[date]) cyclesByDate[date] = [];
+            cyclesByDate[date].push({
+              low: { time: pendingLow.time, height: pendingLow.height },
+              high: { time: event.time, height: event.height },
+            });
+            pendingLow = null;
+          }
         });
-        const forecast: TideForecast[] = Object.keys(byDate)
+
+        const forecast: TideForecast[] = Object.keys(cyclesByDate)
           .sort()
           .map((date) => {
-            const events = byDate[date].sort((a, b) =>
-              a.time.localeCompare(b.time)
-            );
-
-            const cycles: TideCycle[] = [];
-            let currentLow: TideEvent | null = null;
-
-            for (const ev of events) {
-              if (ev.isHighTide === false) {
-                currentLow = ev;
-              } else if (ev.isHighTide === true && currentLow) {
-                cycles.push({
-                  low: { time: currentLow.time, height: currentLow.height },
-                  high: { time: ev.time, height: ev.height },
-                });
-                currentLow = null;
-                if (cycles.length === 2) break;
-              }
-            }
-
             const dayObj = new Date(`${date}T00:00:00`);
             const day = dayObj.toLocaleDateString('en-US', { weekday: 'short' });
             const { phase, illumination } = calculateMoonPhase(dayObj);
@@ -139,7 +135,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
               day,
               moonPhase: phase,
               illumination,
-              cycles,
+              cycles: cyclesByDate[date].slice(0, 2),
             } as TideForecast;
           });
 
