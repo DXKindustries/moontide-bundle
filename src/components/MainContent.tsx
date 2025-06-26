@@ -5,6 +5,7 @@ import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
 import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
+import { formatApiDate } from '@/utils/dateTimeUtils';
 
 interface MainContentProps {
   error: string | null;
@@ -36,7 +37,7 @@ export default function MainContent({
     illumination: weeklyForecast.length > 0 ? weeklyForecast[0].illumination : 35,
     moonrise: "18:42",
     moonset: "07:15",
-    date: currentDate || "May 21, 2025"
+    date: formatApiDate(currentDate)
   };
 
   console.log('MainContent onGetStarted function:', onGetStarted);
@@ -59,7 +60,7 @@ export default function MainContent({
         <TideChart
           curve={tideData}
           events={tideEvents}
-          date={currentDate || moonPhaseData.date}
+          date={currentDate}
           currentTime={currentTime}
           isLoading={isLoading}
         />
