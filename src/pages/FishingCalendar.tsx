@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useTideData } from '@/hooks/useTideData';
-import { TideForecast, TidePoint } from '@/services/noaaService';
+import { TideForecast, TidePoint } from '@/services/tide/types';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
 import CalendarCard from '@/components/fishing/CalendarCard';
