@@ -2,18 +2,14 @@ import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
-import { TidePoint } from '@/services/tide/types';
+import { TidePoint, TideForecast } from '@/services/tide/types';
+import { calculateMoonPhase } from '@/utils/lunarUtils';
 
-// Shape for grouped daily tide data
+// Internal shape for grouping tide events by date
 type TideEvent = {
   time: string;
   height: number;
   isHighTide: boolean | null;
-};
-
-type TideForecast = {
-  date: string;
-  events: TideEvent[];
 };
 
 type UseTideDataParams = {
@@ -113,7 +109,27 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         });
         const forecast: TideForecast[] = Object.keys(byDate)
           .sort()
-          .map((date) => ({ date, events: byDate[date] }));
+          .map((date) => {
+            const events = byDate[date];
+            const high = events.find((e) => e.isHighTide === true);
+            const low = events.find((e) => e.isHighTide === false);
+            const dayObj = new Date(`${date}T00:00:00`);
+            const day = dayObj.toLocaleDateString('en-US', { weekday: 'short' });
+            const { phase, illumination } = calculateMoonPhase(dayObj);
+
+            return {
+              date,
+              day,
+              moonPhase: phase,
+              illumination,
+              highTide: high
+                ? { time: high.time, height: high.height }
+                : { time: '', height: 0 },
+              lowTide: low
+                ? { time: low.time, height: low.height }
+                : { time: '', height: 0 },
+            } as TideForecast;
+          });
 
         setTideData(tidePoints);
         setWeeklyForecast(forecast);

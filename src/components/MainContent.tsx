@@ -3,7 +3,7 @@ import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
-import { TidePoint, TideForecast } from '@/services/noaaService';
+import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
 
 interface MainContentProps {
