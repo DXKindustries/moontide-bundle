@@ -24,12 +24,12 @@ type TideChartProps = {
 };
 
 
-const formatTimeToAMPM = (timeString: string) => {
-  const date = new Date(timeString);
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
+const formatTimeToAMPM = (time: string | number) => {
+  const date = new Date(time);
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
     minute: '2-digit',
-    hour12: true 
+    hour12: true
   });
 };
 
@@ -40,19 +40,52 @@ const TideChart = ({
   isLoading = false,
   className
 }: TideChartProps) => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  const startOfDay = new Date(today);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
 
-  const todayData = (data || []).filter(point =>
-    typeof point.time === "string" && point.time.slice(0, 10) === today
-  );
+  const rawTodayData = (data || []).filter((point) => {
+    const ts = new Date(point.time).getTime();
+    return ts >= startOfDay.getTime() && ts < endOfDay.getTime();
+  });
+
+  const chartData = rawTodayData
+    .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
+    .sort((a, b) => a.ts - b.ts);
+
+  if (chartData.length > 0) {
+    if (chartData[0].ts > startOfDay.getTime()) {
+      chartData.unshift({ ...chartData[0], ts: startOfDay.getTime(), time: new Date(startOfDay).toISOString() });
+    }
+    if (chartData[chartData.length - 1].ts < endOfDay.getTime()) {
+      chartData.push({ ...chartData[chartData.length - 1], ts: endOfDay.getTime(), time: new Date(endOfDay).toISOString() });
+    }
+  }
 
   // We already receive only high/low events, so just separate them
-  const highTides = todayData.filter(tp => tp.isHighTide).slice(0, 2);
-  const lowTides = todayData.filter(tp => tp.isHighTide === false).slice(0, 2);
+  const highTides = rawTodayData.filter(tp => tp.isHighTide).slice(0, 2);
+  const lowTides = rawTodayData.filter(tp => tp.isHighTide === false).slice(0, 2);
 
-  const currentTimeIndex = currentTime
-    ? todayData.findIndex(p => p.time === currentTime)
-    : Math.floor(todayData.length / 2);
+  const parseCurrentTime = (timeStr: string | undefined) => {
+    if (!timeStr) return null;
+    const [timePart, period] = timeStr.split(' ');
+    if (!timePart || !period) return null;
+    const [hStr, mStr] = timePart.split(':');
+    let hours = Number(hStr);
+    const minutes = Number(mStr);
+    if (period.toUpperCase() === 'PM' && hours < 12) hours += 12;
+    if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
+    const d = new Date(startOfDay);
+    d.setHours(hours, minutes, 0, 0);
+    return d.getTime();
+  };
+
+  const currentTs = parseCurrentTime(currentTime);
+
+  const currentTimeIndex =
+    currentTs != null ? chartData.findIndex(p => p.ts >= currentTs) : Math.floor(chartData.length / 2);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -81,7 +114,7 @@ const TideChart = ({
           <div className="h-64 flex items-center justify-center">
             <Loader2 className="h-8 w-8 text-moon-primary animate-spin" />
           </div>
-        ) : todayData.length === 0 ? (
+        ) : rawTodayData.length === 0 ? (
           <div className="h-64 flex flex-col items-center justify-center text-center px-4">
             <MapPin className="h-12 w-12 text-muted-foreground/50 mb-3" />
             <p className="text-muted-foreground font-medium mb-2">
@@ -97,7 +130,7 @@ const TideChart = ({
         ) : (
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={todayData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
@@ -106,13 +139,15 @@ const TideChart = ({
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                 <XAxis
-                  dataKey="time"
+                  dataKey="ts"
+                  type="number"
+                  domain={[startOfDay.getTime(), endOfDay.getTime()]}
                   tickFormatter={(t) => {
                     const date = new Date(t);
-                    return date.toLocaleTimeString('en-US', { 
-                      hour: '2-digit', 
+                    return date.toLocaleTimeString('en-US', {
+                      hour: '2-digit',
                       minute: '2-digit',
-                      hour12: true 
+                      hour12: true
                     });
                   }}
                   tick={{ fill: '#cbd5e1', fontSize: 12 }}
@@ -131,7 +166,7 @@ const TideChart = ({
                 <Tooltip content={<CustomTooltip />} />
                 {currentTimeIndex >= 0 && (
                   <ReferenceLine
-                    x={todayData[currentTimeIndex]?.time}
+                    x={chartData[currentTimeIndex]?.ts}
                     stroke="#9b87f5"
                     strokeWidth={2}
                     label={{
@@ -154,7 +189,7 @@ const TideChart = ({
           </div>
         )}
 
-        {!isLoading && todayData.length > 0 && (
+        {!isLoading && rawTodayData.length > 0 && (
           <div className="grid grid-cols-2 gap-4 mt-4">
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">Low Tides</h4>
