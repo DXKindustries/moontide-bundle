@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { getCurrentDateString, getCurrentTimeString } from '@/utils/dateTimeUtils';
-import { TidePoint, TideForecast } from '@/services/tide/types';
+import { TidePoint, TideForecast, TideCycle } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
 // Internal shape for grouping tide events by date
@@ -110,9 +110,26 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         const forecast: TideForecast[] = Object.keys(byDate)
           .sort()
           .map((date) => {
-            const events = byDate[date];
-            const high = events.find((e) => e.isHighTide === true);
-            const low = events.find((e) => e.isHighTide === false);
+            const events = byDate[date].sort((a, b) =>
+              a.time.localeCompare(b.time)
+            );
+
+            const cycles: TideCycle[] = [];
+            let currentLow: TideEvent | null = null;
+
+            for (const ev of events) {
+              if (ev.isHighTide === false) {
+                currentLow = ev;
+              } else if (ev.isHighTide === true && currentLow) {
+                cycles.push({
+                  low: { time: currentLow.time, height: currentLow.height },
+                  high: { time: ev.time, height: ev.height },
+                });
+                currentLow = null;
+                if (cycles.length === 2) break;
+              }
+            }
+
             const dayObj = new Date(`${date}T00:00:00`);
             const day = dayObj.toLocaleDateString('en-US', { weekday: 'short' });
             const { phase, illumination } = calculateMoonPhase(dayObj);
@@ -122,12 +139,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
               day,
               moonPhase: phase,
               illumination,
-              highTide: high
-                ? { time: high.time, height: high.height }
-                : { time: '', height: 0 },
-              lowTide: low
-                ? { time: low.time, height: low.height }
-                : { time: '', height: 0 },
+              cycles,
             } as TideForecast;
           });
 
