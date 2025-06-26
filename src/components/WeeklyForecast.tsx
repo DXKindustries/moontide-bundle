@@ -7,13 +7,17 @@ import { Info } from "lucide-react";
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
 import { formatApiDate } from '@/utils/dateTimeUtils';
 
+type TideCycle = {
+  low: { time: string; height: number };
+  high: { time: string; height: number };
+};
+
 type DayForecast = {
   date: string;
   day: string;
   moonPhase: string;
   illumination: number;
-  highTide: { time: string; height: number; };
-  lowTide: { time: string; height: number; };
+  cycles: TideCycle[];
 };
 
 type WeeklyForecastProps = {
@@ -136,18 +140,17 @@ const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForeca
                     </div>
                   </div>
                   
-                  {/* Tide Info - Always display exactly one high tide and one low tide per day */}
+                  {/* Tide Info - display two low-high cycles per day */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-muted-foreground">High Tide</p>
-                      <p className="text-sm">{day.highTide.time}</p>
-                      <p className="text-xs text-moon-blue">{day.highTide.height.toFixed(2)}m</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Low Tide</p>
-                      <p className="text-sm">{day.lowTide.time}</p>
-                      <p className="text-xs text-moon-blue">{day.lowTide.height.toFixed(2)}m</p>
-                    </div>
+                    {day.cycles.map((cycle, idx) => (
+                      <div key={idx}>
+                        <p className="text-xs text-muted-foreground">Cycle {idx + 1}</p>
+                        <p className="text-sm">Low: {cycle.low.time}</p>
+                        <p className="text-xs text-moon-blue mb-1">{cycle.low.height.toFixed(2)}m</p>
+                        <p className="text-sm">High: {cycle.high.time}</p>
+                        <p className="text-xs text-moon-blue">{cycle.high.height.toFixed(2)}m</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
