@@ -35,21 +35,21 @@ const Index = () => {
   console.log('🌊 Current location for useTideData:', currentLocation);
 
   useEffect(() => {
-    if (!currentLocation) return;
+    if (!currentLocation) {
+      setAvailableStations([]);
+      setSelectedStation(null);
+      setShowStationPicker(false);
+      return;
+    }
+
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
+    setSelectedStation(null);
     getStationsForLocationInput(input)
       .then((stations) => {
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
-          setSelectedStation(null);
           setShowStationPicker(false);
-          if (currentLocation.zipCode) {
-            toast.error('No NOAA stations found for this ZIP code.');
-          }
-        } else if (stations.length === 1) {
-          setAvailableStations([]);
-          setSelectedStation(stations[0]);
-          setShowStationPicker(false);
+          toast.error('No NOAA stations found for this location.');
         } else {
           setAvailableStations(stations);
           setShowStationPicker(true);
@@ -59,7 +59,7 @@ const Index = () => {
         setAvailableStations([]);
         setShowStationPicker(false);
       });
-  }, [currentLocation]);
+  }, [currentLocation, setSelectedStation]);
 
   const {
     isLoading,

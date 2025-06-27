@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
-import { getStationsForUserLocation } from '@/services/noaaService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
 import {
@@ -58,7 +57,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     setCurrentDate(getCurrentIsoDateString());
     setCurrentTime(getCurrentTimeString());
 
-    if (!location) {
+    if (!location || !station) {
       setIsLoading(false);
       setError(null);
       setTideData([]);
@@ -76,28 +75,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       setIsInland(false);
 
       try {
-        // If a station is already selected, skip location lookup
-        let chosen: Station | undefined;
-        if (station) {
-          chosen = station;
-        } else {
-          // Always check if any stations exist for this location
-          const stations = await getStationsForUserLocation(location.name);
-
-          if (!stations || stations.length === 0) {
-            setIsInland(true);
-            setTideData([]);
-            setTideEvents([]);
-            setWeeklyForecast([]);
-            setStationName(null);
-            setStationId(null);
-            setIsLoading(false);
-            return;
-          }
-
-          // Fallback to first result if user hasn't chosen one
-          chosen = stations[0];
-        }
+        const chosen = station;
 
         // At this point we should have a chosen station
         if (!chosen?.id) {
@@ -131,7 +109,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeEnd
         );
         const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
-          ? detailedRaw.predictions.map((p: any) => ({
+          ? detailedRaw.predictions.map((p: { t: string; v: string }) => ({
               time: `${p.t.replace(' ', 'T')}:00`,
               height: parseFloat(p.v),
               isHighTide: null
