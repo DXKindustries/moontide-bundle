@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
@@ -42,6 +43,9 @@ const Index = () => {
           setAvailableStations([]);
           setSelectedStation(null);
           setShowStationPicker(false);
+          if (currentLocation.zipCode) {
+            toast.error('No NOAA stations found for this ZIP code.');
+          }
         } else if (stations.length === 1) {
           setAvailableStations([]);
           setSelectedStation(stations[0]);
