@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import axios from 'axios';
+import zipcodes from 'zipcodes';
 
 const router = Router();
 const STATIONS_URL = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
@@ -13,6 +14,7 @@ interface StationMeta {
 }
 
 let stationCache: StationMeta[] | null = null;
+const stationZipCache = new Map<string, string>();
 
 async function loadStations(): Promise<StationMeta[]> {
   if (stationCache) {
@@ -109,15 +111,33 @@ router.get('/noaa-stations', async (req, res) => {
       return;
     }
     const stations = await loadStations();
-    const results = stations
-      .map((s) => ({
+    const isZip = /^\d{5}$/.test(input.trim());
+
+    let processed = stations.map((s) => {
+      const key = `${s.lat},${s.lng}`;
+      let zip = stationZipCache.get(key);
+      if (!zip) {
+        const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as any;
+        zip = lookup?.zip || '';
+        if (zip) stationZipCache.set(key, zip);
+      }
+
+      return {
         id: s.id,
         name: s.name,
         latitude: s.lat,
         longitude: s.lng,
         state: s.state,
+        zip,
         distance: haversine(coords.lat, coords.lng, s.lat, s.lng),
-      }))
+      };
+    });
+
+    if (isZip) {
+      processed = processed.filter((p) => p.zip === input.trim());
+    }
+
+    const results = processed
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
     res.json({ stations: results });
