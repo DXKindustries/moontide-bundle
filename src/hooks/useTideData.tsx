@@ -36,6 +36,7 @@ type UseTideDataReturn = {
   currentDate: string;
   currentTime: string;
   stationName: string | null;
+  stationId: string | null;
   isInland: boolean;
 };
 
@@ -48,6 +49,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
   const [currentDate, setCurrentDate] = useState<string>(getCurrentIsoDateString());
   const [currentTime, setCurrentTime] = useState<string>(getCurrentTimeString());
   const [stationName, setStationName] = useState<string | null>(null);
+  const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
 
   useEffect(() => {
@@ -61,6 +63,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
       setTideEvents([]);
       setWeeklyForecast([]);
       setStationName(null);
+      setStationId(null);
       setIsInland(false);
       return;
     }
@@ -80,6 +83,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           setTideEvents([]);
           setWeeklyForecast([]);
           setStationName(null);
+          setStationId(null);
           setIsLoading(false);
           return;
         }
@@ -88,6 +92,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         const station = stations[0];
         if (!station?.id) {
           console.warn('No station ID available for location', location);
+          setStationId(null);
           setIsLoading(false);
           return;
         }
@@ -181,6 +186,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setCurrentDate(getCurrentIsoDateString());
         setCurrentTime(getCurrentTimeString());
         setStationName(station.name || location.name || null);
+        setStationId(station.id);
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
@@ -190,6 +196,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setTideEvents([]);
         setWeeklyForecast([]);
         setStationName(null);
+        setStationId(null);
         setIsInland(false);
       }
     };
@@ -206,6 +213,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     currentDate,
     currentTime,
     stationName,
+    stationId,
     isInland,
   };
 };
