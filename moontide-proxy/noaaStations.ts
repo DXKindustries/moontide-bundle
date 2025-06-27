@@ -62,21 +62,41 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 async function geocode(input: string): Promise<{ lat: number; lng: number } | null> {
   console.log('Geocode attempt:', input);
 
-  if (!/^\d{5}$/.test(input.trim())) {
-    console.log('Only ZIP code lookups are supported');
+  const trimmed = input.trim();
+
+  // ZIP code lookup
+  if (/^\d{5}$/.test(trimmed)) {
+    try {
+      const res = await axios.get(`https://api.zippopotam.us/us/${trimmed}`);
+      const place = res.data.places?.[0];
+      if (place) {
+        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        console.log('Geocode resolved (zip):', result);
+        return result;
+      }
+    } catch {
+      return null;
+    }
     return null;
   }
 
-  try {
-    const res = await axios.get(`https://api.zippopotam.us/us/${input.trim()}`);
-    const place = res.data.places?.[0];
-    if (place) {
-      const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
-      console.log('Geocode resolved (zip):', result);
-      return result;
+  // City/state lookup (e.g. "Narragansett RI" or "Narragansett, RI")
+  const cityState = trimmed.match(/^(.+?)[,\s]+([A-Za-z]{2})$/);
+  if (cityState) {
+    const city = encodeURIComponent(cityState[1].trim());
+    const state = cityState[2].toUpperCase();
+    try {
+      const url = `https://api.zippopotam.us/us/${state}/${city}`;
+      const res = await axios.get(url);
+      const place = res.data.places?.[0];
+      if (place) {
+        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        console.log('Geocode resolved (city/state):', result);
+        return result;
+      }
+    } catch {
+      return null;
     }
-  } catch {
-    return null;
   }
 
   console.log('Geocode lookup failed for', input);
@@ -87,10 +107,6 @@ router.get('/noaa-stations', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const input = (req.query.locationInput as string) || '';
   console.log('/noaa-stations request:', input);
-  if (!/^\d{5}$/.test(input.trim())) {
-    res.status(400).json({ error: 'ZIP code required' });
-    return;
-  }
 
   try {
     const coords = await geocode(input);
@@ -99,7 +115,7 @@ router.get('/noaa-stations', async (req, res) => {
       return;
     }
     const stations = await loadStations();
-    const isZip = true; // input validated already
+    const isZip = /^\d{5}$/.test(input.trim());
 
     let processed = stations.map((s) => {
       const key = `${s.lat},${s.lng}`;
