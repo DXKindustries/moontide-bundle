@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { MapPin } from 'lucide-react';
+import { SavedLocation } from './LocationSelector';
 
 type LocationInfoProps = {
-  currentLocation: any;
+  currentLocation: (SavedLocation & { id: string; country: string }) | null;
   stationName: string | null;
   stationId: string | null;
   error: string | null;
@@ -30,10 +31,12 @@ const LocationInfo = ({ currentLocation, stationName, stationId, error }: Locati
           {formatLocationDisplay()}
         </div>
         <div className="text-muted-foreground mt-1">
-          {stationName && !error ? (
+          {error ? (
+            <>No tide data available for the selected station.</>
+          ) : stationName ? (
             <>NOAA station: <span className="font-medium">{stationName}</span>{stationId ? ` (ID: ${stationId})` : ''}</>
           ) : (
-            <>No tide data available - try a coastal ZIP code if tidal information is needed</>
+            <>Select a tide station to view data.</>
           )}
         </div>
       </div>
