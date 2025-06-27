@@ -59,7 +59,10 @@ function getCacheKey(p: PredictionParams): string {
 async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
   const noaaUrl = buildQuery(p);
   const cacheKey = getCacheKey(p);
-  console.log('🌐 Fetching live tide data from NOAA...');
+  console.log('🌐 Fetching live tide data from NOAA...', {
+    stationId: station.id,
+    url: noaaUrl
+  });
   
   // Try direct NOAA API first
   try {

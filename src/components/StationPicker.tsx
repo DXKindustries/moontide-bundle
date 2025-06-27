@@ -23,6 +23,7 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose }: S
   const handleConfirm = () => {
     const station = stations.find((s) => s.id === selectedId);
     if (station) {
+      console.log('📍 StationPicker handleConfirm:', { selectedId, station });
       onSelect(station);
     }
     onClose();

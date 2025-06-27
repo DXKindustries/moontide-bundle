@@ -87,6 +87,10 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
         const dateIso = startDate.toISOString().split('T')[0];
+        console.log('🌐 useTideData getTideData:', {
+          stationId: chosen.id,
+          date: dateIso
+        });
         const predictions: Prediction[] = await getTideData(
           chosen.id,
           dateIso,
@@ -98,6 +102,11 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         rangeStart.setDate(rangeStart.getDate() - 1);
         const rangeEnd = new Date();
         rangeEnd.setDate(rangeEnd.getDate() + 1);
+        console.log('🌐 useTideData fetchSixMinuteRange:', {
+          stationId: chosen.id,
+          rangeStart,
+          rangeEnd
+        });
         const detailedRaw = await fetchSixMinuteRange(
           {
             id: chosen.id,
