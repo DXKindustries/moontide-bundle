@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { getStationsForUserLocation } from '@/services/noaaService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
+import { Station } from '@/services/tide/stationService';
 import {
   getCurrentIsoDateString,
   getCurrentTimeString,
@@ -25,6 +26,7 @@ type UseTideDataParams = {
     lat?: number;
     lng?: number;
   } | null;
+  station?: Station | null;
 };
 
 type UseTideDataReturn = {
@@ -40,7 +42,7 @@ type UseTideDataReturn = {
   isInland: boolean;
 };
 
-export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn => {
+export const useTideData = ({ location, station }: UseTideDataParams): UseTideDataReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tideData, setTideData] = useState<TidePoint[]>([]);
@@ -88,9 +90,9 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
           return;
         }
 
-        // Otherwise, fetch tide data for the nearest station
-        const station = stations[0];
-        if (!station?.id) {
+        // Use selected station if provided, else fallback to first result
+        const chosen = station ?? stations[0];
+        if (!chosen?.id) {
           console.warn('No station ID available for location', location);
           setStationId(null);
           setIsLoading(false);
@@ -100,7 +102,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
         const dateIso = startDate.toISOString().split('T')[0];
         const predictions: Prediction[] = await getTideData(
-          station.id,
+          chosen.id,
           dateIso,
           7
         );
@@ -112,10 +114,10 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         rangeEnd.setDate(rangeEnd.getDate() + 1);
         const detailedRaw = await fetchSixMinuteRange(
           {
-            id: station.id,
-            name: station.name,
-            lat: station.latitude,
-            lng: station.longitude
+            id: chosen.id,
+            name: chosen.name,
+            lat: chosen.latitude,
+            lng: chosen.longitude
           },
           rangeStart,
           rangeEnd
@@ -185,8 +187,8 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
         setWeeklyForecast(forecast);
         setCurrentDate(getCurrentIsoDateString());
         setCurrentTime(getCurrentTimeString());
-        setStationName(station.name || location.name || null);
-        setStationId(station.id);
+        setStationName(chosen.name || location.name || null);
+        setStationId(chosen.id);
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
@@ -202,7 +204,7 @@ export const useTideData = ({ location }: UseTideDataParams): UseTideDataReturn 
     };
 
     checkInlandAndFetch();
-  }, [location]);
+  }, [location, station]);
 
   return {
     isLoading,

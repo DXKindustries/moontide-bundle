@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { locationStorage } from '@/utils/locationStorage';
+import { Station } from '@/services/tide/stationService';
 
 const CURRENT_LOCATION_KEY = 'moontide-current-location';
+const CURRENT_STATION_KEY = 'moontide-current-station';
 
 export const useLocationState = () => {
   console.log('🏗️ useLocationState hook initializing...');
@@ -48,6 +50,14 @@ export const useLocationState = () => {
   });
 
   const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<Station | null>(() => {
+    try {
+      const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
+      return saved && saved.id ? saved as Station : null;
+    } catch {
+      return null;
+    }
+  });
 
   const setCurrentLocationWithLogging = (location: SavedLocation & { id: string; country: string } | null) => {
     console.log('🔄 useLocationState: setCurrentLocation called with:', location);
@@ -57,6 +67,15 @@ export const useLocationState = () => {
       console.log('✅ useLocationState: User now has a location');
     } else {
       console.log('🎯 useLocationState: User has no location');
+    }
+  };
+
+  const setSelectedStationWithPersist = (station: Station | null) => {
+    setSelectedStation(station);
+    try {
+      safeLocalStorage.set(CURRENT_STATION_KEY, station);
+    } catch (err) {
+      console.warn('⚠️ Error saving station selection:', err);
     }
   };
 
@@ -70,6 +89,8 @@ export const useLocationState = () => {
     currentLocation,
     setCurrentLocation: setCurrentLocationWithLogging,
     showLocationSelector,
-    setShowLocationSelector
+    setShowLocationSelector,
+    selectedStation,
+    setSelectedStation: setSelectedStationWithPersist
   };
 };
