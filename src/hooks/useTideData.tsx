@@ -76,22 +76,30 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       setIsInland(false);
 
       try {
-        // Always check if any stations exist for this location
-        const stations = await getStationsForUserLocation(location.name);
+        // If a station is already selected, skip location lookup
+        let chosen: Station | undefined;
+        if (station) {
+          chosen = station;
+        } else {
+          // Always check if any stations exist for this location
+          const stations = await getStationsForUserLocation(location.name);
 
-        if (!stations || stations.length === 0) {
-          setIsInland(true);
-          setTideData([]);
-          setTideEvents([]);
-          setWeeklyForecast([]);
-          setStationName(null);
-          setStationId(null);
-          setIsLoading(false);
-          return;
+          if (!stations || stations.length === 0) {
+            setIsInland(true);
+            setTideData([]);
+            setTideEvents([]);
+            setWeeklyForecast([]);
+            setStationName(null);
+            setStationId(null);
+            setIsLoading(false);
+            return;
+          }
+
+          // Fallback to first result if user hasn't chosen one
+          chosen = stations[0];
         }
 
-        // Use selected station if provided, else fallback to first result
-        const chosen = station ?? stations[0];
+        // At this point we should have a chosen station
         if (!chosen?.id) {
           console.warn('No station ID available for location', location);
           setStationId(null);
