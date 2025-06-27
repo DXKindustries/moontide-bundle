@@ -32,6 +32,11 @@ const Index = () => {
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
 
+  const handleStationSelect = (st: Station) => {
+    console.log('🎯 Index onSelect station:', st);
+    setSelectedStation(st);
+  };
+
   console.log('🌊 Current location for useTideData:', currentLocation);
 
   useEffect(() => {
@@ -111,7 +116,7 @@ const Index = () => {
       <StationPicker
         isOpen={showStationPicker}
         stations={availableStations}
-        onSelect={(st) => setSelectedStation(st)}
+        onSelect={handleStationSelect}
         onClose={() => setShowStationPicker(false)}
       />
     </div>
