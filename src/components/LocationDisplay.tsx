@@ -6,10 +6,11 @@ import { SavedLocation } from './LocationSelector';
 interface LocationDisplayProps {
   currentLocation: SavedLocation & { id: string; country: string } | null;
   stationName: string | null;
+  stationId?: string | null;
   hasError?: boolean; // Add this prop to detect tide data errors
 }
 
-export default function LocationDisplay({ currentLocation, stationName, hasError }: LocationDisplayProps) {
+export default function LocationDisplay({ currentLocation, stationName, stationId, hasError }: LocationDisplayProps) {
   const formatLocationDisplay = () => {
     if (!currentLocation) return "Select a location";
     
@@ -50,7 +51,7 @@ export default function LocationDisplay({ currentLocation, stationName, hasError
       {/* Station name under ZIP - show helpful message if there's an error even with a station */}
       <div className="text-xs text-muted-foreground pl-5">
         {stationName && !hasError ? (
-          <>Tide data from NOAA station: <span className="font-medium">{stationName}</span></>
+          <>Tide data from NOAA station: <span className="font-medium">{stationName}</span>{stationId ? ` (ID: ${stationId})` : ''}</>
         ) : (
           <>No tide data available - this may be a non-coastal area. Try a coastal ZIP code for tide information.</>
         )}
