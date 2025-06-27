@@ -50,10 +50,12 @@ export default function LocationDisplay({ currentLocation, stationName, stationI
       </div>
       {/* Station name under ZIP - show helpful message if there's an error even with a station */}
       <div className="text-xs text-muted-foreground pl-5">
-        {stationName && !hasError ? (
+        {hasError ? (
+          <>No tide data available for the selected station.</>
+        ) : stationName ? (
           <>Tide data from NOAA station: <span className="font-medium">{stationName}</span>{stationId ? ` (ID: ${stationId})` : ''}</>
         ) : (
-          <>No tide data available - this may be a non-coastal area. Try a coastal ZIP code for tide information.</>
+          <>Select a tide station to view data.</>
         )}
       </div>
     </div>
