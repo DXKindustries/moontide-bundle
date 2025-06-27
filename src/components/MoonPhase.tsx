@@ -20,6 +20,7 @@ type MoonPhaseProps = {
   className?: string;
   currentLocation?: any;
   stationName?: string | null;
+  stationId?: string | null;
   error?: string | null;
   onGetStarted?: (location?: LocationData) => void;
 }
@@ -33,6 +34,7 @@ const MoonPhase = ({
   className,
   currentLocation,
   stationName,
+  stationId,
   error,
   onGetStarted
 }: MoonPhaseProps) => {
@@ -92,6 +94,7 @@ const MoonPhase = ({
               <LocationInfo
                 currentLocation={currentLocation}
                 stationName={stationName}
+                stationId={stationId}
                 error={error}
               />
             ) : (

@@ -17,6 +17,7 @@ interface MainContentProps {
   currentTime: string;
   currentLocation: any;
   stationName: string | null;
+  stationId: string | null;
   onGetStarted?: (location?: LocationData) => void;
 }
 
@@ -30,6 +31,7 @@ export default function MainContent({
   currentTime,
   currentLocation,
   stationName,
+  stationId,
   onGetStarted
 }: MainContentProps) {
   const moonPhaseData = {
@@ -53,6 +55,7 @@ export default function MainContent({
           date={moonPhaseData.date}
           currentLocation={currentLocation}
           stationName={stationName}
+          stationId={stationId}
           error={error}
           onGetStarted={onGetStarted}
         />

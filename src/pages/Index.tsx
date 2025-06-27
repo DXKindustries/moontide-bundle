@@ -33,7 +33,8 @@ const Index = () => {
     weeklyForecast,
     currentDate,
     currentTime,
-    stationName
+    stationName,
+    stationId
   } = useTideData({ location: currentLocation });
 
   console.log('📊 useTideData results:', {
@@ -67,6 +68,7 @@ const Index = () => {
         currentTime={currentTime}
         currentLocation={currentLocation}
         stationName={stationName}
+        stationId={stationId}
         onGetStarted={handleGetStarted}
       />
     </div>
