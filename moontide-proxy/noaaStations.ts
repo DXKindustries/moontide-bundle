@@ -3,7 +3,10 @@ import axios from 'axios';
 import zipcodes from 'zipcodes';
 
 const router = Router();
-const STATIONS_URL = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json';
+// Include subordinate (S) stations along with reference (R) stations
+// by requesting the tide prediction station list from NOAA's MDAPI
+const STATIONS_URL =
+  'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions';
 
 interface StationMeta {
   id: string;
@@ -11,6 +14,8 @@ interface StationMeta {
   lat: number;
   lng: number;
   state?: string;
+  type?: string;          // "R" for reference, "S" for subordinate
+  reference_id?: string;  // reference station id for subordinate stations
 }
 
 let stationCache: StationMeta[] | null = null;
@@ -33,6 +38,8 @@ async function loadStations(): Promise<StationMeta[]> {
         lat: parseFloat(s.lat),
         lng: parseFloat(s.lng),
         state: s.state,
+        type: s.type,
+        reference_id: s.reference_id,
       }));
   } else {
     stationCache = [];
@@ -54,43 +61,24 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
 
 async function geocode(input: string): Promise<{ lat: number; lng: number } | null> {
   console.log('Geocode attempt:', input);
-  const coordMatch = input.match(/^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\s*$/);
-  if (coordMatch) {
-    const lat = parseFloat(coordMatch[1]);
-    const lng = parseFloat(coordMatch[2]);
-    console.log('Geocode resolved (coords):', { lat, lng });
-    return { lat, lng };
-  }
 
-  if (/^\d{5}$/.test(input.trim())) {
-    try {
-      const res = await axios.get(`https://api.zippopotam.us/us/${input.trim()}`);
-      const place = res.data.places?.[0];
-      if (place) {
-        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
-        console.log('Geocode resolved (zip):', result);
-        return result;
-      }
-    } catch {
-      return null;
-    }
+  if (!/^\d{5}$/.test(input.trim())) {
+    console.log('Only ZIP code lookups are supported');
+    return null;
   }
 
   try {
-    const res = await axios.get('https://nominatim.openstreetmap.org/search', {
-      params: { q: input, format: 'json', limit: 1 },
-      headers: { 'User-Agent': 'lunar-wave-watcher' }
-    });
-    const loc = res.data[0];
-    if (loc) {
-      const result = { lat: parseFloat(loc.lat), lng: parseFloat(loc.lon) };
-      console.log('Geocode resolved (search):', result);
+    const res = await axios.get(`https://api.zippopotam.us/us/${input.trim()}`);
+    const place = res.data.places?.[0];
+    if (place) {
+      const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+      console.log('Geocode resolved (zip):', result);
       return result;
     }
   } catch {
-    console.log('Geocode lookup failed for', input);
     return null;
   }
+
   console.log('Geocode lookup failed for', input);
   return null;
 }
@@ -99,8 +87,8 @@ router.get('/noaa-stations', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const input = (req.query.locationInput as string) || '';
   console.log('/noaa-stations request:', input);
-  if (!input) {
-    res.status(400).json({ error: 'Missing locationInput' });
+  if (!/^\d{5}$/.test(input.trim())) {
+    res.status(400).json({ error: 'ZIP code required' });
     return;
   }
 
@@ -111,7 +99,7 @@ router.get('/noaa-stations', async (req, res) => {
       return;
     }
     const stations = await loadStations();
-    const isZip = /^\d{5}$/.test(input.trim());
+    const isZip = true; // input validated already
 
     let processed = stations.map((s) => {
       const key = `${s.lat},${s.lng}`;
