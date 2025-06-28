@@ -59,9 +59,15 @@ function getCacheKey(p: PredictionParams): string {
 async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
   const noaaUrl = buildQuery(p);
   const cacheKey = getCacheKey(p);
+
+  // Preserve values for detailed error logging
+  const url = noaaUrl;
+  const stationId = station.id;
+  let error: unknown;
+
   console.log('🌐 Fetching live tide data from NOAA...', {
-    stationId: station.id,
-    url: noaaUrl
+    stationId,
+    url
   });
   
   // Try direct NOAA API first
@@ -77,7 +83,8 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
         return data;
       }
     }
-  } catch (error) {
+  } catch (err) {
+    error = err;
     console.log('⚠️ Direct NOAA API call failed (expected due to CORS)');
   }
 
@@ -102,8 +109,9 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
         return data;
       }
     }
-  } catch (error) {
-    console.log('⚠️ CORS proxy failed:', error.message);
+  } catch (err) {
+    error = err;
+    console.log('⚠️ CORS proxy failed:', err instanceof Error ? err.message : String(err));
   }
 
   const cached = cacheService.get<any>(cacheKey);
@@ -112,6 +120,7 @@ async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
     return cached;
   }
 
+  console.error('🌊 NOAA fetch failed for URL:', url, 'stationId:', stationId, 'reason:', error);
   console.error('❌ All attempts to fetch live NOAA data failed');
   throw new Error('Unable to fetch live tide data from NOAA. Please check your internet connection.');
 }
