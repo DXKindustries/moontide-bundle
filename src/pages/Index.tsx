@@ -41,14 +41,14 @@ const Index = () => {
 
   useEffect(() => {
     if (!currentLocation) {
-      setAvailableStations([]);
-      setSelectedStation(null);
-      setShowStationPicker(false);
+      if (availableStations.length !== 0) setAvailableStations([]);
+      if (selectedStation !== null) setSelectedStation(null);
+      if (showStationPicker) setShowStationPicker(false);
       return;
     }
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
-    setSelectedStation(null);
+    if (selectedStation !== null) setSelectedStation(null);
     getStationsForLocationInput(input)
       .then((stations) => {
         if (!stations || stations.length === 0) {
@@ -64,7 +64,7 @@ const Index = () => {
         setAvailableStations([]);
         setShowStationPicker(false);
       });
-  }, [currentLocation, setSelectedStation]);
+  }, [currentLocation]);
 
   const {
     isLoading,

@@ -59,25 +59,28 @@ export const useLocationState = () => {
     }
   });
 
-  const setCurrentLocationWithLogging = (location: SavedLocation & { id: string; country: string } | null) => {
-    console.log('🔄 useLocationState: setCurrentLocation called with:', location);
-    setCurrentLocation(location);
-    
-    if (location) {
-      console.log('✅ useLocationState: User now has a location');
-    } else {
-      console.log('🎯 useLocationState: User has no location');
-    }
-  };
+  const setCurrentLocationWithLogging = React.useCallback(
+    (location: (SavedLocation & { id: string; country: string }) | null) => {
+      console.log('🔄 useLocationState: setCurrentLocation called with:', location);
+      setCurrentLocation(location);
 
-  const setSelectedStationWithPersist = (station: Station | null) => {
+      if (location) {
+        console.log('✅ useLocationState: User now has a location');
+      } else {
+        console.log('🎯 useLocationState: User has no location');
+      }
+    },
+    []
+  );
+
+  const setSelectedStationWithPersist = React.useCallback((station: Station | null) => {
     setSelectedStation(station);
     try {
       safeLocalStorage.set(CURRENT_STATION_KEY, station);
     } catch (err) {
       console.warn('⚠️ Error saving station selection:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('📝 useLocationState useEffect: Setting document title for location:', currentLocation?.name);
