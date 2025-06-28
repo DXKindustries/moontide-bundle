@@ -15,10 +15,10 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose }: S
   const [selectedId, setSelectedId] = useState<string>('');
 
   useEffect(() => {
-    if (stations.length > 0) {
+    if (selectedId === '' && stations.length > 0) {
       setSelectedId(stations[0].id);
     }
-  }, [stations]);
+  }, [selectedId, stations]);
 
   const handleConfirm = () => {
     const station = stations.find((s) => s.id === selectedId);
