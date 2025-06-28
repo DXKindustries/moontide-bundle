@@ -1,166 +1,125 @@
 /* -------------------------------------------------------------------------- */
 /*  src/services/tide/tideService.ts                                          */
 /* -------------------------------------------------------------------------- */
-/*  Fetch daily and weekly tide predictions from NOAA - LIVE DATA ONLY */
+/*  Live tide fetcher with tiered fallback: 6-min ➜ hourly ➜ high/low         */
 
 import { getProxyConfig } from './proxyConfig';
 import { cacheService } from '../cacheService';
 
-// Use an inline type instead of external import to avoid build issues
-type NoaaStation = {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-};
+type NoaaStation = { id: string; name: string; lat: number; lng: number };
 
-/* Cloud host — note the mandatory `/prod/` segment */
 const BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
-const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+type Units = 'english' | 'metric';
+type Product = 'predictions' | 'water_level';
+type Interval = '6' | 'h' | 'hilo';
 
-interface PredictionParams {
-  station: string;          // NOAA station ID
-  beginDate: string;        // YYYYMMDD
-  endDate: string;          // YYYYMMDD
-  interval?: 'hilo' | '6';  // hilo = highs/lows ; 6 = six-minute data
-  units?: 'english' | 'metric';
+interface QueryParams {
+  product: Product;
+  station: string;
+  beginDate: string;
+  endDate: string;
+  interval: Interval;
+  units: Units;
 }
 
-/* ------------------------- internal helpers ------------------------------ */
+/* ---------- helpers ---------- */
 
-function dateToYYYYMMDD(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
-}
+const yyyymmdd = (d: Date) =>
+  `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
 
-function buildQuery(p: PredictionParams): string {
-  const qs = new URLSearchParams({
-    product: 'predictions',
+const cacheKey = (p: QueryParams) =>
+  [p.product, p.station, p.beginDate, p.endDate, p.interval, p.units].join(':');
+
+const buildUrl = (p: QueryParams) =>
+  `${BASE}?${new URLSearchParams({
+    product: p.product,
     application: 'MoonTide',
     format: 'json',
     datum: 'MLLW',
     time_zone: 'lst_ldt',
-    units: p.units ?? 'english',
+    units: p.units,
     station: p.station,
     begin_date: p.beginDate,
     end_date: p.endDate,
-    interval: p.interval ?? 'hilo',
-  });
-  return `${BASE}?${qs.toString()}`;
-}
+    interval: p.interval,
+  }).toString()}`;
 
-function getCacheKey(p: PredictionParams): string {
-  return `${p.station}:${p.beginDate}:${p.endDate}:${p.interval ?? 'hilo'}:${p.units ?? 'english'}`;
-}
+/* ---------- core fetch ---------- */
 
-async function fetchPredictions(p: PredictionParams, station: NoaaStation) {
-  const noaaUrl = buildQuery(p);
-  const cacheKey = getCacheKey(p);
-
-  // Preserve values for detailed error logging
-  const url = noaaUrl;
-  const stationId = station.id;
-  let error: unknown;
-
-  console.log('🌐 Fetching live tide data from NOAA...', {
-    stationId,
-    url
-  });
-  
-  // Try direct NOAA API first
+async function tryFetch(url: string) {
   try {
-    console.log('🎯 Trying direct NOAA API call...');
-    const response = await fetch(noaaUrl);
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.predictions && data.predictions.length > 0) {
-        console.log('✅ Direct NOAA API call successful');
-        cacheService.set(cacheKey, data, CACHE_TTL);
-        return data;
-      }
-    }
+    const r = await fetch(url);
+    if (!r.ok) return { rows: null, err: `HTTP ${r.status}` };
+    const data = await r.json();
+    const rows = data.predictions ?? data.data ?? null;
+    if (Array.isArray(rows) && rows.length) return { rows: data, err: null };
+    return { rows: null, err: data?.error ?? 'empty' };
   } catch (err) {
-    error = err;
-    console.log('⚠️ Direct NOAA API call failed (expected due to CORS)');
+    return { rows: null, err };
   }
-
-  // Try with CORS proxy
-  const config = getProxyConfig();
-  try {
-    console.log('🌐 Trying CORS proxy...');
-    const proxyUrl = `${config.fallbackProxyUrl}${encodeURIComponent(noaaUrl)}`;
-    
-    const response = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.predictions && data.predictions.length > 0) {
-        console.log('✅ CORS proxy successful');
-        cacheService.set(cacheKey, data, CACHE_TTL);
-        return data;
-      }
-    }
-  } catch (err) {
-    error = err;
-    console.log('⚠️ CORS proxy failed:', err instanceof Error ? err.message : String(err));
-  }
-
-  const cached = cacheService.get<any>(cacheKey);
-  if (cached) {
-    console.warn('⚠️ Serving cached tide data due to live fetch failure');
-    return cached;
-  }
-
-  console.error('🌊 NOAA fetch failed for URL:', url, 'stationId:', stationId, 'reason:', error);
-  console.error('❌ All attempts to fetch live NOAA data failed');
-  throw new Error('Unable to fetch live tide data from NOAA. Please check your internet connection.');
 }
 
-/* -------------------------- PUBLIC EXPORTS ------------------------------- */
+async function fetchTier(
+  base: Omit<QueryParams, 'product' | 'interval'>,
+  station: NoaaStation,
+): Promise<any> {
+  /* 1️⃣  six-minute water_level */
+  let p: QueryParams = { ...base, product: 'water_level', interval: '6' };
+  let { rows, err } = await tryFetch(buildUrl(p));
+  if (rows) return rows;
 
-/**
- * Fetch the two high / two low events for a single calendar day.
- */
-export async function fetchDailyTides(
+  /* 2️⃣  hourly predictions */
+  console.info('ℹ️ No 6-min data → trying hourly predictions');
+  p = { ...base, product: 'predictions', interval: 'h' };
+  ({ rows, err } = await tryFetch(buildUrl(p)));
+  if (rows) return rows;
+
+  /* 3️⃣  high/low predictions */
+  console.info('ℹ️ No hourly data → trying high/low predictions');
+  p.interval = 'hilo';
+  ({ rows, err } = await tryFetch(buildUrl(p)));
+  if (rows) return rows;
+
+  console.warn('⚠️ NOAA returned no data for any tier', {
+    station: station.id,
+    err,
+  });
+  return { predictions: [] }; // allow UI to show “no data”
+}
+
+/* ---------- public API ---------- */
+
+export const fetchDailyTides = (
   station: NoaaStation,
   date: Date,
-  units: 'english' | 'metric' = 'english'
-) {
-  const yyyymmdd = dateToYYYYMMDD(date);
-  return fetchPredictions({
-    station: station.id,
-    beginDate: yyyymmdd,
-    endDate: yyyymmdd,
-    interval: 'hilo',
-    units,
-  }, station);
-}
+  units: Units = 'english',
+) =>
+  fetchTier(
+    {
+      station: station.id,
+      beginDate: yyyymmdd(date),
+      endDate: yyyymmdd(date),
+      units,
+    },
+    station,
+  );
 
-/**
- * Fetch continuous six-minute tide height data for a date range.
- */
-export async function fetchSixMinuteRange(
+export const fetchSixMinuteRange = (
   station: NoaaStation,
   start: Date,
   end: Date,
-  units: 'english' | 'metric' = 'english'
-) {
-  const beginDate = dateToYYYYMMDD(start);
-  const endDate = dateToYYYYMMDD(end);
-  return fetchPredictions({
-    station: station.id,
-    beginDate,
-    endDate,
-    interval: '6',
-    units,
-  }, station);
-}
+  units: Units = 'english',
+) =>
+  fetchTier(
+    {
+      station: station.id,
+      beginDate: yyyymmdd(start),
+      endDate: yyyymmdd(end),
+      units,
+    },
+    station,
+  );
