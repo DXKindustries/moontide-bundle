@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Info } from "lucide-react";
+import LocationDisplay from './LocationDisplay';
+import { SavedLocation } from './LocationSelector';
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
 import { formatApiDate } from '@/utils/dateTimeUtils';
 
@@ -24,9 +26,19 @@ type WeeklyForecastProps = {
   forecast: DayForecast[];
   isLoading?: boolean;
   className?: string;
+  currentLocation?: (SavedLocation & { id: string; country: string }) | null;
+  stationName?: string | null;
+  stationId?: string | null;
 };
 
-const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForecastProps) => {
+const WeeklyForecast = ({
+  forecast,
+  isLoading = false,
+  className,
+  currentLocation,
+  stationName,
+  stationId
+}: WeeklyForecastProps) => {
   // Get moon phase visual class
   const getMoonPhaseVisual = (phase: string) => {
     switch (phase) {
@@ -99,6 +111,11 @@ const WeeklyForecast = ({ forecast, isLoading = false, className }: WeeklyForeca
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
         <CardTitle>7-Day Forecast</CardTitle>
+        <LocationDisplay
+          currentLocation={currentLocation || null}
+          stationName={stationName || null}
+          stationId={stationId || null}
+        />
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
