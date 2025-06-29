@@ -3,23 +3,27 @@ import React from 'react';
 import { LocationData } from '@/types/locationTypes';
 import { useLocationSearch } from '@/hooks/useLocationSearch';
 import { useGPSLocation } from '@/hooks/useGPSLocation';
+import { Station } from '@/services/tide/stationService';
 import LocationInputForm from './LocationInputForm';
 
 interface UnifiedLocationInputProps {
   onLocationSelect: (location: LocationData) => void;
+  onStationSelect?: (station: Station) => void;
   onClose?: () => void;
   placeholder?: string;
   autoFocus?: boolean;
 }
 
 export default function UnifiedLocationInput({ 
-  onLocationSelect, 
-  onClose, 
+  onLocationSelect,
+  onStationSelect,
+  onClose,
   placeholder = "ZIP, City State, or City State ZIP",
   autoFocus = true
 }: UnifiedLocationInputProps) {
   const { isLoading: searchLoading, handleLocationSearch } = useLocationSearch({
     onLocationSelect,
+    onStationSelect,
     onClose
   });
 

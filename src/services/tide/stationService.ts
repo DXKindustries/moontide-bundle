@@ -35,3 +35,23 @@ export async function getStationsForLocation(
   cacheService.set(key, stations, STATION_CACHE_TTL);
   return stations;
 }
+
+export async function getStationById(id: string): Promise<Station | null> {
+  const key = `station:${id}`;
+  const cached = cacheService.get<Station>(key);
+  if (cached) return cached;
+
+  const response = await fetch(`/noaa-station/${id}`);
+  if (!response.ok) throw new Error('Unable to fetch station');
+  const data = await response.json();
+  if (!data.station) return null;
+  const station: Station = {
+    id: data.station.id,
+    name: data.station.name,
+    latitude: data.station.latitude,
+    longitude: data.station.longitude,
+    state: data.station.state,
+  };
+  cacheService.set(key, station, STATION_CACHE_TTL);
+  return station;
+}

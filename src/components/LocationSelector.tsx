@@ -7,6 +7,7 @@ import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import EnhancedLocationInput from './EnhancedLocationInput';
 import SavedLocationsList from './SavedLocationsList';
+import { Station } from '@/services/tide/stationService';
 
 // Keep the SavedLocation interface for backward compatibility
 export interface SavedLocation {
@@ -24,11 +25,13 @@ export default function LocationSelector({
   onLocationClear,
   forceOpen,
   onClose,
+  onStationSelect
 }: {
   onSelect: (loc: SavedLocation) => void;
   onLocationClear?: () => void;
   forceOpen?: boolean;
   onClose?: () => void;
+  onStationSelect?: (station: Station) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAddNew, setShowAddNew] = useState(false);
@@ -126,6 +129,7 @@ export default function LocationSelector({
             </div>
             <EnhancedLocationInput
               onLocationSelect={handleLocationSelect}
+              onStationSelect={onStationSelect}
               onLocationClear={handleLocationClear}
               onClose={() => setIsOpen(false)}
             />

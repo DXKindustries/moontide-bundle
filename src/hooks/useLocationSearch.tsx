@@ -5,13 +5,16 @@ import { lookupZipCode } from '@/utils/zipCodeLookup';
 import { getCoordinatesForCity } from '@/services/geocodingService';
 import { LocationData } from '@/types/locationTypes';
 import { parseLocationInput, ParsedInput } from '@/utils/locationInputParser';
+import { getStationById } from '@/services/locationService';
+import { Station } from '@/services/tide/stationService';
 
 interface UseLocationSearchProps {
   onLocationSelect: (location: LocationData) => void;
+  onStationSelect?: (station: Station) => void;
   onClose?: () => void;
 }
 
-export const useLocationSearch = ({ onLocationSelect, onClose }: UseLocationSearchProps) => {
+export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }: UseLocationSearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLocationSearch = async (input: string) => {
@@ -23,7 +26,7 @@ export const useLocationSearch = ({ onLocationSelect, onClose }: UseLocationSear
     const parsed = parseLocationInput(input);
     
     if (!parsed) {
-      toast.error('Please use format: ZIP, "City ST", or "City ST ZIP"');
+      toast.error('Use ZIP, "City ST", "City ST ZIP", or NOAA station ID');
       return;
     }
 
@@ -39,6 +42,20 @@ export const useLocationSearch = ({ onLocationSelect, onClose }: UseLocationSear
         location = await handleCityStateZipLookup(parsed);
       } else if (parsed.type === 'cityState') {
         location = await handleCityStateLookup(parsed);
+      } else if (parsed.type === 'stationId') {
+        const station = await getStationById(parsed.stationId!);
+        if (station) {
+          onStationSelect?.(station);
+          location = {
+            zipCode: '',
+            city: station.name,
+            state: station.state || '',
+            lat: station.latitude,
+            lng: station.longitude,
+            isManual: false,
+            timestamp: Date.now(),
+          };
+        }
       }
 
       if (location) {
