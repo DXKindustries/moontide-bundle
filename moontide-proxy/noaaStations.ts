@@ -18,8 +18,33 @@ interface StationMeta {
   reference_id?: string;  // reference station id for subordinate stations
 }
 
+interface NOAAStationRaw {
+  id: string;
+  name: string;
+  lat: string;
+  lng: string;
+  state?: string;
+  type?: string;
+  reference_id?: string;
+}
+
+interface StationResult {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  state?: string;
+  zip?: string;
+  distance: number;
+}
+
 let stationCache: StationMeta[] | null = null;
 const stationZipCache = new Map<string, string>();
+const geocodeCache = new Map<string, { lat: number; lng: number; expiry: number }>();
+const lookupCache = new Map<string, { stations: StationResult[]; expiry: number }>();
+
+const GEO_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const LOOKUP_TTL = 12 * 60 * 60 * 1000; // 12 hours
 
 async function loadStations(): Promise<StationMeta[]> {
   if (stationCache) {
@@ -30,9 +55,9 @@ async function loadStations(): Promise<StationMeta[]> {
   const res = await axios.get(STATIONS_URL);
   const data = res.data;
   if (Array.isArray(data?.stations)) {
-    stationCache = data.stations
-      .filter((s: any) => s.lat && s.lng && s.id && s.name)
-      .map((s: any) => ({
+    stationCache = (data.stations as NOAAStationRaw[])
+      .filter((s) => s.lat && s.lng && s.id && s.name)
+      .map((s) => ({
         id: String(s.id),
         name: s.name,
         lat: parseFloat(s.lat),
@@ -63,6 +88,12 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
   console.log('Geocode attempt:', input);
 
   const trimmed = input.trim();
+  const key = trimmed.toLowerCase();
+  const cached = geocodeCache.get(key);
+  if (cached && cached.expiry > Date.now()) {
+    console.log('Using cached geocode for', input);
+    return { lat: cached.lat, lng: cached.lng };
+  }
 
   // ZIP code lookup
   if (/^\d{5}$/.test(trimmed)) {
@@ -71,6 +102,7 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
       const place = res.data.places?.[0];
       if (place) {
         const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        geocodeCache.set(key, { ...result, expiry: Date.now() + GEO_TTL });
         console.log('Geocode resolved (zip):', result);
         return result;
       }
@@ -91,6 +123,7 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
       const place = res.data.places?.[0];
       if (place) {
         const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
+        geocodeCache.set(key, { ...result, expiry: Date.now() + GEO_TTL });
         console.log('Geocode resolved (city/state):', result);
         return result;
       }
@@ -108,6 +141,14 @@ router.get('/noaa-stations', async (req, res) => {
   const input = (req.query.locationInput as string) || '';
   console.log('/noaa-stations request:', input);
 
+  const lookupKey = input.trim().toLowerCase();
+  const cachedLookup = lookupCache.get(lookupKey);
+  if (cachedLookup && cachedLookup.expiry > Date.now()) {
+    console.log('Using cached station lookup for', input);
+    res.json({ stations: cachedLookup.stations });
+    return;
+  }
+
   try {
     const coords = await geocode(input);
     if (!coords) {
@@ -117,11 +158,11 @@ router.get('/noaa-stations', async (req, res) => {
     const stations = await loadStations();
     const isZip = /^\d{5}$/.test(input.trim());
 
-    let processed = stations.map((s) => {
+    let processed: StationResult[] = stations.map((s) => {
       const key = `${s.lat},${s.lng}`;
       let zip = stationZipCache.get(key);
       if (!zip) {
-        const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as any;
+        const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as { zip?: string } | null;
         zip = lookup?.zip || '';
         if (zip) stationZipCache.set(key, zip);
       }
@@ -144,6 +185,7 @@ router.get('/noaa-stations', async (req, res) => {
     const results = processed
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
+    lookupCache.set(lookupKey, { stations: results, expiry: Date.now() + LOOKUP_TTL });
     res.json({ stations: results });
   } catch (err) {
     console.error('Station lookup error:', err);
