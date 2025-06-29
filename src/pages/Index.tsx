@@ -97,10 +97,11 @@ const Index = () => {
       <LoadingOverlay show={isStationLoading} message="Finding tide stations..." />
       <LoadingOverlay show={isLoading} message="Fetching tide data..." />
       
-      <AppHeader 
+      <AppHeader
         currentLocation={currentLocation}
         stationName={stationName}
         onLocationChange={handleLocationChange}
+        onStationSelect={handleStationSelect}
         onLocationClear={handleLocationClear}
         hasError={!!error}
         forceShowLocationSelector={showLocationSelector}
@@ -125,6 +126,7 @@ const Index = () => {
         isOpen={showStationPicker}
         stations={availableStations}
         onSelect={handleStationSelect}
+        currentStationId={selectedStation?.id || null}
         onClose={() => setShowStationPicker(false)}
       />
     </div>

@@ -117,6 +117,7 @@ export default function LocationInputForm({
           <li>ZIP: <code>02840</code></li>
           <li>City State: <code>Newport RI</code></li>
           <li>Full: <code>Newport RI 02840</code></li>
+          <li>Station ID: <code>8452660</code></li>
         </ul>
       </div>
     </div>
