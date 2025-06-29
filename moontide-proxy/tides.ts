@@ -59,9 +59,11 @@ router.get('/tides', async (req, res) => {
   try {
     const { data } = await axios.get(url);
     res.json(data);
+    return;
   } catch (err) {
     console.error('Tide fetch error:', err instanceof Error ? err.message : err);
     res.status(500).json({ error: 'Failed to fetch tide data' });
+    return;
   }
 });
 
