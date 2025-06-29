@@ -90,9 +90,6 @@ const TideChart = ({
 
   const currentTs = parseCurrentTime(currentTime);
 
-  const currentTimeIndex =
-    currentTs != null ? chartData.findIndex(p => p.ts >= currentTs) : Math.floor(chartData.length / 2);
-
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -170,9 +167,9 @@ const TideChart = ({
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                {currentTimeIndex >= 0 && (
+                {currentTs != null && (
                   <ReferenceLine
-                    x={chartData[currentTimeIndex]?.ts}
+                    x={currentTs}
                     stroke="#9b87f5"
                     strokeWidth={2}
                     label={{
