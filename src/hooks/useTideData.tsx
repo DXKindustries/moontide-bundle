@@ -53,6 +53,14 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
   const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
 
+  // Update current time every minute so the "Now" indicator stays accurate
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(getCurrentTimeString());
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     setCurrentDate(getCurrentIsoDateString());
     setCurrentTime(getCurrentTimeString());
