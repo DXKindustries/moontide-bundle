@@ -66,6 +66,9 @@ export default function MainContent({
           date={currentDate}
           currentTime={currentTime}
           isLoading={isLoading}
+          currentLocation={currentLocation}
+          stationName={stationName}
+          stationId={stationId}
         />
       </div>
 
@@ -73,6 +76,9 @@ export default function MainContent({
         <WeeklyForecast
           forecast={weeklyForecast}
           isLoading={isLoading}
+          currentLocation={currentLocation}
+          stationName={stationName}
+          stationId={stationId}
         />
       </div>
     </main>
