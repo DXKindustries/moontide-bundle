@@ -4,25 +4,28 @@ import { Link } from 'react-router-dom';
 import { CloudMoon, Calendar, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LocationSelector, { SavedLocation } from './LocationSelector';
+import { Station } from '@/services/tide/stationService';
 
 interface AppHeaderProps {
   currentLocation: SavedLocation & { id: string; country: string } | null;
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
+  onStationSelect?: (station: Station) => void;
   onLocationClear?: () => void;
   hasError?: boolean;
   forceShowLocationSelector?: boolean;
   onLocationSelectorClose?: () => void;
 }
 
-export default function AppHeader({ 
-  currentLocation, 
-  stationName, 
+export default function AppHeader({
+  currentLocation,
+  stationName,
   onLocationChange,
+  onStationSelect,
   onLocationClear,
   hasError,
   forceShowLocationSelector,
-  onLocationSelectorClose 
+  onLocationSelectorClose
 }: AppHeaderProps) {
   return (
     <header className="py-4 px-4 sm:px-6 lg:px-8">
@@ -33,6 +36,11 @@ export default function AppHeader({
             <h1 className="text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
               MoonTide
             </h1>
+            {stationName && (
+              <span className="ml-2 text-sm text-muted-foreground hidden md:inline">
+                {stationName}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <Link to="/fishing-calendar">
@@ -47,8 +55,9 @@ export default function AppHeader({
                 <span className="hidden md:inline">Settings</span>
               </Button>
             </Link>
-            <LocationSelector 
+            <LocationSelector
               onSelect={onLocationChange}
+              onStationSelect={onStationSelect}
               forceOpen={forceShowLocationSelector}
               onClose={onLocationSelectorClose}
             />

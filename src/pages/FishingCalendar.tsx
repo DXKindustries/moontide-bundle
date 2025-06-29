@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { format, addDays, addMonths, parse } from 'date-fns';
 import { Card, CardContent } from "@/components/ui/card";
 import StarsBackdrop from '@/components/StarsBackdrop';
-import { safeLocalStorage } from '@/utils/localStorage';
 import { useTideData } from '@/hooks/useTideData';
+import { useLocationState } from '@/hooks/useLocationState';
 import { TideForecast } from '@/services/tide/types';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
@@ -44,13 +44,10 @@ type DayFishingInfo = {
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [fishingInfo, setFishingInfo] = useState<Record<string, DayFishingInfo>>({});
-  const [currentLocation, setCurrentLocation] = useState<{ city: string; state: string; zipCode: string } | null>(() => {
-    // NO more fallback — begin with null so app prompts for user location
-    return null;
-  });
+  const { currentLocation, selectedStation } = useLocationState();
 
   // Fetch real tide data from NOAA
-  const { isLoading, error, weeklyForecast, stationName } = useTideData({ location: currentLocation });
+  const { isLoading, error, weeklyForecast, stationName } = useTideData({ location: currentLocation, station: selectedStation });
 
   // Helper function to add hours to a date
   const addHours = (date: Date, hours: number): Date => {
