@@ -67,22 +67,33 @@ async function fetchTier(
   base: Omit<QueryParams, 'product' | 'interval'>,
   station: NoaaStation,
 ): Promise<any> {
-  /* 1️⃣  six-minute water_level */
-  let p: QueryParams = { ...base, product: 'water_level', interval: '6' };
-  let { rows, err } = await tryFetch(buildUrl(p));
-  if (rows) return rows;
+  const tiers: Array<Pick<QueryParams, 'product' | 'interval'>> = [
+    { product: 'water_level', interval: '6' },
+    { product: 'predictions', interval: 'h' },
+    { product: 'predictions', interval: 'hilo' },
+  ];
 
-  /* 2️⃣  hourly predictions */
-  console.info('ℹ️ No 6-min data → trying hourly predictions');
-  p = { ...base, product: 'predictions', interval: 'h' };
-  ({ rows, err } = await tryFetch(buildUrl(p)));
-  if (rows) return rows;
+  for (const tier of tiers) {
+    const p: QueryParams = { ...base, ...tier };
+    const key = cacheKey(p);
 
-  /* 3️⃣  high/low predictions */
-  console.info('ℹ️ No hourly data → trying high/low predictions');
-  p.interval = 'hilo';
-  ({ rows, err } = await tryFetch(buildUrl(p)));
-  if (rows) return rows;
+    const cached = cacheService.get<any>(key);
+    if (cached) {
+      console.log(`✅ Cache HIT for ${key}`);
+      return cached;
+    }
+
+    const { rows, err } = await tryFetch(buildUrl(p));
+    if (rows) {
+      cacheService.set(key, rows, CACHE_TTL);
+      return rows;
+    }
+
+    console.info(
+      `ℹ️ No data for ${tier.product}/${tier.interval} → trying next tier`,
+      err,
+    );
+  }
 
   console.warn('⚠️ NOAA returned no data for any tier', {
     station: station.id,
