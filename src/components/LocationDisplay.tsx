@@ -34,7 +34,7 @@ export default function LocationDisplay({ currentLocation, stationName, stationI
           </span>
         </div>
         <div className="text-xs text-muted-foreground pl-5">
-          Enter a ZIP code to get started
+          Enter a location to get started
         </div>
       </div>
     );
