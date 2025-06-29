@@ -135,6 +135,46 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
   return null;
 }
 
+async function findStationsByName(name: string): Promise<StationResult[]> {
+  const query = name.trim().toLowerCase();
+  if (!query) return [];
+
+  const stations = await loadStations();
+
+  const matches = stations
+    .filter((s) => s.name.toLowerCase().includes(query))
+    .slice(0, 10);
+
+  return matches.map((s) => {
+    const key = `${s.lat},${s.lng}`;
+    let info = stationGeoCache.get(key);
+    if (!info) {
+      const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as {
+        zip?: string;
+        city?: string;
+        state?: string;
+      } | null;
+      info = {
+        zip: lookup?.zip || '',
+        city: lookup?.city || '',
+        state: lookup?.state || s.state,
+      };
+      stationGeoCache.set(key, info);
+    }
+
+    return {
+      id: s.id,
+      name: s.name,
+      latitude: s.lat,
+      longitude: s.lng,
+      state: info.state,
+      city: info.city,
+      zip: info.zip,
+      distance: 0,
+    } as StationResult;
+  });
+}
+
 router.get('/noaa-stations', async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   const input = (req.query.locationInput as string) || '';
@@ -151,6 +191,12 @@ router.get('/noaa-stations', async (req, res) => {
   try {
     const coords = await geocode(input);
     if (!coords) {
+      const nameMatches = await findStationsByName(input);
+      if (nameMatches.length > 0) {
+        lookupCache.set(lookupKey, { stations: nameMatches, expiry: Date.now() + LOOKUP_TTL });
+        res.json({ stations: nameMatches });
+        return;
+      }
       res.status(400).json({ error: 'Unable to resolve location' });
       return;
     }
