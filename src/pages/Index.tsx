@@ -32,6 +32,7 @@ const Index = () => {
 
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
+  const [isStationLoading, setIsStationLoading] = useState(false);
 
   const handleStationSelect = (st: Station) => {
     console.log('🎯 Index onSelect station:', st);
@@ -50,6 +51,7 @@ const Index = () => {
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
     if (selectedStation !== null) setSelectedStation(null);
+    setIsStationLoading(true);
     getStationsForLocationInput(input)
       .then((stations) => {
         if (!stations || stations.length === 0) {
@@ -64,6 +66,9 @@ const Index = () => {
       .catch(() => {
         setAvailableStations([]);
         setShowStationPicker(false);
+      })
+      .finally(() => {
+        setIsStationLoading(false);
       });
   }, [currentLocation]);
 
@@ -89,6 +94,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
+      <LoadingOverlay show={isStationLoading} message="Finding tide stations..." />
       <LoadingOverlay show={isLoading} message="Fetching tide data..." />
       
       <AppHeader 
