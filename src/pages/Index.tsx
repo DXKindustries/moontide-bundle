@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
@@ -33,6 +33,7 @@ const Index = () => {
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
   const [isStationLoading, setIsStationLoading] = useState(false);
+  const prevLocationIdRef = useRef<string | null>(currentLocation?.id || null);
 
   const handleStationSelect = (st: Station) => {
     console.log('🎯 Index onSelect station:', st);
@@ -46,11 +47,22 @@ const Index = () => {
       if (availableStations.length !== 0) setAvailableStations([]);
       if (selectedStation !== null) setSelectedStation(null);
       if (showStationPicker) setShowStationPicker(false);
+      prevLocationIdRef.current = null;
       return;
     }
 
+    const locationChanged = prevLocationIdRef.current !== currentLocation.id;
+    prevLocationIdRef.current = currentLocation.id;
+
+    if (!locationChanged && selectedStation) {
+      if (showStationPicker) setShowStationPicker(false);
+      if (availableStations.length !== 0) setAvailableStations([]);
+      return;
+    }
+
+    if (locationChanged && selectedStation) setSelectedStation(null);
+
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
-    if (selectedStation !== null) setSelectedStation(null);
     setIsStationLoading(true);
     getStationsForLocationInput(input)
       .then((stations) => {
