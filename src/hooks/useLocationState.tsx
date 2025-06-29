@@ -118,6 +118,28 @@ export const useLocationState = () => {
     );
   }, [currentLocation]);
 
+  // Sync state with storage on mount so navigation between pages keeps location
+  useEffect(() => {
+    const storedLocation = locationStorage.getCurrentLocation();
+    if (storedLocation) {
+      const converted = {
+        id: storedLocation.zipCode || `${storedLocation.city}-${storedLocation.state}`,
+        name: storedLocation.nickname || storedLocation.city,
+        country: 'USA',
+        zipCode: storedLocation.zipCode || '',
+        cityState: `${storedLocation.city}, ${storedLocation.state}`,
+        lat: storedLocation.lat || 0,
+        lng: storedLocation.lng || 0,
+      } as SavedLocation & { id: string; country: string };
+      setCurrentLocationWithLogging(converted);
+    }
+
+    const storedStation = safeLocalStorage.get(CURRENT_STATION_KEY) as Station | null;
+    if (storedStation && storedStation.id) {
+      setSelectedStationWithPersist(storedStation);
+    }
+  }, []);
+
   /* ---------- what the hook exposes ---------- */
 
   return {
