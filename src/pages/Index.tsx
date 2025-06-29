@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
 import StarsBackdrop from '@/components/StarsBackdrop';
+import LoadingOverlay from '@/components/LoadingOverlay';
 import { useTideData } from '@/hooks/useTideData';
 import { useLocationState } from '@/hooks/useLocationState';
 import { useLocationManager } from '@/components/LocationManager';
@@ -88,6 +89,7 @@ const Index = () => {
   return (
     <div className="min-h-screen pb-8 relative">
       <StarsBackdrop />
+      <LoadingOverlay show={isLoading} message="Fetching tide data..." />
       
       <AppHeader 
         currentLocation={currentLocation}
