@@ -7,9 +7,11 @@ import { toast } from 'sonner';
 import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import UnifiedLocationInput from './UnifiedLocationInput';
+import { Station } from '@/services/tide/stationService';
 
 interface EnhancedLocationInputProps {
   onLocationSelect: (location: LocationData) => void;
+  onStationSelect?: (station: Station) => void;
   onLocationClear?: () => void;
   onClose: () => void;
 }
@@ -18,7 +20,7 @@ interface SavedLocationWithNickname extends LocationData {
   nickname?: string;
 }
 
-export default function EnhancedLocationInput({ onLocationSelect, onLocationClear, onClose }: EnhancedLocationInputProps) {
+export default function EnhancedLocationInput({ onLocationSelect, onStationSelect, onLocationClear, onClose }: EnhancedLocationInputProps) {
   const [savedLocations, setSavedLocations] = useState<SavedLocationWithNickname[]>([]);
   const [editingNickname, setEditingNickname] = useState<string | null>(null);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -84,6 +86,7 @@ export default function EnhancedLocationInput({ onLocationSelect, onLocationClea
       {/* Unified Input Section */}
       <UnifiedLocationInput
         onLocationSelect={handleLocationSelect}
+        onStationSelect={onStationSelect}
         onClose={onClose}
         placeholder="02840 or Newport, RI"
       />

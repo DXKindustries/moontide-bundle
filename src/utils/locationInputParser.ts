@@ -1,14 +1,20 @@
 import { normalizeState } from './stateNames';
 
 export type ParsedInput = {
-  type: 'zip' | 'cityState' | 'cityStateZip';
+  type: 'zip' | 'cityState' | 'cityStateZip' | 'stationId';
   zipCode?: string;
   city?: string;
   state?: string;
+  stationId?: string;
 };
 
 export const parseLocationInput = (input: string): ParsedInput | null => {
   const trimmed = input.trim();
+
+  // NOAA station id (6-7 digits)
+  if (/^\d{6,7}$/.test(trimmed)) {
+    return { type: 'stationId', stationId: trimmed };
+  }
   
   // ZIP code only (5 digits)
   if (/^\d{5}$/.test(trimmed)) {

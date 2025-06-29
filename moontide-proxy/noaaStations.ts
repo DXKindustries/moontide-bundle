@@ -200,4 +200,37 @@ router.get('/noaa-stations', async (req, res) => {
   }
 });
 
+// Lookup a station directly by its NOAA ID
+router.get('/noaa-station/:id', async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+  const id = req.params.id;
+  if (!id) {
+    res.status(400).json({ error: 'Missing station id' });
+    return;
+  }
+
+  try {
+    const url = `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/${id}.json`;
+    const response = await axios.get(url);
+    const station = response.data?.stations?.[0];
+    if (!station) {
+      res.status(404).json({ error: 'Station not found' });
+      return;
+    }
+
+    const result = {
+      id: String(station.id),
+      name: station.name,
+      latitude: parseFloat(station.lat),
+      longitude: parseFloat(station.lng),
+      state: station.state,
+    };
+
+    res.json({ station: result });
+  } catch (err) {
+    console.error('Station lookup by id error:', err);
+    res.status(500).json({ error: 'Failed to fetch station' });
+  }
+});
+
 export default router;
