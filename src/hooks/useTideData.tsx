@@ -133,6 +133,8 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           }))
           .sort((a, b) => a.time.localeCompare(b.time));
 
+        const curveData = detailedPoints.length > 0 ? detailedPoints : tidePoints;
+
         // Build tide cycles across the full dataset so pairs can cross midnight
         const cyclesByDate: Record<string, TideCycle[]> = {};
         let pendingLow: TideEvent | null = null;
@@ -177,7 +179,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
             } as TideForecast;
           });
 
-        setTideData(detailedPoints);
+        setTideData(curveData);
         setTideEvents(tidePoints);
         setWeeklyForecast(forecast);
         setCurrentDate(getCurrentIsoDateString());
