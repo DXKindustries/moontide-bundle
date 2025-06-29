@@ -20,12 +20,15 @@ export const locationStorage = {
       const history = locationStorage.getLocationHistory();
       console.log('📚 Current history:', history);
       
-      // Remove any existing location with same zipCode or city/state combination
+      // Remove existing entries that match this location (case-insensitive)
+      const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
       const filtered = history.filter(loc => {
-        if (location.zipCode && loc.zipCode) {
-          return loc.zipCode !== location.zipCode;
-        }
-        return !(loc.city === location.city && loc.state === location.state);
+        const sameZip =
+          location.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(location.zipCode);
+        const sameCityState =
+          normalize(loc.city) === normalize(location.city) && normalize(loc.state) === normalize(location.state);
+
+        return !(sameZip || sameCityState);
       });
       
       const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
