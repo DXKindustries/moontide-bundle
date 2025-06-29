@@ -44,6 +44,10 @@ const OnboardingMessage = ({ onGetStarted }: OnboardingMessageProps) => {
               <span>City/State: <code>Newport RI</code></span>
             </div>
             <div className="flex items-center justify-center gap-2">
+              <span>🌐</span>
+              <span>Station ID: <code>8454000</code></span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
               <span>🌊</span>
               <span>Coastal ZIP codes provide tide data</span>
             </div>

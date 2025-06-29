@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => ({
               target: "http://localhost:3001",
               changeOrigin: true,
             },
+            "/noaa-station": {
+              target: "http://localhost:3001",
+              changeOrigin: true,
+            },
             "/tides": {
               target: "http://localhost:3001",
               changeOrigin: true,
