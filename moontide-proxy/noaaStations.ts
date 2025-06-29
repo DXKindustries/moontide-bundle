@@ -97,41 +97,18 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
     return { lat: cached.lat, lng: cached.lng };
   }
 
-  // ZIP code lookup
-  if (/^\d{5}$/.test(trimmed)) {
-    try {
-      const res = await axios.get(`https://api.zippopotam.us/us/${trimmed}`);
-      const place = res.data.places?.[0];
-      if (place) {
-        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
-        geocodeCache.set(key, { ...result, expiry: Date.now() + GEO_TTL });
-        console.log('Geocode resolved (zip):', result);
-        return result;
-      }
-    } catch {
-      return null;
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trimmed)}&limit=1`;
+    const res = await axios.get(url, { headers: { 'User-Agent': 'MoonTideApp' } });
+    const place = res.data?.[0];
+    if (place) {
+      const result = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
+      geocodeCache.set(key, { ...result, expiry: Date.now() + GEO_TTL });
+      console.log('Geocode resolved (nominatim):', result);
+      return result;
     }
-    return null;
-  }
-
-  // City/state lookup (e.g. "Narragansett RI" or "Narragansett, RI")
-  const cityState = trimmed.match(/^(.+?)[,\s]+([A-Za-z]{2})$/);
-  if (cityState) {
-    const city = encodeURIComponent(cityState[1].trim());
-    const state = cityState[2].toUpperCase();
-    try {
-      const url = `https://api.zippopotam.us/us/${state}/${city}`;
-      const res = await axios.get(url);
-      const place = res.data.places?.[0];
-      if (place) {
-        const result = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) };
-        geocodeCache.set(key, { ...result, expiry: Date.now() + GEO_TTL });
-        console.log('Geocode resolved (city/state):', result);
-        return result;
-      }
-    } catch {
-      return null;
-    }
+  } catch (err) {
+    console.error('Nominatim geocode error:', err);
   }
 
   console.log('Geocode lookup failed for', input);
