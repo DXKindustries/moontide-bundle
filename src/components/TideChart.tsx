@@ -127,7 +127,7 @@ const TideChart = ({
               This appears to be an inland area where tides are not relevant.
             </p>
             <p className="text-xs text-muted-foreground opacity-75">
-              Enter a coastal ZIP code to see tide predictions
+              Enter a coastal location to see tide predictions
             </p>
           </div>
         ) : (

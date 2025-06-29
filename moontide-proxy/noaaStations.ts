@@ -34,12 +34,14 @@ interface StationResult {
   latitude: number;
   longitude: number;
   state?: string;
+  city?: string;
   zip?: string;
   distance: number;
 }
 
 let stationCache: StationMeta[] | null = null;
-const stationZipCache = new Map<string, string>();
+interface GeoInfo { zip?: string; city?: string; state?: string }
+const stationGeoCache = new Map<string, GeoInfo>();
 const geocodeCache = new Map<string, { lat: number; lng: number; expiry: number }>();
 const lookupCache = new Map<string, { stations: StationResult[]; expiry: number }>();
 
@@ -160,11 +162,15 @@ router.get('/noaa-stations', async (req, res) => {
 
     let processed: StationResult[] = stations.map((s) => {
       const key = `${s.lat},${s.lng}`;
-      let zip = stationZipCache.get(key);
-      if (!zip) {
-        const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as { zip?: string } | null;
-        zip = lookup?.zip || '';
-        if (zip) stationZipCache.set(key, zip);
+      let info = stationGeoCache.get(key);
+      if (!info) {
+        const lookup = zipcodes.lookupByCoords(s.lat, s.lng) as { zip?: string; city?: string; state?: string } | null;
+        info = {
+          zip: lookup?.zip || '',
+          city: lookup?.city || '',
+          state: lookup?.state || s.state
+        };
+        stationGeoCache.set(key, info);
       }
 
       return {
@@ -172,8 +178,9 @@ router.get('/noaa-stations', async (req, res) => {
         name: s.name,
         latitude: s.lat,
         longitude: s.lng,
-        state: s.state,
-        zip,
+        state: info.state,
+        city: info.city,
+        zip: info.zip,
         distance: haversine(coords.lat, coords.lng, s.lat, s.lng),
       };
     });
