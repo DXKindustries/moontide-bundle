@@ -39,7 +39,7 @@ const MoonPhase = ({
   onGetStarted
 }: MoonPhaseProps) => {
   // Simplified location detection - just check if location exists and has basic data
-  const hasLocation = Boolean(currentLocation && (currentLocation.zipCode || (currentLocation.city && currentLocation.state)));
+  const hasLocation = Boolean(currentLocation && (currentLocation.zipCode || currentLocation.cityState));
 
   console.log('🌙 MoonPhase - Location check:', {
     hasCurrentLocation: !!currentLocation,

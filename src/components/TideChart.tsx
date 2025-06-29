@@ -14,6 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TidePoint } from '@/services/tide/types';
+import LocationDisplay from './LocationDisplay';
+import { SavedLocation } from './LocationSelector';
 
 type TideChartProps = {
   curve: TidePoint[]; // continuous six-minute data
@@ -22,6 +24,9 @@ type TideChartProps = {
   currentTime?: string;
   isLoading?: boolean;
   className?: string;
+  currentLocation?: (SavedLocation & { id: string; country: string }) | null;
+  stationName?: string | null;
+  stationId?: string | null;
 };
 
 
@@ -40,7 +45,10 @@ const TideChart = ({
   date,
   currentTime,
   isLoading = false,
-  className
+  className,
+  currentLocation,
+  stationName,
+  stationId
 }: TideChartProps) => {
   const today = new Date(date + 'T00:00:00');
   if (isNaN(today.getTime())) {
@@ -111,6 +119,11 @@ const TideChart = ({
           <span>Tide Forecast</span>
           <span className="text-moon-blue text-sm">{date}</span>
         </CardTitle>
+        <LocationDisplay
+          currentLocation={currentLocation || null}
+          stationName={stationName || null}
+          stationId={stationId || null}
+        />
       </CardHeader>
       <CardContent>
         {isLoading ? (
