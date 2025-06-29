@@ -43,7 +43,8 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose }: S
             <SelectContent>
               {stations.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
-                  {s.name} ({s.id})
+                  {s.name}
+                  {s.city && s.state ? ` - ${s.city}, ${s.state}` : ''} ({s.id})
                 </SelectItem>
               ))}
             </SelectContent>
