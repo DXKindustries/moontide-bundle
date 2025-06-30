@@ -33,19 +33,14 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
 
   const handleLocationSelect = (location: LocationData) => {
     console.log('📍 Location selected via UnifiedLocationInput:', location);
-    
-    // Save to storage
-    locationStorage.saveCurrentLocation(location);
-    
-    // Update local state
+
+    // Update local state based on latest history after parent saves
+    onLocationSelect(location);
     const history = locationStorage.getLocationHistory();
     setSavedLocations(history as SavedLocationWithNickname[]);
-    
-    onLocationSelect(location);
   };
 
   const handleSavedLocationSelect = (location: SavedLocationWithNickname) => {
-    locationStorage.saveCurrentLocation(location);
     onLocationSelect(location);
     toast.success(`Using ${location.nickname || location.city}`);
   };
