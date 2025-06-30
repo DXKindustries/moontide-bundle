@@ -30,10 +30,11 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, updatedLocation);
       
+      const parsedState = updatedLocation.cityState.split(', ')[1] || '';
       const locationData: LocationData = {
         zipCode: updatedLocation.zipCode,
         city: updatedLocation.name,
-        state: updatedLocation.cityState.split(', ')[1] || 'Unknown',
+        state: parsedState,
         lat: updatedLocation.lat,
         lng: updatedLocation.lng,
         isManual: false,
