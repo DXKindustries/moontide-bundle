@@ -90,7 +90,7 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
       {savedLocations.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Recent Locations</h4>
-          <div className="max-h-48 overflow-y-auto space-y-1">
+          <div className="max-h-40 overflow-y-auto space-y-1">
             {savedLocations.slice(0, 8).map((location, index) => {
               const locationKey = location.zipCode || location.city;
               return (
