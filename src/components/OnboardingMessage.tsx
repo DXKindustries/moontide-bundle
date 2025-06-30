@@ -45,6 +45,10 @@ const OnboardingMessage = ({ onGetStarted }: OnboardingMessageProps) => {
             </div>
             <div className="flex items-center justify-center gap-2">
               <span>🌐</span>
+              <span>Station name: <code>Green Cove Springs</code></span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <span>🆔</span>
               <span>Station ID: <code>8454000</code></span>
             </div>
             <div className="flex items-center justify-center gap-2">
