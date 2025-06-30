@@ -99,7 +99,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   return (
     <>
-      <div className="space-y-2 max-h-64 overflow-y-auto">
+      <div className="space-y-2 max-h-40 overflow-y-auto">
         {locationHistory.map((location, index) => {
           const isCurrent = currentLocation?.zipCode === location.zipCode || 
                            (currentLocation?.city === location.city && currentLocation?.state === location.state);
