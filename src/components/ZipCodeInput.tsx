@@ -111,6 +111,8 @@ export default function ZipCodeInput({ onZipSubmit, onClear, isLoading, error }:
           <li>ZIP: <code>02840</code></li>
           <li>City, State: <code>Newport, RI</code></li>
           <li>Full: <code>Newport, RI 02840</code></li>
+          <li>Station name: <code>Green Cove Springs</code></li>
+          <li>Station ID: <code>8452660</code></li>
         </ul>
       </div>
     </div>

@@ -26,7 +26,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     const parsed = parseLocationInput(input);
     
     if (!parsed) {
-      toast.error('Use ZIP, "City ST", "City ST ZIP", or NOAA station ID');
+      toast.error('Use ZIP, "City ST", "City ST ZIP", NOAA station name or ID');
       return;
     }
 
@@ -56,6 +56,17 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
             timestamp: Date.now(),
           };
         }
+      } else if (parsed.type === 'stationName') {
+        location = {
+          zipCode: '',
+          city: parsed.stationName!,
+          state: '',
+          lat: null,
+          lng: null,
+          isManual: true,
+          timestamp: Date.now(),
+        };
+        toast.success(`Location saved: ${parsed.stationName} (manual entry)`);
       }
 
       if (location) {
