@@ -79,7 +79,7 @@ const Calendar = () => {
     date: Date,
     forecasts: TideForecast[]
   ): { phase: MoonPhase; illumination: number } => {
-    const dateStr = format(date, 'MMM d'); // Format to match forecast date format
+    const dateStr = format(date, 'yyyy-MM-dd'); // Match forecast date string
     const forecast = forecasts.find((f) => f.date === dateStr);
     if (forecast) {
       return {
@@ -107,9 +107,13 @@ const Calendar = () => {
       const dateStr = format(date, 'yyyy-MM-dd');
       const dayForecast = forecasts.find((f) => f.date === dateStr);
       const highTides: { time: string; height: number }[] =
-        dayForecast?.cycles.map((c) => ({ time: c.high.time, height: c.high.height })) || [];
+        dayForecast?.cycles
+          .map((c) => ({ time: c.high.time, height: c.high.height }))
+          .sort((a, b) => a.time.localeCompare(b.time)) || [];
       const lowTides: { time: string; height: number }[] =
-        dayForecast?.cycles.map((c) => ({ time: c.low.time, height: c.low.height })) || [];
+        dayForecast?.cycles
+          .map((c) => ({ time: c.low.time, height: c.low.height }))
+          .sort((a, b) => a.time.localeCompare(b.time)) || [];
 
       // Calculate solar times
       const solarTimes = calculateSolarTimes(date, currentLocation);
