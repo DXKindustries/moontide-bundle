@@ -4,7 +4,6 @@ import { Info, Search, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UnifiedLocationInput from './UnifiedLocationInput';
 import { LocationData } from '@/types/locationTypes';
-import { locationStorage } from '@/utils/locationStorage';
 
 type OnboardingInfoProps = {
   onGetStarted: (location?: LocationData) => void;
@@ -20,10 +19,6 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
 
   const handleLocationSelect = (location: LocationData) => {
     console.log('🔄 OnboardingInfo: Location selected:', location);
-
-    // Save the location
-    locationStorage.saveCurrentLocation(location);
-    console.log('💾 OnboardingInfo: Location saved to storage');
 
     // Close modal and trigger location change
     setShowLocationModal(false);
