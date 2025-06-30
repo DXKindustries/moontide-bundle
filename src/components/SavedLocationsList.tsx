@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { MapPin, Clock, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { locationStorage } from '@/utils/locationStorage';
@@ -99,7 +100,8 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   return (
     <>
-      <div className="space-y-2 max-h-64 overflow-y-auto">
+      <ScrollArea className="max-h-64">
+        <div className="space-y-2">
         {locationHistory.map((location, index) => {
           const isCurrent = currentLocation?.zipCode === location.zipCode || 
                            (currentLocation?.city === location.city && currentLocation?.state === location.state);
@@ -164,7 +166,8 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
             </div>
           );
         })}
-      </div>
+        </div>
+      </ScrollArea>
 
       {editingLocation && (
         <LocationEditModal

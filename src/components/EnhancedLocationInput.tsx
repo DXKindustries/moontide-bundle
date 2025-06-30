@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
 import UnifiedLocationInput from './UnifiedLocationInput';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Station } from '@/services/tide/stationService';
 
 interface EnhancedLocationInputProps {
@@ -90,7 +91,8 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
       {savedLocations.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Recent Locations</h4>
-          <div className="max-h-48 overflow-y-auto space-y-1">
+          <ScrollArea className="max-h-48">
+            <div className="space-y-1">
             {savedLocations.slice(0, 8).map((location, index) => {
               const locationKey = location.zipCode || location.city;
               return (
@@ -145,7 +147,8 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
                 </div>
               );
             })}
-          </div>
+            </div>
+          </ScrollArea>
         </div>
       )}
     </div>
