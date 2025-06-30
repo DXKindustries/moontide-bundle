@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { TidePoint } from '@/services/tide/types';
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
+import { formatIsoToAmPm, parseIsoAsLocal } from '@/utils/dateTimeUtils';
 
 type TideChartProps = {
   curve: TidePoint[]; // continuous six-minute data
@@ -30,14 +31,13 @@ type TideChartProps = {
 };
 
 
-const formatTimeToAMPM = (time: string | number) => {
-  const date = new Date(time);
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
+// NOAA prediction times omit timezone information and are already in the
+// station's local time. Using the Date constructor would treat them as UTC
+// and skew the displayed values. Format the raw string directly instead.
+const formatTimeToAMPM = (time: string | number) =>
+  typeof time === 'number'
+    ? formatIsoToAmPm(new Date(time).toISOString())
+    : formatIsoToAmPm(String(time));
 
 const TideChart = ({
   curve,
@@ -61,7 +61,7 @@ const TideChart = ({
   endOfDay.setDate(endOfDay.getDate() + 1);
 
   const allPoints = (curve || [])
-    .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
+    .map((tp) => ({ ...tp, ts: parseIsoAsLocal(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
   const rawTodayData = allPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
@@ -75,7 +75,7 @@ const TideChart = ({
 
   // We already receive only high/low events, so just separate them
   const eventPoints = (events || [])
-    .map((tp) => ({ ...tp, ts: new Date(tp.time).getTime() }))
+    .map((tp) => ({ ...tp, ts: parseIsoAsLocal(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
   const todayEvents = eventPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
@@ -158,14 +158,7 @@ const TideChart = ({
                   dataKey="ts"
                   type="number"
                   domain={[startOfDay.getTime(), endOfDay.getTime()]}
-                  tickFormatter={(t) => {
-                    const date = new Date(t);
-                    return date.toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-                  }}
+                  tickFormatter={(t) => formatIsoToAmPm(new Date(t).toISOString())}
                   tick={{ fill: '#cbd5e1', fontSize: 12 }}
                   axisLine={{ stroke: '#475569' }}
                 />

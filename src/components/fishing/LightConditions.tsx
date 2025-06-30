@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
 
 type LightConditionsProps = {
   sunrise: string;
@@ -7,14 +8,7 @@ type LightConditionsProps = {
 };
 
 const LightConditions: React.FC<LightConditionsProps> = ({ sunrise, sunset }) => {
-  const formatTimeToAMPM = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+  const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   return (
     <div>
