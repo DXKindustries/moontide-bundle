@@ -9,6 +9,7 @@ interface ZipApiResponse {
   places: {
     'place name': string;
     state: string;
+    'state abbreviation': string;
     latitude: string;
     longitude: string;
   }[];

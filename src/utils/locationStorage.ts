@@ -1,5 +1,6 @@
 import { safeLocalStorage } from './localStorage';
 import { LocationData } from '@/types/locationTypes';
+import { normalizeState as normalizeStateName } from './stateNames';
 
 const CURRENT_LOCATION_KEY = 'current-location-data';
 const LOCATION_HISTORY_KEY = 'location-history';
@@ -22,11 +23,14 @@ export const locationStorage = {
       
       // Remove existing entries that match this location (case-insensitive)
       const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+      const normState = (val: string | undefined) =>
+        (normalizeStateName(val || '') || normalize(val)).toLowerCase();
       const filtered = history.filter(loc => {
         const sameZip =
           location.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(location.zipCode);
         const sameCityState =
-          normalize(loc.city) === normalize(location.city) && normalize(loc.state) === normalize(location.state);
+          normalize(loc.city) === normalize(location.city) &&
+          normState(loc.state) === normState(location.state);
 
         return !(sameZip || sameCityState);
       });
@@ -74,8 +78,13 @@ export const locationStorage = {
       // Find and update the location in history
       const updatedHistory = history.map(loc => {
         // Match by zipCode or city/state combination
-        const isMatch = (updatedLocation.zipCode && loc.zipCode && loc.zipCode === updatedLocation.zipCode) ||
-                       (loc.city === updatedLocation.city && loc.state === updatedLocation.state);
+        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+        const normState = (val: string | undefined) =>
+          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
+        const isMatch =
+          (updatedLocation.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(updatedLocation.zipCode)) ||
+          (normalize(loc.city) === normalize(updatedLocation.city) &&
+            normState(loc.state) === normState(updatedLocation.state));
         
         if (isMatch) {
           return { ...updatedLocation, timestamp: loc.timestamp || Date.now() };
@@ -87,10 +96,14 @@ export const locationStorage = {
       
       // If this is the current location, update it too
       if (currentLocation) {
-        const isCurrentMatch = (updatedLocation.zipCode && currentLocation.zipCode && 
-                               currentLocation.zipCode === updatedLocation.zipCode) ||
-                              (currentLocation.city === updatedLocation.city && 
-                               currentLocation.state === updatedLocation.state);
+        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+        const normState = (val: string | undefined) =>
+          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
+        const isCurrentMatch =
+          (updatedLocation.zipCode && currentLocation.zipCode &&
+            normalize(currentLocation.zipCode) === normalize(updatedLocation.zipCode)) ||
+          (normalize(currentLocation.city) === normalize(updatedLocation.city) &&
+            normState(currentLocation.state) === normState(updatedLocation.state));
         
         if (isCurrentMatch) {
           safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...updatedLocation, timestamp: currentLocation.timestamp });
@@ -110,10 +123,14 @@ export const locationStorage = {
       const currentLocation = locationStorage.getCurrentLocation();
       
       // Filter out the location to delete
+      const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+      const normState = (val: string | undefined) =>
+        (normalizeStateName(val || '') || normalize(val)).toLowerCase();
       const updatedHistory = history.filter(loc => {
-        // Match by zipCode or city/state combination
-        const isMatch = (locationToDelete.zipCode && loc.zipCode && loc.zipCode === locationToDelete.zipCode) ||
-                       (loc.city === locationToDelete.city && loc.state === locationToDelete.state);
+        const isMatch =
+          (locationToDelete.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(locationToDelete.zipCode)) ||
+          (normalize(loc.city) === normalize(locationToDelete.city) &&
+            normState(loc.state) === normState(locationToDelete.state));
         return !isMatch;
       });
       
@@ -121,10 +138,14 @@ export const locationStorage = {
       
       // Check if the deleted location is the current location and clear it if so
       if (currentLocation) {
-        const isCurrentMatch = (locationToDelete.zipCode && currentLocation.zipCode && 
-                               currentLocation.zipCode === locationToDelete.zipCode) ||
-                              (currentLocation.city === locationToDelete.city && 
-                               currentLocation.state === locationToDelete.state);
+        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+        const normState = (val: string | undefined) =>
+          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
+        const isCurrentMatch =
+          (locationToDelete.zipCode && currentLocation.zipCode &&
+            normalize(currentLocation.zipCode) === normalize(locationToDelete.zipCode)) ||
+          (normalize(currentLocation.city) === normalize(locationToDelete.city) &&
+            normState(currentLocation.state) === normState(locationToDelete.state));
         
         if (isCurrentMatch) {
           console.log('🗑️ Deleted location matches current location, clearing current location');
