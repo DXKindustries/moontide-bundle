@@ -18,7 +18,7 @@ export default function UnifiedLocationInput({
   onLocationSelect,
   onStationSelect,
   onClose,
-  placeholder = "ZIP, City State, or City State ZIP",
+  placeholder = "ZIP, City State, or NOAA Station Name/ID",
   autoFocus = true
 }: UnifiedLocationInputProps) {
   const { isLoading: searchLoading, handleLocationSearch } = useLocationSearch({

@@ -45,6 +45,7 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
               <div>• Enter ZIP code: <code>02840</code></div>
               <div>• City/State: <code>Newport RI</code></div>
               <div>• Full format: <code>Newport RI 02840</code></div>
+              <div>• Station name: <code>Green Cove Springs</code></div>
               <div>• NOAA station ID: <code>8454000</code></div>
               <div>• Moon and solar data for all locations</div>
             </div>
@@ -75,7 +76,7 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
               </Button>
             </DialogTitle>
             <DialogDescription>
-              Type a ZIP code, city and state, or NOAA station ID. Example: <code>02840</code>, <code>Newport RI</code>, or <code>8454000</code>.
+              Type a ZIP code, city and state, or NOAA station name/ID. Example: <code>02840</code>, <code>Newport RI</code>, <code>Green Cove Springs</code>, or <code>8454000</code>.
             </DialogDescription>
           </DialogHeader>
           

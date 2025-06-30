@@ -12,8 +12,8 @@ interface LocationInputFormProps {
   onGPSRequest: () => void;
 }
 
-export default function LocationInputForm({ 
-  placeholder = "ZIP, City State, or City State ZIP",
+export default function LocationInputForm({
+  placeholder = "ZIP, City State, or NOAA Station Name/ID",
   autoFocus = true,
   isLoading,
   onSearch,
@@ -117,6 +117,7 @@ export default function LocationInputForm({
           <li>ZIP: <code>02840</code></li>
           <li>City State: <code>Newport RI</code></li>
           <li>Full: <code>Newport RI 02840</code></li>
+          <li>Station name: <code>Green Cove Springs</code></li>
           <li>Station ID: <code>8452660</code></li>
         </ul>
       </div>
