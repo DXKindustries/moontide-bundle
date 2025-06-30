@@ -80,10 +80,11 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     const result = await lookupZipCode(parsed.zipCode!);
     if (result && result.places && result.places.length > 0) {
       const place = result.places[0];
+      const stateAbbr = place['state abbreviation'] || place.state;
       const location = {
         zipCode: parsed.zipCode!,
         city: place['place name'],
-        state: place.state,
+        state: stateAbbr,
         lat: parseFloat(place.latitude),
         lng: parseFloat(place.longitude),
         isManual: false,
