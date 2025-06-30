@@ -158,7 +158,9 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
             // store low tide until the next high tide appears
             pendingLow = event;
           } else if (event.isHighTide === true && pendingLow) {
-            const date = pendingLow.time.slice(0, 10);
+            // Group cycle by the date of the high tide so the daily
+            // forecast aligns with the tide chart for that day
+            const date = event.time.slice(0, 10);
             if (!cyclesByDate[date]) cyclesByDate[date] = [];
             cyclesByDate[date].push({
               low: { time: pendingLow.time, height: pendingLow.height },
