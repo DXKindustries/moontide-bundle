@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isSameDay } from 'date-fns';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
@@ -15,6 +16,13 @@ type TideEvent = {
   height: number;
   isHighTide: boolean | null;
 };
+
+function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[] {
+  const filtered = events
+    .filter((e) => isSameDay(new Date(e.time), targetDate))
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
+  return filtered.slice(0, 4);
+}
 
 type UseTideDataParams = {
   location: {
