@@ -1,11 +1,12 @@
 import { normalizeState } from './stateNames';
 
 export type ParsedInput = {
-  type: 'zip' | 'cityState' | 'cityStateZip' | 'stationId';
+  type: 'zip' | 'cityState' | 'cityStateZip' | 'stationId' | 'stationName';
   zipCode?: string;
   city?: string;
   state?: string;
   stationId?: string;
+  stationName?: string;
 };
 
 export const parseLocationInput = (input: string): ParsedInput | null => {
@@ -47,6 +48,11 @@ export const parseLocationInput = (input: string): ParsedInput | null => {
       };
     }
   }
-  
+
+  // Fallback: treat as NOAA station name or free-form location text
+  if (trimmed.length > 0) {
+    return { type: 'stationName', stationName: trimmed };
+  }
+
   return null;
 };
