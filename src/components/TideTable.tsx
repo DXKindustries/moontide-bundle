@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { Station } from '@/services/tide/stationService';
+import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
 
 export interface TideReading {
   time: string;   // ISO 8601
@@ -19,13 +20,7 @@ interface Props {
 }
 
 const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
-  const formatTimeToAMPM = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+  const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   if (loading) {
     return (

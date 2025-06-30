@@ -7,7 +7,7 @@ import { Info } from "lucide-react";
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
-import { formatApiDate } from '@/utils/dateTimeUtils';
+import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
 
 type TideCycle = {
   low: { time: string; height: number };
@@ -63,14 +63,11 @@ const WeeklyForecast = ({
     }
   };
 
-  const formatTimeToAMPM = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
+  // NOAA provides times without any timezone information and in the station's
+  // local time zone. Using the JS Date constructor would incorrectly interpret
+  // them as UTC and shift the displayed time. Instead, format the raw string
+  // directly without timezone conversion.
+  const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   const renderSkeletonForecast = () => {
     return Array(7).fill(0).map((_, index) => (

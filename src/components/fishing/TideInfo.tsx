@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
 
 type TideInfoProps = {
   tides: {
@@ -9,14 +10,7 @@ type TideInfoProps = {
 };
 
 const TideInfo: React.FC<TideInfoProps> = ({ tides }) => {
-  const formatTimeToAMPM = (timeString: string) => {
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+  const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   return (
     <div>
