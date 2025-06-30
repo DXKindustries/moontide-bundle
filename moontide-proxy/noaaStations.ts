@@ -88,7 +88,7 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c;
 }
 
-async function geocodeQuery(query: string) {
+async function geocodeQuery(query: string, restrictToUS = false) {
   const key = query.toLowerCase();
   const cached = geocodeCache.get(key);
   if (cached && cached.expiry > Date.now()) {
@@ -97,7 +97,8 @@ async function geocodeQuery(query: string) {
   }
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+    const country = restrictToUS ? '&countrycodes=us' : '';
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1${country}`;
     const res = await axios.get(url, { headers: { 'User-Agent': 'MoonTideApp' } });
     const place = res.data?.[0];
     if (place) {
@@ -117,7 +118,8 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
   console.log('Geocode attempt:', input);
 
   const trimmed = input.trim();
-  let result = await geocodeQuery(trimmed);
+  const isZip = /^\d{5}$/.test(trimmed);
+  let result = await geocodeQuery(trimmed, isZip);
   if (result) return result;
 
   // Fallback: remove common POI terms like "Visitor Center"
@@ -129,7 +131,7 @@ async function geocode(input: string): Promise<{ lat: number; lng: number } | nu
 
   if (fallback && fallback !== trimmed) {
     console.log('Geocode fallback attempt:', fallback);
-    result = await geocodeQuery(fallback);
+    result = await geocodeQuery(fallback, isZip);
     if (result) return result;
   }
 
