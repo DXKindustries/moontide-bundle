@@ -233,13 +233,16 @@ router.get('/noaa-stations', async (req, res) => {
 
     // Always filter to stations within a reasonable distance of the
     // geocoded location to avoid results far outside the requested area.
-    processed = processed.filter((p) => p.distance <= MAX_DISTANCE_KM);
+    let results = processed.filter((p) => p.distance <= MAX_DISTANCE_KM);
 
     if (isZip) {
-      processed = processed.filter((p) => p.zip === input.trim());
+      const zipMatches = results.filter((p) => p.zip === input.trim());
+      if (zipMatches.length > 0) {
+        results = zipMatches;
+      }
     }
 
-    const results = processed
+    results = results
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 10);
     lookupCache.set(lookupKey, { stations: results, expiry: Date.now() + LOOKUP_TTL });
