@@ -47,6 +47,8 @@ const lookupCache = new Map<string, { stations: StationResult[]; expiry: number 
 
 const GEO_TTL = 24 * 60 * 60 * 1000; // 24 hours
 const LOOKUP_TTL = 12 * 60 * 60 * 1000; // 12 hours
+// Maximum distance in kilometers for stations to be considered "near" a location
+const MAX_DISTANCE_KM = 30; // roughly 18 miles
 
 async function loadStations(): Promise<StationMeta[]> {
   if (stationCache) {
@@ -227,6 +229,11 @@ router.get('/noaa-stations', async (req, res) => {
         distance: haversine(coords.lat, coords.lng, s.lat, s.lng),
       };
     });
+
+
+    // Always filter to stations within a reasonable distance of the
+    // geocoded location to avoid results far outside the requested area.
+    processed = processed.filter((p) => p.distance <= MAX_DISTANCE_KM);
 
     if (isZip) {
       processed = processed.filter((p) => p.zip === input.trim());
