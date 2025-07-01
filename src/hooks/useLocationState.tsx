@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation as useRouterLocation } from 'react-router-dom';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { locationStorage } from '@/utils/locationStorage';
@@ -68,6 +69,13 @@ export const useLocationState = () => {
       return null;
     }
   });
+
+  const routerLocation = useRouterLocation();
+
+  // Close any open location selector when navigating to a new route
+  useEffect(() => {
+    setShowLocationSelector(false);
+  }, [routerLocation.pathname]);
 
   /* ---------- setters with logging / persistence ---------- */
 
