@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { TidePoint, TideCycle } from '@/services/tide/types';
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
-import { formatIsoToAmPm, parseIsoAsLocal } from '@/utils/dateTimeUtils';
+import { formatIsoToAmPm, parseIsoAsLocal, formatDateTimeAsLocalIso } from '@/utils/dateTimeUtils';
 
 type TideChartProps = {
   curve: TidePoint[]; // continuous six-minute data
@@ -59,6 +59,13 @@ const TideChart = ({
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(startOfDay);
   endOfDay.setDate(endOfDay.getDate() + 1);
+
+  const tickValues: number[] = [];
+  for (let h = 0; h <= 24; h += 6) {
+    const d = new Date(startOfDay);
+    d.setHours(h, 0, 0, 0);
+    tickValues.push(d.getTime());
+  }
 
   const allPoints = (curve || [])
     .map((tp) => ({ ...tp, ts: parseIsoAsLocal(tp.time).getTime() }))
@@ -180,7 +187,10 @@ const TideChart = ({
                   dataKey="ts"
                   type="number"
                   domain={[startOfDay.getTime(), endOfDay.getTime()]}
-                  tickFormatter={(t) => formatIsoToAmPm(new Date(t).toISOString())}
+                  tickFormatter={(t) =>
+                    formatIsoToAmPm(formatDateTimeAsLocalIso(new Date(t)))
+                  }
+                  ticks={tickValues}
                   tick={{ fill: '#cbd5e1', fontSize: 12 }}
                   axisLine={{ stroke: '#475569' }}
                 />
