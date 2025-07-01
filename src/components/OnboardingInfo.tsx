@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Info, Search, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UnifiedLocationInput from './UnifiedLocationInput';
@@ -11,6 +13,7 @@ type OnboardingInfoProps = {
 
 const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [nickname, setNickname] = useState('');
 
   const handleEnterLocationClick = () => {
     console.log('🔄 OnboardingInfo: Enter Your Location button clicked');
@@ -20,9 +23,15 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const handleLocationSelect = (location: LocationData) => {
     console.log('🔄 OnboardingInfo: Location selected:', location);
 
+    const withNickname = {
+      ...location,
+      nickname: nickname.trim() || undefined
+    };
+
     // Close modal and trigger location change
     setShowLocationModal(false);
-    onGetStarted(location);
+    onGetStarted(withNickname);
+    setNickname('');
   };
 
   const handleModalClose = () => {
@@ -81,6 +90,15 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
             placeholder="02840 or Newport RI"
             autoFocus={true}
           />
+          <div className="mt-4 space-y-2">
+            <Label htmlFor="onboard-nickname">Custom Name (Optional)</Label>
+            <Input
+              id="onboard-nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="e.g., Home"
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </>
