@@ -142,29 +142,31 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
         const curveData = detailedPoints.length > 0 ? detailedPoints : tidePoints;
 
-        // Build tide cycles across the full dataset so pairs can cross midnight
-        const cyclesByDate: Record<string, TideCycle[]> = {};
-        let prevEvent: TideEvent | null = null;
-
+        // Group tide events by their local date
+        const eventsByDate: Record<string, TideEvent[]> = {};
         tidePoints.forEach((tp) => {
           if (tp.isHighTide === null) return;
-
-          const event: TideEvent = {
+          const date = tp.time.slice(0, 10);
+          if (!eventsByDate[date]) eventsByDate[date] = [];
+          eventsByDate[date].push({
             time: tp.time,
             height: tp.height,
             isHigh: tp.isHighTide === true,
-          };
+          });
+        });
 
-          if (prevEvent) {
-            const date = prevEvent.time.slice(0, 10);
-            if (!cyclesByDate[date]) cyclesByDate[date] = [];
+        // Build cycles strictly within each day to ensure two cycles per day
+        const cyclesByDate: Record<string, TideCycle[]> = {};
+        Object.keys(eventsByDate).forEach((date) => {
+          const events = eventsByDate[date].sort((a, b) =>
+            a.time.localeCompare(b.time)
+          );
+          cyclesByDate[date] = [];
+          for (let i = 0; i < events.length - 1; i += 2) {
             cyclesByDate[date].push({
-              first: prevEvent,
-              second: event,
+              first: events[i],
+              second: events[i + 1],
             });
-            prevEvent = null;
-          } else {
-            prevEvent = event;
           }
         });
 
