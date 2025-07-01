@@ -26,9 +26,11 @@ export type TidePoint = {
   isHighTide: boolean | null; // null for continuous points, true/false for hilo
 };
 
+export type TideEvent = { time: string; height: number; isHigh: boolean };
+
 export type TideCycle = {
-  low: { time: string; height: number };
-  high: { time: string; height: number };
+  first: TideEvent;
+  second: TideEvent;
 };
 
 export type TideForecast = {

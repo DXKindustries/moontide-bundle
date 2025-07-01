@@ -7,15 +7,10 @@ import {
   getCurrentIsoDateString,
   getCurrentTimeString,
 } from '@/utils/dateTimeUtils';
-import { TidePoint, TideForecast, TideCycle } from '@/services/tide/types';
+import { TidePoint, TideForecast, TideCycle, TideEvent } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
 // Internal shape for grouping tide events by date
-type TideEvent = {
-  time: string;
-  height: number;
-  isHighTide: boolean | null;
-};
 
 function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[] {
   const filtered = events
@@ -153,28 +148,27 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
         // Build tide cycles across the full dataset so pairs can cross midnight
         const cyclesByDate: Record<string, TideCycle[]> = {};
-        let pendingLow: TideEvent | null = null;
+        let prevEvent: TideEvent | null = null;
 
         tidePoints.forEach((tp) => {
+          if (tp.isHighTide === null) return;
+
           const event: TideEvent = {
             time: tp.time,
             height: tp.height,
-            isHighTide: tp.isHighTide,
+            isHigh: tp.isHighTide === true,
           };
 
-          if (event.isHighTide === false) {
-            // store low tide until the next high tide appears
-            pendingLow = event;
-          } else if (event.isHighTide === true && pendingLow) {
-            // Group cycle by the date of the high tide so the daily
-            // forecast aligns with the tide chart for that day
+          if (prevEvent) {
             const date = event.time.slice(0, 10);
             if (!cyclesByDate[date]) cyclesByDate[date] = [];
             cyclesByDate[date].push({
-              low: { time: pendingLow.time, height: pendingLow.height },
-              high: { time: event.time, height: event.height },
+              first: prevEvent,
+              second: event,
             });
-            pendingLow = null;
+            prevEvent = null;
+          } else {
+            prevEvent = event;
           }
         });
 

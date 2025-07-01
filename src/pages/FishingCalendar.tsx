@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { useTideData } from '@/hooks/useTideData';
 import { useLocationState } from '@/hooks/useLocationState';
-import { TideForecast } from '@/services/tide/types';
+import { TideForecast, TideCycle } from '@/services/tide/types';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
 import CalendarCard from '@/components/fishing/CalendarCard';
@@ -21,10 +21,7 @@ type MoonPhase =
   | 'Last Quarter'
   | 'Waning Crescent';
 
-type TideInfo = {
-  highTide: { time: string; height: number }[];
-  lowTide: { time: string; height: number }[];
-};
+type TideInfo = TideCycle[];
 
 type DayFishingInfo = {
   date: Date;
@@ -106,14 +103,14 @@ const Calendar = () => {
       // Pull tides for this date from the weekly forecast
       const dateStr = format(date, 'yyyy-MM-dd');
       const dayForecast = forecasts.find((f) => f.date === dateStr);
-      const highTides: { time: string; height: number }[] =
-        dayForecast?.cycles
-          .map((c) => ({ time: c.high.time, height: c.high.height }))
-          .sort((a, b) => a.time.localeCompare(b.time)) || [];
-      const lowTides: { time: string; height: number }[] =
-        dayForecast?.cycles
-          .map((c) => ({ time: c.low.time, height: c.low.height }))
-          .sort((a, b) => a.time.localeCompare(b.time)) || [];
+      const cycles: TideCycle[] =
+        dayForecast?.cycles?.slice().sort((a, b) =>
+          a.first.time.localeCompare(b.first.time)
+        ) || [];
+
+      const allEvents = cycles.flatMap((c) => [c.first, c.second]);
+      const highTides = allEvents.filter((e) => e.isHigh);
+      const lowTides = allEvents.filter((e) => !e.isHigh);
 
       // Calculate solar times
       const solarTimes = calculateSolarTimes(date, currentLocation);
@@ -150,10 +147,7 @@ const Calendar = () => {
         date,
         moonPhase,
         illumination,
-        tides: {
-          highTide: highTides,
-          lowTide: lowTides,
-        },
+        tides: cycles,
         sunrise: solarTimes.sunrise,
         sunset: solarTimes.sunset,
         optimalFishingWindows,
