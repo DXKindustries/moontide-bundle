@@ -10,8 +10,14 @@ export const getCurrentDateString = (): string => {
   });
 };
 
+const pad = (n: number) => n.toString().padStart(2, '0');
+
+export const formatDateAsLocalIso = (date: Date): string => {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
 export const getCurrentIsoDateString = (): string => {
-  return new Date().toISOString().split('T')[0];
+  return formatDateAsLocalIso(new Date());
 };
 
 export const getCurrentTimeString = (): string => {
