@@ -145,5 +145,25 @@
   .day-optimal-fishing {
     @apply border-2 !border-moon-primary;
   }
+
+  /* Responsive calendar layout */
+  .rdp {
+    width: 100%;
+  }
+  .rdp-months {
+    width: 100%;
+  }
+  .rdp-table {
+    width: 100%;
+    max-width: none;
+    table-layout: fixed;
+  }
+  .rdp-day,
+  .rdp-weeknumber {
+    width: auto;
+    max-width: none;
+    aspect-ratio: 1/1;
+    height: auto;
+  }
 }
 
