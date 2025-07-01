@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
@@ -25,7 +25,7 @@ const Index = () => {
   } = useLocationState();
 
   // Ensure the location selector is closed when arriving on the dashboard
-  useEffect(() => {
+  useLayoutEffect(() => {
     setShowLocationSelector(false);
   }, []);
 
