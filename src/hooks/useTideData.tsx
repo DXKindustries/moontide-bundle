@@ -6,6 +6,7 @@ import { Station } from '@/services/tide/stationService';
 import {
   getCurrentIsoDateString,
   getCurrentTimeString,
+  formatDateAsLocalIso,
 } from '@/utils/dateTimeUtils';
 import { TidePoint, TideForecast, TideCycle, TideEvent } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
@@ -97,7 +98,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         }
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
-        const dateIso = startDate.toISOString().split('T')[0];
+        const dateIso = formatDateAsLocalIso(startDate);
         console.log('🌐 useTideData getTideData:', {
           stationId: chosen.id,
           date: dateIso
