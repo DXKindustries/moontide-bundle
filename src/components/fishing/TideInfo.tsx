@@ -1,47 +1,39 @@
 
 import React from 'react';
 import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
+import { TideCycle } from '@/services/tide/types';
 
 type TideInfoProps = {
-  tides: {
-    highTide: { time: string, height: number }[];
-    lowTide: { time: string, height: number }[];
-  };
+  cycles: TideCycle[];
 };
 
-const TideInfo: React.FC<TideInfoProps> = ({ tides }) => {
+const TideInfo: React.FC<TideInfoProps> = ({ cycles }) => {
   const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Tide Information</h3>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">High Tides</h4>
-          {tides.highTide.length > 0 ? (
-            tides.highTide.map((tide, i) => (
-              <div key={`high-${i}`} className="flex justify-between">
-                <span>{formatTimeToAMPM(tide.time)}</span>
-                <span className="font-semibold">{tide.height.toFixed(1)}m</span>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">No high tide data available</p>
-          )}
-        </div>
-        <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">Low Tides</h4>
-          {tides.lowTide.length > 0 ? (
-            tides.lowTide.map((tide, i) => (
-              <div key={`low-${i}`} className="flex justify-between">
-                <span>{formatTimeToAMPM(tide.time)}</span>
-                <span className="font-semibold">{tide.height.toFixed(1)}m</span>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-muted-foreground">No low tide data available</p>
-          )}
-        </div>
+      <div className="space-y-2">
+        {cycles.length > 0 ? (
+          cycles.map((cycle, i) => (
+            <div key={i} className="grid grid-cols-2 text-sm text-muted-foreground">
+              <span>
+                {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)}
+              </span>
+              <span className="font-semibold text-right">
+                {cycle.first.height.toFixed(1)}m
+              </span>
+              <span>
+                {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
+              </span>
+              <span className="font-semibold text-right">
+                {cycle.second.height.toFixed(1)}m
+              </span>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-muted-foreground">No tide data available</p>
+        )}
       </div>
     </div>
   );

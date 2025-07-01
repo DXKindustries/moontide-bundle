@@ -13,7 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TidePoint } from '@/services/tide/types';
+import { TidePoint, TideCycle } from '@/services/tide/types';
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
 import { formatIsoToAmPm, parseIsoAsLocal } from '@/utils/dateTimeUtils';
@@ -73,14 +73,36 @@ const TideChart = ({
   if (prevPoint) chartData.unshift(prevPoint);
   if (nextPoint) chartData.push(nextPoint);
 
-  // We already receive only high/low events, so just separate them
+  // Build tide cycles for the day using the new TideCycle shape
   const eventPoints = (events || [])
     .map((tp) => ({ ...tp, ts: parseIsoAsLocal(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
-  const todayEvents = eventPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
-  const highTides = todayEvents.filter(tp => tp.isHighTide).slice(0, 2);
-  const lowTides = todayEvents.filter(tp => tp.isHighTide === false).slice(0, 2);
+  const todayEvents = eventPoints.filter(
+    (p) => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime()
+  );
+
+  const dayCycles: TideCycle[] = [];
+  let prevEvent: TidePoint | null = null;
+  todayEvents.forEach((e) => {
+    if (prevEvent) {
+      dayCycles.push({
+        first: {
+          time: prevEvent.time,
+          height: prevEvent.height,
+          isHigh: prevEvent.isHighTide === true,
+        },
+        second: {
+          time: e.time,
+          height: e.height,
+          isHigh: e.isHighTide === true,
+        },
+      });
+      prevEvent = null;
+    } else {
+      prevEvent = e;
+    }
+  });
 
   const parseCurrentTime = (timeStr: string | undefined) => {
     if (!timeStr) return null;
@@ -199,29 +221,23 @@ const TideChart = ({
         )}
 
         {!isLoading && rawTodayData.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mt-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">Low Tides</h4>
-              {lowTides.map((tide, i) => (
-                <div key={`low-${i}`} className="grid grid-cols-2 text-sm text-muted-foreground">
-                  <span>{formatTimeToAMPM(tide.time)}</span>
-                  <span className="font-semibold text-right">
-                    {tide.height.toFixed(2)} ft
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">High Tides</h4>
-              {highTides.map((tide, i) => (
-                <div key={`high-${i}`} className="grid grid-cols-2 text-sm text-muted-foreground">
-                  <span>{formatTimeToAMPM(tide.time)}</span>
-                  <span className="font-semibold text-right">
-                    {tide.height.toFixed(2)} ft
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="space-y-2 mt-4">
+            {dayCycles.map((cycle, i) => (
+              <div key={i} className="grid grid-cols-2 text-sm text-muted-foreground">
+                <span>
+                  {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)}
+                </span>
+                <span className="font-semibold text-right">
+                  {cycle.first.height.toFixed(2)} ft
+                </span>
+                <span>
+                  {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
+                </span>
+                <span className="font-semibold text-right">
+                  {cycle.second.height.toFixed(2)} ft
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

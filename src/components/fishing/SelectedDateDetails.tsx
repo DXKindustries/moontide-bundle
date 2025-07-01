@@ -10,6 +10,7 @@ import TideInfo from './TideInfo';
 import LightConditions from './LightConditions';
 import FishingWindows from './FishingWindows';
 import FishingTips from './FishingTips';
+import { TideCycle } from '@/services/tide/types';
 
 type MoonPhase = 'New Moon' | 'Waxing Crescent' | 'First Quarter' | 'Waxing Gibbous' | 
                  'Full Moon' | 'Waning Gibbous' | 'Last Quarter' | 'Waning Crescent';
@@ -18,10 +19,7 @@ type DayFishingInfo = {
   date: Date;
   moonPhase: MoonPhase;
   illumination: number;
-  tides: {
-    highTide: { time: string, height: number }[];
-    lowTide: { time: string, height: number }[];
-  };
+  tides: TideCycle[];
   sunrise: string;
   sunset: string;
   optimalFishingWindows: {
@@ -71,7 +69,7 @@ const SelectedDateDetails: React.FC<SelectedDateDetailsProps> = ({
           selectedDate={selectedDate}
         />
         
-        <TideInfo tides={selectedDateInfo.tides} />
+        <TideInfo cycles={selectedDateInfo.tides} />
         
         <LightConditions 
           sunrise={selectedDateInfo.sunrise}
