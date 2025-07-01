@@ -30,15 +30,15 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
     try {
       safeLocalStorage.set(CURRENT_LOCATION_KEY, updatedLocation);
       
-      const parsedState = updatedLocation.cityState.split(', ')[1] || '';
+      const [actualCity, actualState] = updatedLocation.cityState.split(', ');
       const locationData: LocationData = {
         zipCode: updatedLocation.zipCode,
-        city: updatedLocation.name,
-        state: parsedState,
+        city: actualCity || updatedLocation.name,
+        state: actualState || '',
         lat: updatedLocation.lat,
         lng: updatedLocation.lng,
         isManual: false,
-        nickname: updatedLocation.name
+        nickname: updatedLocation.name !== actualCity ? updatedLocation.name : undefined
       };
       locationStorage.saveCurrentLocation(locationData);
       

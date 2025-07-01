@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Edit, Save, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
@@ -24,6 +25,7 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
   const [savedLocations, setSavedLocations] = useState<SavedLocationWithNickname[]>([]);
   const [editingNickname, setEditingNickname] = useState<string | null>(null);
   const [nicknameInput, setNicknameInput] = useState('');
+  const [newNickname, setNewNickname] = useState('');
 
   // Load saved locations on mount
   useEffect(() => {
@@ -34,10 +36,16 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
   const handleLocationSelect = (location: LocationData) => {
     console.log('📍 Location selected via UnifiedLocationInput:', location);
 
+    const withNickname = {
+      ...location,
+      nickname: newNickname.trim() || undefined
+    };
+
     // Update local state based on latest history after parent saves
-    onLocationSelect(location);
+    onLocationSelect(withNickname);
     const history = locationStorage.getLocationHistory();
     setSavedLocations(history as SavedLocationWithNickname[]);
+    setNewNickname('');
   };
 
   const handleSavedLocationSelect = (location: SavedLocationWithNickname) => {
@@ -85,6 +93,16 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
         onClose={onClose}
         placeholder="02840 or Newport, RI"
       />
+      <div className="-mt-2 space-y-2">
+        <Label htmlFor="new-nickname" className="text-xs">Custom Name (Optional)</Label>
+        <Input
+          id="new-nickname"
+          value={newNickname}
+          onChange={(e) => setNewNickname(e.target.value)}
+          placeholder="e.g., Work"
+          className="h-8"
+        />
+      </div>
 
       {/* Recent Locations */}
       {savedLocations.length > 0 && (
