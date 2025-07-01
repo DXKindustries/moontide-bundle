@@ -32,11 +32,12 @@ type TideChartProps = {
 
 
 // NOAA prediction times omit timezone information and are already in the
-// station's local time. Using the Date constructor would treat them as UTC
-// and skew the displayed values. Format the raw string directly instead.
+// station's local time. Using `toISOString()` converts the timestamp to UTC,
+// causing hover tooltips to be offset from the chart. Format using the local
+// time components instead.
 const formatTimeToAMPM = (time: string | number) =>
   typeof time === 'number'
-    ? formatIsoToAmPm(new Date(time).toISOString())
+    ? formatIsoToAmPm(formatDateTimeAsLocalIso(new Date(time)))
     : formatIsoToAmPm(String(time));
 
 const TideChart = ({
