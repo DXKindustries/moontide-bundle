@@ -72,12 +72,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     if (!location || !station) {
       setIsLoading(false);
       setError(null);
-      setTideData([]);
-      setTideEvents([]);
-      setWeeklyForecast([]);
-      setStationName(null);
-      setStationId(null);
-      setIsInland(false);
+      // Keep previously loaded data so navigating away doesn't clear charts
       return;
     }
 
