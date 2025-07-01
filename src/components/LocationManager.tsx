@@ -12,7 +12,7 @@ interface LocationManagerProps {
   setShowLocationSelector: (show: boolean) => void;
 }
 
-export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
+const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
   const handleLocationChange = (location: SavedLocation) => {
     console.log('🔄 LocationManager: Location change requested:', location);
     
@@ -92,6 +92,8 @@ export const useLocationManager = ({ setCurrentLocation, setShowLocationSelector
   return {
     handleLocationChange,
     handleLocationClear,
-    handleGetStarted
+    handleGetStarted,
   };
 };
+
+export default LocationManager;

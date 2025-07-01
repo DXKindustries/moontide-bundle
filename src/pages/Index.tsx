@@ -7,7 +7,7 @@ import StarsBackdrop from '@/components/StarsBackdrop';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { useTideData } from '@/hooks/useTideData';
 import { useLocationState } from '@/hooks/useLocationState';
-import { useLocationManager } from '@/components/LocationManager';
+import LocationManager from '@/components/LocationManager';
 import StationPicker from '@/components/StationPicker';
 import { getStationsForLocationInput } from '@/services/locationService';
 import { Station } from '@/services/tide/stationService';
@@ -32,8 +32,8 @@ const Index = () => {
   const {
     handleLocationChange,
     handleLocationClear,
-    handleGetStarted
-  } = useLocationManager({ setCurrentLocation, setShowLocationSelector });
+    handleGetStarted,
+  } = LocationManager({ setCurrentLocation, setShowLocationSelector });
 
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
