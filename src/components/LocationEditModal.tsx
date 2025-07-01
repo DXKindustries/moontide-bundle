@@ -85,7 +85,6 @@ export default function LocationEditModal({ location, isOpen, onClose, onSave }:
               id="zipCode"
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
-              required
             />
           </div>
         </div>
@@ -94,7 +93,7 @@ export default function LocationEditModal({ location, isOpen, onClose, onSave }:
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!city.trim() || !state.trim() || !zipCode.trim()}>
+          <Button onClick={handleSave} disabled={!city.trim() || !state.trim()}>
             Save Changes
           </Button>
         </DialogFooter>
