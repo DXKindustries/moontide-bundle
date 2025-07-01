@@ -8,67 +8,74 @@ import { Station } from '@/services/tide/stationService';
 const CURRENT_LOCATION_KEY = 'moontide-current-location';
 const CURRENT_STATION_KEY = 'moontide-current-station';
 
+function getInitialLocation(): (SavedLocation & { id: string; country: string }) | null {
+  try {
+    const newLocation = locationStorage.getCurrentLocation();
+    if (
+      newLocation &&
+      (newLocation.id || newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
+    ) {
+      return {
+        id:
+          newLocation.id ||
+          newLocation.zipCode ||
+          `${newLocation.city}-${newLocation.state}`,
+        name: newLocation.nickname || newLocation.city,
+        country: 'USA',
+        zipCode: newLocation.zipCode || '',
+        cityState: `${newLocation.city}, ${newLocation.state}`,
+        lat: newLocation.lat || 0,
+        lng: newLocation.lng || 0,
+      };
+    }
+
+    const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
+    if (
+      saved &&
+      (saved.id || saved.zipCode || saved.city || (saved.lat != null && saved.lng != null))
+    ) {
+      return {
+        ...saved,
+        id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
+        country: saved.country || 'USA',
+      } as SavedLocation & { id: string; country: string };
+    }
+  } catch (error) {
+    console.warn('⚠️ Error reading location from storage:', error);
+  }
+
+  return null;
+}
+
+function getInitialStation(): Station | null {
+  try {
+    const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
+    return saved && (saved.id || saved.stationId) ? (saved as Station) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useLocationState = () => {
   console.log('🏗️ useLocationState hook initializing...');
+
+  const initialLocation = getInitialLocation();
+  const initialStation = getInitialStation();
 
   const [currentLocation, setCurrentLocation] = useState<
     (SavedLocation & { id: string; country: string }) | null
   >(() => {
     console.log('📍 Initializing currentLocation state...');
-    try {
-      // Try new location storage first
-      const newLocation = locationStorage.getCurrentLocation();
-      if (
-        newLocation &&
-        (newLocation.zipCode || (newLocation.city && newLocation.state))
-      ) {
-        console.log('✅ Found location in new storage system:', newLocation);
-        const convertedLocation = {
-          id:
-            newLocation.zipCode ||
-            `${newLocation.city}-${newLocation.state}`,
-          name: newLocation.nickname || newLocation.city,
-          country: 'USA',
-          zipCode: newLocation.zipCode || '',
-          cityState: `${newLocation.city}, ${newLocation.state}`,
-          lat: newLocation.lat || 0,
-          lng: newLocation.lng || 0,
-        };
-        return convertedLocation;
-      }
-
-      // Fallback to old storage
-      const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-      if (saved && (saved.zipCode || (saved.city && saved.state))) {
-        console.log('✅ Found location in old storage system:', saved);
-        const location = {
-          ...saved,
-          id:
-            saved.id ||
-            saved.zipCode ||
-            `${saved.city}-${saved.state}`,
-          country: saved.country || 'USA',
-        };
-        return location;
-      }
-    } catch (error) {
-      console.warn('⚠️ Error reading location from storage:', error);
-    }
-
-    console.log('🎯 No saved location found, starting with null');
-    return null;
+    return initialLocation;
   });
 
-  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [showLocationSelector, setShowLocationSelector] = useState(() =>
+    !initialLocation && !initialStation
+  );
 
-  const [selectedStation, setSelectedStation] = useState<Station | null>(() => {
-    try {
-      const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
-      return saved && saved.id ? (saved as Station) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [selectedStation, setSelectedStation] = useState<Station | null>(() =>
+    initialStation
+  );
 
   const routerLocation = useRouterLocation();
 
@@ -128,25 +135,25 @@ export const useLocationState = () => {
 
   // Sync state with storage on mount so navigation between pages keeps location
   useEffect(() => {
-    const storedLocation = locationStorage.getCurrentLocation();
+    const storedLocation = getInitialLocation();
     if (storedLocation) {
-      const converted = {
-        id: storedLocation.zipCode || `${storedLocation.city}-${storedLocation.state}`,
-        name: storedLocation.nickname || storedLocation.city,
-        country: 'USA',
-        zipCode: storedLocation.zipCode || '',
-        cityState: `${storedLocation.city}, ${storedLocation.state}`,
-        lat: storedLocation.lat || 0,
-        lng: storedLocation.lng || 0,
-      } as SavedLocation & { id: string; country: string };
-      setCurrentLocationWithLogging(converted);
+      setCurrentLocationWithLogging(storedLocation);
     }
 
-    const storedStation = safeLocalStorage.get(CURRENT_STATION_KEY) as Station | null;
-    if (storedStation && storedStation.id) {
+    const storedStation = getInitialStation();
+    if (storedStation) {
       setSelectedStationWithPersist(storedStation);
     }
   }, []);
+
+  // Keep modal visibility in sync with stored location and station
+  useEffect(() => {
+    if (currentLocation && selectedStation) {
+      setShowLocationSelector(false);
+    } else if (!currentLocation && !selectedStation) {
+      setShowLocationSelector(true);
+    }
+  }, [currentLocation, selectedStation]);
 
   /* ---------- what the hook exposes ---------- */
 
