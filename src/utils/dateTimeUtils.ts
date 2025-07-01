@@ -81,3 +81,8 @@ export const parseIsoAsLocal = (isoString: string): Date => {
   const [h = 0, mi = 0, s = 0] = timePart.split(':').map(Number);
   return new Date(y, m - 1, d, h, mi, s);
 };
+
+export const formatDateTimeAsLocalIso = (date: Date): string => {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
