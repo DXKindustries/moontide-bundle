@@ -8,11 +8,7 @@ import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
 import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
-
-type TideCycle = {
-  low: { time: string; height: number };
-  high: { time: string; height: number };
-};
+import { TideCycle } from '@/services/tide/types';
 
 type DayForecast = {
   date: string;
@@ -163,13 +159,13 @@ const WeeklyForecast = ({
                     </div>
                   </div>
                   
-                  {/* Tide Info - display two low-high cycles per day */}
+                  {/* Tide Info - display two tide cycles per day */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                     {day.cycles.map((cycle, idx) => (
                       <div key={idx} className="text-sm">
                         <p className="text-xs text-muted-foreground mb-1">Cycle {idx + 1}</p>
                         <p>
-                          Low {formatTimeToAMPM(cycle.low.time)} - High {formatTimeToAMPM(cycle.high.time)}
+                          {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)} - {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
                         </p>
                       </div>
                     ))}
