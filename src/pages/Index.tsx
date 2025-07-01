@@ -14,7 +14,7 @@ import { Station } from '@/services/tide/stationService';
 
 const Index = () => {
   console.log('🚀 Index component rendering...');
-  
+
   const {
     currentLocation,
     setCurrentLocation,
@@ -23,6 +23,11 @@ const Index = () => {
     selectedStation,
     setSelectedStation
   } = useLocationState();
+
+  // Ensure the location selector is closed when arriving on the dashboard
+  useEffect(() => {
+    setShowLocationSelector(false);
+  }, []);
 
   const {
     handleLocationChange,
