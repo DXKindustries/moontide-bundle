@@ -156,7 +156,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           };
 
           if (prevEvent) {
-            const date = event.time.slice(0, 10);
+            const date = prevEvent.time.slice(0, 10);
             if (!cyclesByDate[date]) cyclesByDate[date] = [];
             cyclesByDate[date].push({
               first: prevEvent,
