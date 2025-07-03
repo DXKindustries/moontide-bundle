@@ -1,0 +1,30 @@
+name: Build Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Web App
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Check out source
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2) Set up Node 20
+      - name: Set up Node 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # 3) Install dependencies
+      - name: Install deps
+        run: npm ci
+
+      # 4) Build production
+      - name: Build production
+        run: npm run build
