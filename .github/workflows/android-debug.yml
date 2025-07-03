@@ -1,39 +1,36 @@
 name: Android Debug APK
 
 on:
+  workflow_dispatch:       # run manually
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ main ]     # run on every push to main
 
 jobs:
   build:
-    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: '21'
-
+      # Capacitor needs Node ≥20
       - name: Set up Node 20
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      # Gradle will compile with source/target 21, so add JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Install JS deps
         run: npm ci
 
-      # add android platform only if it's missing
-      - name: Ensure Android platform
-        run: |
-          if [ ! -d android/app ]; then
-            npx cap add android --force
-          fi
+      - name: Cache Gradle
+        uses: gradle/gradle-build-action@v2
 
       - name: Sync Capacitor
         run: npx cap sync android
