@@ -8,10 +8,13 @@ export interface ProxyConfig {
 }
 
 // Updated configuration with better fallback options
+import { IS_DEV } from '../env';
+
 export const DEFAULT_PROXY_CONFIG: ProxyConfig = {
-  useLocalProxy: false, // Keep false to avoid localhost dependency
+  useLocalProxy: IS_DEV,
   localProxyUrl: 'http://localhost:3001/api/noaa',
-  fallbackProxyUrl: 'https://corsproxy.io/?',
+  // Only use the CORS proxy during development to work around local restrictions
+  fallbackProxyUrl: IS_DEV ? 'https://corsproxy.io/?' : '',
   corsProxyUrl: 'https://cors-anywhere.herokuapp.com/'
 };
 
