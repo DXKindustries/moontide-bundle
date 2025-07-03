@@ -49,8 +49,11 @@ const MoonPhase = ({
   });
 
   // Calculate the actual moon phase for today
-  const currentDate = new Date(date);
-  const actualMoonPhase = calculateMoonPhase(currentDate);
+  const currentDate = React.useMemo(() => new Date(date), [date]);
+  const actualMoonPhase = React.useMemo(
+    () => calculateMoonPhase(currentDate),
+    [currentDate]
+  );
 
   const actualPhase = actualMoonPhase.phase;
   const actualIllumination = actualMoonPhase.illumination;
@@ -62,7 +65,10 @@ const MoonPhase = ({
   const lat = currentLocation?.lat || 41.4353; // Default to Newport, RI
   const lng = currentLocation?.lng || -71.4616;
 
-  const solarTimes = calculateSolarTimes(currentDate, lat, lng);
+  const solarTimes = React.useMemo(
+    () => calculateSolarTimes(currentDate, lat, lng),
+    [currentDate, lat, lng]
+  );
 
   return (
     <div className="w-full">

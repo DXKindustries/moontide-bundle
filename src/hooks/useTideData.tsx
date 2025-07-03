@@ -103,6 +103,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           dateIso,
           7
         );
+        console.log('🌊 NOAA predictions length:', predictions.length);
 
         // Fetch detailed six-minute data around today for smooth chart lines
         const rangeStart = new Date();
@@ -124,6 +125,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         );
+        console.log('🌊 NOAA six-minute raw:', detailedRaw);
         const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
           ? detailedRaw.predictions.map((p: { t: string; v: string }) => ({
               time: `${p.t.replace(' ', 'T')}:00`,
