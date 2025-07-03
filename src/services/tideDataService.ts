@@ -3,6 +3,10 @@
 //  Fetch 7-day tide data for the given NOAA station
 //--------------------------------------------------------------
 
+import { IS_DEV } from './env';
+
+const NOAA_DATA_BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+
 export interface Prediction {
   /** ISO date-time in the station’s local time zone (e.g. “2025-06-25T04:36:00”) */
   timeIso: string;
@@ -23,8 +27,29 @@ export async function getTideData(
     throw new Error('Invalid parameters for tide data request');
   }
 
-  /* --- hit our proxy ------------------------------------------------------ */
-  const resp = await fetch(`/tides?stationId=${stationId}&date=${yyyymmdd}`);
+  /* --- build fetch URL ---------------------------------------------------- */
+  const start = new Date(dateIso);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+
+  const format = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
+
+  const url = IS_DEV
+    ? `/tides?stationId=${stationId}&date=${yyyymmdd}`
+    : `${NOAA_DATA_BASE}?${new URLSearchParams({
+        product: 'predictions',
+        application: 'LunarWaveWatcher',
+        format: 'json',
+        datum: 'MLLW',
+        time_zone: 'lst_ldt',
+        interval: 'hilo',
+        units: 'english',
+        station: stationId,
+        begin_date: format(start),
+        end_date: format(end),
+      }).toString()}`;
+
+  const resp = await fetch(url);
   if (!resp.ok) throw new Error('Unable to fetch tide data');
 
   const raw = await resp.json();
