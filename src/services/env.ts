@@ -6,8 +6,10 @@
 // Capacitor builds sometimes miss `process.env.NODE_ENV`, so check
 // both values to decide.
 
-const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : undefined;
 const viteMode = typeof import.meta !== 'undefined' ? import.meta.env.MODE : undefined;
+const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : undefined;
 
-export const IS_DEV = nodeEnv === 'development' || viteMode === 'development';
+export const IS_DEV = typeof viteMode !== 'undefined'
+  ? viteMode === 'development'
+  : nodeEnv === 'development';
 
