@@ -71,3 +71,10 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Where is NOAA tide data stored?
+
+The mobile APK functions primarily as a frontend. It fetches live NOAA data at
+runtime, but the results are cached locally using SQLite (or
+`localStorage`/`SharedPreferences` on platforms that do not support SQLite). This
+allows the last retrieved tide information to remain available when offline.

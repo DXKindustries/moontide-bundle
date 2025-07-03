@@ -5,7 +5,12 @@
 
 import { IS_DEV } from './env';
 
-const NOAA_DATA_BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+// Automatically switch API URL based on environment
+const API_URL = IS_DEV
+  ? '/noaa-proxy'
+  : 'https://api.tidesandcurrents.noaa.gov';
+
+const NOAA_DATA_BASE = `${API_URL}/api/prod/datagetter`;
 
 export interface Prediction {
   /** ISO date-time in the station’s local time zone (e.g. “2025-06-25T04:36:00”) */
@@ -48,11 +53,20 @@ export async function getTideData(
         begin_date: format(start),
         end_date: format(end),
       }).toString()}`;
-
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error('Unable to fetch tide data');
-
-  const raw = await resp.json();
+  console.log('📡 getTideData fetch:', { stationId, url });
+  let raw: any;
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      console.error('❌ NOAA response error', resp.status);
+      throw new Error('Unable to fetch tide data');
+    }
+    raw = await resp.json();
+    console.log('🌊 NOAA raw response', raw);
+  } catch (err) {
+    console.error('❌ getTideData error', err);
+    throw err;
+  }
 
   /* --- NOAA returns: { predictions:[{ t:"YYYY-MM-DD HH:mm", v:"x.xx", type:"H|L" }, … ] } */
   const list = Array.isArray(raw?.predictions) ? raw.predictions : [];

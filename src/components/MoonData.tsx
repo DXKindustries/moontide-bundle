@@ -41,9 +41,15 @@ const getNextPhaseInfo = (currentPhase: string, currentDate: Date) => {
 
 const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
   // Calculate current moon phase for today
-  const today = new Date();
-  const currentMoonData = calculateMoonPhase(today);
-  const nextPhaseInfo = getNextPhaseInfo(currentMoonData.phase, today);
+  const today = React.useMemo(() => new Date(), []);
+  const currentMoonData = React.useMemo(
+    () => calculateMoonPhase(today),
+    [today]
+  );
+  const nextPhaseInfo = React.useMemo(
+    () => getNextPhaseInfo(currentMoonData.phase, today),
+    [currentMoonData.phase, today]
+  );
 
   return (
     <div className="grid grid-cols-2 gap-4 w-full">
