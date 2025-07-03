@@ -28,8 +28,12 @@ jobs:
       - name: Install JS deps
         run: npm ci
 
-      - name: Add Android platform
-        run: npx cap add android --skip-deps --force
+      # add android platform only if it's missing
+      - name: Ensure Android platform
+        run: |
+          if [ ! -d android/app ]; then
+            npx cap add android --force
+          fi
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -39,7 +43,6 @@ jobs:
           cd android
           ./gradlew assembleDebug
 
-      # ← bumped to v4 (required)
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
