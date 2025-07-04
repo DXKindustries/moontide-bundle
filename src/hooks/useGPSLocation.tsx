@@ -13,7 +13,7 @@ export const useGPSLocation = ({ onLocationSelect, onClose }: UseGPSLocationProp
 
   const handleGPSRequest = () => {
     if (!navigator.geolocation) {
-      toast.error('GPS not supported by this browser');
+      toast.error('GPS not supported on this device');
       return;
     }
 
