@@ -3,14 +3,8 @@
 //  Fetch 7-day tide data for the given NOAA station
 //--------------------------------------------------------------
 
-import { IS_DEV } from './env';
-
-// Automatically switch API URL based on environment
-const API_URL = IS_DEV
-  ? '/noaa-proxy'
-  : 'https://api.tidesandcurrents.noaa.gov';
-
-const NOAA_DATA_BASE = `${API_URL}/api/prod/datagetter`;
+const NOAA_DATA_BASE =
+  'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
 export interface Prediction {
   /** ISO date-time in the station’s local time zone (e.g. “2025-06-25T04:36:00”) */
@@ -39,20 +33,18 @@ export async function getTideData(
 
   const format = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
 
-  const url = IS_DEV
-    ? `/tides?stationId=${stationId}&date=${yyyymmdd}`
-    : `${NOAA_DATA_BASE}?${new URLSearchParams({
-        product: 'predictions',
-        application: 'LunarWaveWatcher',
-        format: 'json',
-        datum: 'MLLW',
-        time_zone: 'lst_ldt',
-        interval: 'hilo',
-        units: 'english',
-        station: stationId,
-        begin_date: format(start),
-        end_date: format(end),
-      }).toString()}`;
+  const url = `${NOAA_DATA_BASE}?${new URLSearchParams({
+    product: 'predictions',
+    application: 'LunarWaveWatcher',
+    format: 'json',
+    datum: 'MLLW',
+    time_zone: 'lst_ldt',
+    interval: 'hilo',
+    units: 'english',
+    station: stationId,
+    begin_date: format(start),
+    end_date: format(end),
+  }).toString()}`;
   console.log('📡 getTideData fetch:', { stationId, url });
   let raw: any;
   try {

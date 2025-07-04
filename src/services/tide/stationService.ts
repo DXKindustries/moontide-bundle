@@ -1,7 +1,6 @@
 // src/services/tide/stationService.ts
 
 import { cacheService } from '../cacheService';
-import { IS_DEV } from '../env';
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 
@@ -29,9 +28,9 @@ export async function getStationsForLocation(
     return cached;
   }
 
-  const url = IS_DEV
-    ? `/noaa-stations?locationInput=${encodeURIComponent(userInput)}`
-    : `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(userInput)}`;
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
+    userInput,
+  )}`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
@@ -46,9 +45,7 @@ export async function getStationById(id: string): Promise<Station | null> {
   const cached = cacheService.get<Station>(key);
   if (cached) return cached;
 
-  const url = IS_DEV
-    ? `/noaa-station/${id}`
-    : `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station');
