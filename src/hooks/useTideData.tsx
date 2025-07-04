@@ -94,6 +94,12 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
         const dateIso = formatDateAsLocalIso(startDate);
+
+        // Debug logging before fetching tide data
+        console.log("ZIP:", location?.zipCode);
+        console.log("Lat/Lng:", location?.latitude, location?.longitude);
+        console.log("Station ID:", station?.id);
+
         console.log('🌐 useTideData getTideData:', {
           stationId: chosen.id,
           date: dateIso
