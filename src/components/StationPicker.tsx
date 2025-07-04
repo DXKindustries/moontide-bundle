@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Station } from '@/services/tide/stationService';
-import { IS_DEV } from '@/services/env';
 
 interface StationPickerProps {
   isOpen: boolean;
@@ -41,9 +40,8 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
   const handleManualSearch = async () => {
     if (!manualId.trim()) return;
     try {
-      const url = IS_DEV
-        ? `/noaa-station/${manualId.trim()}`
-        : `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/${manualId.trim()}.json`;
+      const url =
+        `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/${manualId.trim()}.json`;
       const response = await fetch(url);
       if (!response.ok) {
         toast.error('Station not found');

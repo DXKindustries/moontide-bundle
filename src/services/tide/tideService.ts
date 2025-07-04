@@ -4,16 +4,11 @@
 /*  Live tide fetcher with tiered fallback: 6-min ➜ hourly ➜ high/low         */
 
 import { cacheService } from '../cacheService';
-import { IS_DEV } from '../env';
 
 type NoaaStation = { id: string; name: string; lat: number; lng: number };
 
-// Switch API base URL depending on environment. During development we hit the
-// local proxy to avoid CORS issues.
-const API_URL = IS_DEV
-  ? '/noaa-proxy'
-  : 'https://api.tidesandcurrents.noaa.gov';
-const BASE = `${API_URL}/api/prod/datagetter`;
+const BASE =
+  'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 type Units = 'english' | 'metric';
