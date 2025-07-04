@@ -7,8 +7,8 @@ import { cacheService } from '../cacheService';
 
 type NoaaStation = { id: string; name: string; lat: number; lng: number };
 
-const BASE =
-  'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
+// Always call the NOAA production API directly.
+const BASE = 'https://api.tidesandcurrents.noaa.gov';
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 type Units = 'english' | 'metric';
@@ -35,7 +35,7 @@ const cacheKey = (p: QueryParams) =>
   [p.product, p.station, p.beginDate, p.endDate, p.interval, p.units].join(':');
 
 const buildUrl = (p: QueryParams) =>
-  `${BASE}?${new URLSearchParams({
+  `${BASE}/api/prod/datagetter?${new URLSearchParams({
     product: p.product,
     application: 'MoonTide',
     format: 'json',
