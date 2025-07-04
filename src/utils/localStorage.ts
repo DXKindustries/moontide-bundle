@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 
 /**
- * A bullet-proof wrapper around browser localStorage.
+ * A bullet-proof wrapper around local storage.
  *
  * • All keys are prefixed with "moon:" so we never collide with
  *   other libraries.
