@@ -20,7 +20,6 @@ npm install
 npm run dev
 ```
 
-The server will run on `http://localhost:3001` by default.
 
 ## Usage
 
@@ -33,7 +32,6 @@ GET /api/noaa?url=<NOAA_FULL_URL>
 ### Example
 
 ```bash
-curl "http://localhost:3001/api/noaa?url=https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=MoonTide&format=json&datum=MLLW&time_zone=lst_ldt&units=english&station=8454000&begin_date=20250615&end_date=20250615&interval=hilo"
 ```
 
 ## Environment Variables
