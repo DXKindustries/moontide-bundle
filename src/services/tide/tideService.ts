@@ -3,7 +3,6 @@
 /* -------------------------------------------------------------------------- */
 /*  Live tide fetcher with tiered fallback: 6-min ➜ hourly ➜ high/low         */
 
-import { getProxyConfig } from './proxyConfig';
 import { cacheService } from '../cacheService';
 import { IS_DEV } from '../env';
 
@@ -57,20 +56,8 @@ const buildUrl = (p: QueryParams) =>
 /* ---------- core fetch ---------- */
 
 async function tryFetch(url: string) {
-  const config = getProxyConfig();
-  let fetchUrl = url;
-
-  // When running in the browser, route through a proxy to avoid CORS issues
-  if (typeof window !== 'undefined') {
-    if (config.useLocalProxy) {
-      fetchUrl = `${config.localProxyUrl}?url=${encodeURIComponent(url)}`;
-    } else if (config.fallbackProxyUrl) {
-      fetchUrl = `${config.fallbackProxyUrl}${encodeURIComponent(url)}`;
-    }
-  }
-
   try {
-    const r = await fetch(fetchUrl);
+    const r = await fetch(url);
     if (!r.ok) return { rows: null, err: `HTTP ${r.status}` };
     const data = await r.json();
     const rows = data.predictions ?? data.data ?? null;
