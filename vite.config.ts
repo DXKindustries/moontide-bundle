@@ -14,25 +14,6 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-
-    // Forward API calls to the Moontide proxy (only while running `npm run dev`)
-    proxy:
-      mode === "development"
-        ? {
-            "/noaa-stations": {
-              target: "http://localhost:3001",
-              changeOrigin: true,
-            },
-            "/noaa-station": {
-              target: "http://localhost:3001",
-              changeOrigin: true,
-            },
-            "/tides": {
-              target: "http://localhost:3001",
-              changeOrigin: true,
-            },
-          }
-        : undefined,
   },
 
   // ---------------------------------------------------------------------------
