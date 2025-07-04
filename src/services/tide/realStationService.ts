@@ -1,5 +1,4 @@
 
-import { getProxyConfig } from './proxyConfig';
 
 interface NoaaStationMetadata {
   id: string;
@@ -35,25 +34,6 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   } catch (error) {
     console.log('⚠️ Direct API call failed:', error.message);
   }
-  
-  // Try with proxy
-  const config = getProxyConfig();
-  try {
-    console.log('🌐 Trying proxy for station metadata...');
-    const proxyUrl = `${config.fallbackProxyUrl}${encodeURIComponent(NOAA_STATIONS_API)}`;
-    
-    const response = await fetch(proxyUrl);
-    if (response.ok) {
-      const data = await response.json();
-      const processedData = processStationData(data, 'proxy');
-      if (processedData.length > 0) {
-        return processedData;
-      }
-    }
-  } catch (error) {
-    console.log('⚠️ Proxy call failed:', error.message);
-  }
-  
   // Phase 1: No more mock data fallbacks - throw error if no live data available
   console.error('❌ All attempts to fetch live NOAA station data failed');
   throw new Error('Unable to fetch live station data from NOAA. Please check your internet connection.');
