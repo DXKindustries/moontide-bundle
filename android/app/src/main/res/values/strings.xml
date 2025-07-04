@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MoonTide</string>
+    <string name="title_activity_main">MoonTide</string>
+    <string name="package_name">com.example.moontide</string>
+    <string name="custom_url_scheme">com.example.moontide</string>
+</resources>
