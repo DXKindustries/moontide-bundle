@@ -77,7 +77,12 @@ const Index = () => {
           toast.error('No NOAA stations found for this location.');
         } else {
           setAvailableStations(stations);
-          setShowStationPicker(true);
+          if (stations.length === 1) {
+            setSelectedStation(stations[0]);
+            setShowStationPicker(false);
+          } else {
+            setShowStationPicker(true);
+          }
         }
       })
       .catch(() => {

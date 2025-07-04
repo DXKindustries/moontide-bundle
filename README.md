@@ -75,6 +75,8 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 ## Where is NOAA tide data stored?
 
 The mobile APK functions primarily as a frontend. It fetches live NOAA data at
-runtime, but the results are cached locally using SQLite (or
-`localStorage`/`SharedPreferences` on platforms that do not support SQLite). This
-allows the last retrieved tide information to remain available when offline.
+runtime **directly from** `https://api.tidesandcurrents.noaa.gov` without any
+intermediate servers. The results are cached locally using SQLite (or
+`localStorage`/`SharedPreferences` on platforms that do not support SQLite).
+This allows the last retrieved tide information to remain available when
+offline.
