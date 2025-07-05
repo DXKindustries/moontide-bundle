@@ -83,3 +83,54 @@ export async function getStationById(id: string): Promise<Station | null> {
   cacheService.set(key, station, STATION_CACHE_TTL);
   return station;
 }
+
+/**
+ * Sort NOAA station results with the most relevant first.
+ * - Filters out stations that do not support the water_level product.
+ * - Prefers reference stations (type "R").
+ * - Optionally prioritizes stations whose name contains the resolved city.
+ * - Sorts by distance from the provided lat/lon when available.
+ */
+export function sortStationsForDefault(
+  stations: Station[],
+  lat?: number,
+  lon?: number,
+  city?: string,
+): Station[] {
+  const cityLower = city?.toLowerCase() ?? '';
+
+  const getDist = (s: Station) => {
+    if (s.distance != null) return s.distance;
+    if (
+      lat != null &&
+      lon != null &&
+      typeof s.latitude === 'number' &&
+      typeof s.longitude === 'number'
+    ) {
+      // Lazy import to avoid circular deps
+      const { getDistanceKm } = require('./geo');
+      return getDistanceKm(lat, lon, s.latitude, s.longitude);
+    }
+    return Infinity;
+  };
+
+  return stations
+    .filter((s) => {
+      const products: string[] = (s as any).products || [];
+      return !products.length || products.includes('water_level');
+    })
+    .sort((a, b) => {
+      // city match
+      const aCity = cityLower && a.name.toLowerCase().includes(cityLower);
+      const bCity = cityLower && b.name.toLowerCase().includes(cityLower);
+      if (aCity !== bCity) return aCity ? -1 : 1;
+
+      // type preference
+      const aRef = (a as any).type === 'R';
+      const bRef = (b as any).type === 'R';
+      if (aRef !== bRef) return aRef ? -1 : 1;
+
+      // distance
+      return getDist(a) - getDist(b);
+    });
+}
