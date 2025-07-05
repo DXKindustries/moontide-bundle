@@ -19,14 +19,16 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
   const [manualId, setManualId] = useState('');
 
   useEffect(() => {
-    if (selectedId === '' && stations.length > 0) {
+    if (stations.length > 0) {
       if (currentStationId && stations.some(s => s.id === currentStationId)) {
         setSelectedId(currentStationId);
       } else {
         setSelectedId(stations[0].id);
       }
+    } else {
+      setSelectedId('');
     }
-  }, [selectedId, stations, currentStationId]);
+  }, [stations, currentStationId]);
 
   const handleConfirm = () => {
     const station = stations.find((s) => s.id === selectedId);
@@ -61,7 +63,7 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-w-[100vw] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>Select NOAA Station</DialogTitle>
       </DialogHeader>
@@ -91,9 +93,14 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleConfirm} className="w-full">
-            Use Station
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirm} className="flex-1">
+              Use Station
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
