@@ -38,17 +38,21 @@ jobs:
             npx cap add android
           fi
 
-      # 5) Copy web assets & plugins into android/
+      # 5) Build the web assets used by Capacitor
+      - name: Build web assets
+        run: npm run build
+
+      # 6) Copy web assets & plugins into android/
       - name: Sync Capacitor
         run: npx cap sync android
 
-      # 6) Build the debug APK
+      # 7) Build the debug APK
       - name: Build debug APK
         run: |
           cd android
           ./gradlew assembleDebug
 
-      # 7) Upload the APK artifact
+      # 8) Upload the APK artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
