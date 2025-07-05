@@ -117,6 +117,11 @@ export const useLocationState = () => {
     [],
   );
 
+  // Log whenever the selected station changes so we can verify stationId
+  useEffect(() => {
+    console.log('📡 Selected station updated:', selectedStation?.id);
+  }, [selectedStation]);
+
   /* ---------- side-effect: update page title on location change ---------- */
 
   useEffect(() => {
