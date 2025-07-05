@@ -57,7 +57,35 @@ export async function getStationsNearCoordinates(
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
-  const stations = data.stations || [];
+  const rawStations = (data.stations || []) as Station[];
+
+  const { getDistanceKm } = require('./geo');
+
+  const stations = rawStations
+    .map((s) => {
+      const latValue = parseFloat((s as any).lat ?? (s as any).latitude);
+      const lonValue = parseFloat(
+        (s as any).lon ?? (s as any).lng ?? (s as any).longitude,
+      );
+      const distance =
+        Number.isFinite(latValue) && Number.isFinite(lonValue)
+          ? getDistanceKm(lat, lon, latValue, lonValue)
+          : Infinity;
+      return {
+        ...s,
+        latitude: latValue,
+        longitude: lonValue,
+        distance,
+      } as Station;
+    })
+    .filter((s) => {
+      const products: string[] = (s as any).products || [];
+      const supportsTide =
+        products.includes('tidepredictions') || products.includes('water_level');
+      return supportsTide && s.distance !== undefined && s.distance <= radiusKm;
+    })
+    .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+
   cacheService.set(key, stations, STATION_CACHE_TTL);
   return stations;
 }

@@ -74,7 +74,7 @@ const Index = () => {
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
           setShowStationPicker(false);
-          toast.error('No NOAA stations found for this location.');
+          toast.error('No tide stations found nearby — try another ZIP or location.');
         } else {
           const sorted = sortStationsForDefault(
             stations,
