@@ -24,8 +24,8 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
         country: 'USA',
         zipCode: newLocation.zipCode || '',
         cityState: `${newLocation.city}, ${newLocation.state}`,
-        lat: newLocation.lat || 0,
-        lng: newLocation.lng || 0,
+        lat: newLocation.lat ?? null,
+        lng: newLocation.lng ?? null,
       };
     }
 

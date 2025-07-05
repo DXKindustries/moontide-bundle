@@ -77,8 +77,8 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
         country: "USA",
         zipCode: location.zipCode || '',
         cityState: `${location.city}, ${location.state}`,
-        lat: location.lat || 0,
-        lng: location.lng || 0
+        lat: location.lat ?? null,
+        lng: location.lng ?? null
       };
       
       console.log('🔄 LocationManager: Converting and setting location');
