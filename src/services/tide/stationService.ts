@@ -63,10 +63,14 @@ export async function getStationsNearCoordinates(
 
   const stations = rawStations
     .map((s: any) => {
-      const sLat = typeof s.lat === 'number' ? s.lat : s.latitude;
-      const sLon = typeof s.lng === 'number' ? s.lng : s.longitude;
+      const latRaw = s.lat ?? s.latitude;
+      const lonRaw = s.lng ?? s.longitude;
+      const sLat =
+        typeof latRaw === 'number' ? latRaw : parseFloat(latRaw ?? '');
+      const sLon =
+        typeof lonRaw === 'number' ? lonRaw : parseFloat(lonRaw ?? '');
       const distance =
-        typeof sLat === 'number' && typeof sLon === 'number'
+        !isNaN(sLat) && !isNaN(sLon)
           ? getDistanceKm(lat, lon, sLat, sLon)
           : Infinity;
       return { ...s, distance };
