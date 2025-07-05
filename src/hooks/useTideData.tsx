@@ -96,16 +96,17 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         const dateIso = formatDateAsLocalIso(startDate);
 
         // Debug logging before fetching tide data
-        console.log("ZIP:", location?.zipCode);
-        console.log("Lat/Lng:", location?.latitude, location?.longitude);
-        console.log("Station ID:", station?.id);
+        console.log('📍 Selected station id:', station?.id);
+        console.log('ZIP:', location?.zipCode);
+        console.log('Lat/Lng:', location?.lat, location?.lng);
 
+        const idStr = String(chosen.id);
         console.log('🌐 useTideData getTideData:', {
-          stationId: chosen.id,
+          stationId: idStr,
           date: dateIso
         });
         const predictions: Prediction[] = await getTideData(
-          chosen.id,
+          idStr,
           dateIso,
           7
         );
@@ -117,13 +118,13 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         const rangeEnd = new Date();
         rangeEnd.setDate(rangeEnd.getDate() + 1);
         console.log('🌐 useTideData fetchSixMinuteRange:', {
-          stationId: chosen.id,
+          stationId: idStr,
           rangeStart,
           rangeEnd
         });
         const detailedRaw = await fetchSixMinuteRange(
           {
-            id: chosen.id,
+            id: idStr,
             name: chosen.name,
             lat: chosen.latitude,
             lng: chosen.longitude
@@ -203,7 +204,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setCurrentDate(getCurrentIsoDateString());
         setCurrentTime(getCurrentTimeString());
         setStationName(chosen.name || location.name || null);
-        setStationId(chosen.id);
+        setStationId(idStr);
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
