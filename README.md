@@ -80,3 +80,31 @@ intermediate servers. The results are cached locally using SQLite (or
 `localStorage`/`SharedPreferences` on platforms that do not support SQLite).
 This allows the last retrieved tide information to remain available when
 offline.
+
+## How do I build the Android debug APK?
+
+Follow these steps to produce a debug build of the Android application:
+
+1. Install dependencies:
+   ```sh
+   npm install
+   ```
+2. Generate the web assets:
+   ```sh
+   npm run build
+   ```
+3. Add the Android platform if it doesn't already exist:
+   ```sh
+   npx cap add android
+   ```
+4. Sync Capacitor files:
+   ```sh
+   npx cap sync android
+   ```
+5. Build the APK:
+   ```sh
+   cd android && ./gradlew assembleDebug
+   ```
+
+The generated APK can be found at
+`android/app/build/outputs/apk/debug/app-debug.apk`.
