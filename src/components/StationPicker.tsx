@@ -82,7 +82,7 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
             <SelectTrigger>
               <SelectValue placeholder="Choose station" />
             </SelectTrigger>
-            <SelectContent className="max-h-40">
+            <SelectContent className="max-h-40 max-w-[90vw]">
               {stations.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.name}
