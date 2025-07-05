@@ -10,6 +10,7 @@ import SolarInfo from './SolarInfo';
 import OnboardingInfo from './OnboardingInfo';
 import LocationInfo from './LocationInfo';
 import { LocationData } from '@/types/locationTypes';
+import { SavedLocation } from './LocationSelector';
 
 type MoonPhaseProps = {
   phase: string;
@@ -18,7 +19,7 @@ type MoonPhaseProps = {
   moonset: string;
   date: string;
   className?: string;
-  currentLocation?: any;
+  currentLocation?: (SavedLocation & { id: string; country: string }) | null;
   stationName?: string | null;
   stationId?: string | null;
   error?: string | null;
@@ -62,8 +63,8 @@ const MoonPhase = ({
   const fullMoonName = isFullMoon(actualPhase) ? getFullMoonName(currentDate) : null;
 
   // Calculate solar times using location coordinates or defaults
-  const lat = currentLocation?.lat || 41.4353; // Default to Newport, RI
-  const lng = currentLocation?.lng || -71.4616;
+  const lat = currentLocation?.lat ?? 41.4353; // Default to Newport, RI
+  const lng = currentLocation?.lng ?? -71.4616;
 
   const solarTimes = React.useMemo(
     () => calculateSolarTimes(currentDate, lat, lng),
