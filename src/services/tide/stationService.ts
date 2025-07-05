@@ -40,6 +40,28 @@ export async function getStationsForLocation(
   return stations;
 }
 
+export async function getStationsNearCoordinates(
+  lat: number,
+  lon: number,
+  radiusKm = 100,
+): Promise<Station[]> {
+  const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+
+  const cached = cacheService.get<Station[]>(key);
+  if (cached) {
+    return cached;
+  }
+
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Unable to fetch station list.');
+  const data = await response.json();
+  const stations = data.stations || [];
+  cacheService.set(key, stations, STATION_CACHE_TTL);
+  return stations;
+}
+
 export async function getStationById(id: string): Promise<Station | null> {
   const key = `station:${id}`;
   const cached = cacheService.get<Station>(key);
