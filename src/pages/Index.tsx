@@ -10,7 +10,7 @@ import { useLocationState } from '@/hooks/useLocationState';
 import LocationManager from '@/components/LocationManager';
 import StationPicker from '@/components/StationPicker';
 import { getStationsForLocationInput } from '@/services/locationService';
-import { Station } from '@/services/tide/stationService';
+import { Station, sortStationsForDefault } from '@/services/tide/stationService';
 
 const Index = () => {
   console.log('🚀 Index component rendering...');
@@ -76,9 +76,15 @@ const Index = () => {
           setShowStationPicker(false);
           toast.error('No NOAA stations found for this location.');
         } else {
-          setAvailableStations(stations);
-          if (stations.length === 1) {
-            setSelectedStation(stations[0]);
+          const sorted = sortStationsForDefault(
+            stations,
+            currentLocation.lat ?? undefined,
+            currentLocation.lng ?? undefined,
+            currentLocation.cityState?.split(',')[0],
+          );
+          setAvailableStations(sorted);
+          if (sorted.length === 1) {
+            setSelectedStation(sorted[0]);
             setShowStationPicker(false);
           } else {
             setShowStationPicker(true);
