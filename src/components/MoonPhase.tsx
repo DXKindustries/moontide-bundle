@@ -8,7 +8,6 @@ import MoonVisual from './MoonVisual';
 import MoonData from './MoonData';
 import SolarInfo from './SolarInfo';
 import OnboardingInfo from './OnboardingInfo';
-import LocationInfo from './LocationInfo';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
 
@@ -97,14 +96,7 @@ const MoonPhase = ({
           <div className="border-t border-muted pt-4 w-full space-y-4">
             <SolarInfo solarTimes={solarTimes} />
 
-            {hasLocation ? (
-              <LocationInfo
-                currentLocation={currentLocation}
-                stationName={stationName}
-                stationId={stationId}
-                error={error}
-              />
-            ) : (
+            {!hasLocation && (
               <OnboardingInfo onGetStarted={onGetStarted || (() => {})} />
             )}
           </div>

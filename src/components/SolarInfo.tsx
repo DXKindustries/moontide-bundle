@@ -14,8 +14,9 @@ const SolarInfo = ({ solarTimes }: SolarInfoProps) => {
   const isGettingShorter = solarTimes.changeFromPrevious?.includes('-') || solarTimes.changeFromPrevious?.includes('shorter');
 
   return (
-    <div className="bg-muted/20 backdrop-blur-sm py-2 px-3 rounded-lg">
-      <div className="flex justify-between items-center text-xs gap-4">
+    <div className="bg-muted/20 backdrop-blur-sm py-2 px-3 rounded-lg text-xs space-y-1">
+      <div className="font-bold">Daylight Duration</div>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         {/* Sunrise */}
         <div className="flex items-center gap-1">
           <Sunrise className="h-3 w-3 text-orange-400" />
@@ -39,12 +40,18 @@ const SolarInfo = ({ solarTimes }: SolarInfoProps) => {
           <div className="flex items-center gap-1">
             {isGettingLonger && <TrendingUp className="h-3 w-3 text-green-400" />}
             {isGettingShorter && <TrendingDown className="h-3 w-3 text-red-400" />}
-            {!isGettingLonger && !isGettingShorter && <Clock className="h-3 w-3 text-muted-foreground" />}
-            <span className={`font-semibold ${
-              isGettingLonger ? 'text-green-400' : 
-              isGettingShorter ? 'text-red-400' : 
-              'text-muted-foreground'
-            }`}>
+            {!isGettingLonger && !isGettingShorter && (
+              <Clock className="h-3 w-3 text-muted-foreground" />
+            )}
+            <span
+              className={`font-semibold ${
+                isGettingLonger
+                  ? 'text-green-400'
+                  : isGettingShorter
+                    ? 'text-red-400'
+                    : 'text-muted-foreground'
+              }`}
+            >
               {solarTimes.changeFromPrevious}
             </span>
           </div>
