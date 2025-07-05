@@ -69,7 +69,7 @@ const Index = () => {
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
     setIsStationLoading(true);
-    getStationsForLocationInput(input)
+    getStationsForLocationInput(input, currentLocation.lat, currentLocation.lng)
       .then((stations) => {
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
