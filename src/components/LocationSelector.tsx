@@ -113,7 +113,7 @@ export default function LocationSelector({
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-80 p-0 bg-background border shadow-lg z-50">
+      <DropdownMenuContent className="w-[90vw] max-w-md p-0 bg-background border shadow-lg z-50 sm:w-80">
         {showAddNew ? (
           <div className="p-4">
             <div className="flex items-center gap-2 mb-4">
