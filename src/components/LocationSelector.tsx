@@ -11,13 +11,13 @@ import { Station } from '@/services/tide/stationService';
 
 // Keep the SavedLocation interface for backward compatibility
 export interface SavedLocation {
-  id?: string;         
-  name: string;        
-  country?: string;    
-  zipCode: string;     
-  cityState: string;   
-  lat: number;
-  lng: number;
+  id?: string;
+  name: string;
+  country?: string;
+  zipCode: string;
+  cityState: string;
+  lat: number | null;
+  lng: number | null;
 }
 
 export default function LocationSelector({
@@ -62,8 +62,8 @@ export default function LocationSelector({
       country: 'USA',
       zipCode: location.zipCode,
       cityState: `${location.city}, ${location.state}`,
-      lat: location.lat || 0,
-      lng: location.lng || 0
+      lat: location.lat ?? null,
+      lng: location.lng ?? null
     };
 
     onSelect(savedLocation);
@@ -88,8 +88,8 @@ export default function LocationSelector({
       country: 'USA',
       zipCode: location.zipCode,
       cityState: `${location.city}, ${location.state}`,
-      lat: location.lat || 0,
-      lng: location.lng || 0
+      lat: location.lat ?? null,
+      lng: location.lng ?? null
     };
 
     onSelect(savedLocation);

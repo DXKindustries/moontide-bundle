@@ -161,8 +161,8 @@ export default function LocationSearchInput({
           country: 'USA',
           zipCode: '', // No ZIP for manual entry
           cityState,
-          lat: 0, // Manual entries don't have coordinates
-          lng: 0,
+          lat: null, // Manual entries don't have coordinates
+          lng: null,
         };
       }
       
