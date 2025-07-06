@@ -20,6 +20,8 @@ export async function getStationsForUserLocation(
   if (lat != null && lon != null) {
     const nearby = await getStationsNearCoordinates(lat, lon);
     if (nearby.length > 0) return nearby;
+    console.log('🔄 Falling back to name search with distance filter');
+    return getStationsForLocation(userInput, lat, lon);
   }
   return getStationsForLocation(userInput);
 }

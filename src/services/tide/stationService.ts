@@ -19,9 +19,17 @@ export interface Station {
 
 // Always fetch from backend API (dynamic, live, no mock data)
 export async function getStationsForLocation(
-  userInput: string
+  userInput: string,
+  lat?: number,
+  lon?: number,
+  radiusKm = 100,
 ): Promise<Station[]> {
-  const key = `stations:${userInput.toLowerCase()}`;
+  const key =
+    lat != null && lon != null
+      ? `stations:${userInput.toLowerCase()}:${lat.toFixed(3)},${lon.toFixed(
+          3,
+        )},${radiusKm}`
+      : `stations:${userInput.toLowerCase()}`;
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
@@ -33,16 +41,39 @@ export async function getStationsForLocation(
   )}`;
 
   const response = await fetch(url);
-  if (!response.ok) throw new Error("Unable to fetch station list.");
+  if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
   console.log('📦 NOAA full response:', data);
-  const stations = data.stations || [];
-  console.log(
-    stations.length > 0 ? '✅ Stations found' : '❌ No stations found',
-  );
-  cacheService.set(key, stations, STATION_CACHE_TTL);
-  console.log('🏁 Returning stations:', stations);
-  return stations;
+  let rawStations: Station[] = data.stations || [];
+  console.log('📄 Raw stations returned:', rawStations.length);
+
+  if (lat != null && lon != null && rawStations.length > 0) {
+    const { getDistanceKm } = require('./geo');
+    rawStations = rawStations
+      .map((s: any) => {
+        const latRaw = s.lat ?? s.latitude;
+        const lonRaw = s.lng ?? s.longitude;
+        const sLat =
+          typeof latRaw === 'number' ? latRaw : parseFloat(latRaw ?? '');
+        const sLon =
+          typeof lonRaw === 'number' ? lonRaw : parseFloat(lonRaw ?? '');
+        const distance =
+          !isNaN(sLat) && !isNaN(sLon)
+            ? getDistanceKm(lat, lon, sLat, sLon)
+            : Infinity;
+        return { ...s, distance };
+      })
+      .filter((s: any) => s.distance <= radiusKm)
+      .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+
+    console.log(
+      `📊 Filtered to ${rawStations.length} stations within ${radiusKm}km`,
+    );
+  }
+
+  cacheService.set(key, rawStations, STATION_CACHE_TTL);
+  console.log('🏁 Returning stations:', rawStations);
+  return rawStations;
 }
 
 export async function getStationsNearCoordinates(
