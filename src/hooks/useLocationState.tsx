@@ -40,7 +40,6 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
   } catch (error) {
     console.warn('⚠️ Error reading location from storage:', error);
   }
-
   return null;
 }
 
@@ -61,27 +60,22 @@ export const useLocationState = () => {
 
   const [currentLocation, setCurrentLocation] = useState<
     (SavedLocation & { id: string; country: string }) | null
-  >(() => {
-    console.log('📍 Initializing currentLocation state...');
-    return initialLocation;
-  });
+  >(initialLocation);
 
-  const [showLocationSelector, setShowLocationSelector] = useState(() =>
+  const [showLocationSelector, setShowLocationSelector] = useState(
     !initialLocation && !initialStation
   );
 
-  const [selectedStation, setSelectedStation] = useState<Station | null>(() =>
+  const [selectedStation, setSelectedStation] = useState<Station | null>(
     initialStation
   );
 
   const routerLocation = useRouterLocation();
 
-  // Close any open location selector when navigating to a new route
+  // Close location selector on route change
   useEffect(() => {
     setShowLocationSelector(false);
   }, [routerLocation.pathname]);
-
-  /* ---------- setters with logging / persistence ---------- */
 
   const setCurrentLocationWithLogging = useCallback(
     (location: (SavedLocation & { id: string; country: string }) | null) => {
@@ -96,72 +90,75 @@ export const useLocationState = () => {
         ) {
           return prev;
         }
+        
+        try {
+          if (location) {
+            safeLocalStorage.set(CURRENT_LOCATION_KEY, location);
+          } else {
+            safeLocalStorage.remove(CURRENT_LOCATION_KEY);
+          }
+        } catch (err) {
+          console.warn('⚠️ Error persisting location:', err);
+        }
+        
         return location;
       });
-      
-      console.log(
-        location
-          ? '✅ useLocationState: User now has a location'
-          : '🎯 useLocationState: User has no location'
-      );
     },
     []
   );
 
   const setSelectedStationWithPersist = useCallback(
     (station: Station | null) => {
+      console.log('📡 Updating station to:', station?.id || 'null');
       setSelectedStation(station);
+      
       try {
-        safeLocalStorage.set(CURRENT_STATION_KEY, station);
+        if (station) {
+          safeLocalStorage.set(CURRENT_STATION_KEY, station);
+        } else {
+          safeLocalStorage.remove(CURRENT_STATION_KEY);
+        }
       } catch (err) {
-        console.warn('⚠️ Error saving station selection:', err);
+        console.warn('⚠️ Error persisting station:', err);
       }
     },
     []
   );
 
-  // Log whenever the selected station changes so we can verify stationId
+  // Update document title when location changes
   useEffect(() => {
-    console.log('📡 Selected station updated:', selectedStation?.id);
-  }, [selectedStation]);
+    if (!currentLocation) return;
+    
+    console.log('📝 Updating document title for location:', currentLocation.name);
+    document.title = `MoonTide - ${currentLocation.name}`;
+  }, [currentLocation?.name]);
 
-  /* ---------- side-effect: update page title on location change ---------- */
-
+  // Initial sync with storage
   useEffect(() => {
-    console.log(
-      '📝 useLocationState useEffect: Setting document title for location:',
-      currentLocation?.name
-    );
-    document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
-    console.log(
-      '🔄 useLocationState useEffect: Location state change detected - hasLocation:',
-      !!currentLocation
-    );
-  }, [currentLocation]);
-
-  // Sync state with storage on mount so navigation between pages keeps location
-  useEffect(() => {
+    console.log('🔁 Syncing initial location state');
     const storedLocation = getInitialLocation();
-    if (storedLocation) {
+    const storedStation = getInitialStation();
+    
+    if (storedLocation && !currentLocation) {
       setCurrentLocationWithLogging(storedLocation);
     }
-
-    const storedStation = getInitialStation();
-    if (storedStation) {
+    
+    if (storedStation && !selectedStation) {
       setSelectedStationWithPersist(storedStation);
     }
   }, []);
 
-  // Keep modal visibility in sync with stored location and station
+  // Manage location selector visibility
   useEffect(() => {
-    if (currentLocation && selectedStation) {
-      setShowLocationSelector(false);
-    } else if (!currentLocation && !selectedStation) {
-      setShowLocationSelector(true);
+    const hasLocation = !!currentLocation;
+    const hasStation = !!selectedStation;
+    const shouldShowSelector = !hasLocation && !hasStation;
+    
+    if (showLocationSelector !== shouldShowSelector) {
+      console.log('🔄 Updating location selector visibility:', shouldShowSelector);
+      setShowLocationSelector(shouldShowSelector);
     }
-  }, [currentLocation, selectedStation]);
-
-  /* ---------- what the hook exposes ---------- */
+  }, [currentLocation, selectedStation, showLocationSelector]);
 
   return {
     currentLocation,
@@ -170,5 +167,7 @@ export const useLocationState = () => {
     setShowLocationSelector,
     selectedStation,
     setSelectedStation: setSelectedStationWithPersist,
+    hasLocation: !!currentLocation,
+    hasStation: !!selectedStation,
   };
 };

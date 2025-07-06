@@ -1,9 +1,8 @@
 // src/services/tide/stationService.ts
-
 import { cacheService } from '../cacheService';
+import { getDistanceKm } from '@/utils/geoUtils';
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
-
 const STATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface Station {
@@ -11,203 +10,190 @@ export interface Station {
   name: string;
   latitude: number;
   longitude: number;
-  zip?: string;
-  city?: string;
   state?: string;
   distance?: number;
-}
-
-// Always fetch from backend API (dynamic, live, no mock data)
-export async function getStationsForLocation(
-  userInput: string,
-  lat?: number,
-  lon?: number,
-  radiusKm = 100,
-): Promise<Station[]> {
-  const key =
-    lat != null && lon != null
-      ? `stations:${userInput.toLowerCase()}:${lat.toFixed(3)},${lon.toFixed(
-          3,
-        )},${radiusKm}`
-      : `stations:${userInput.toLowerCase()}`;
-
-  const cached = cacheService.get<Station[]>(key);
-  if (cached) {
-    return cached;
-  }
-
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
-    userInput,
-  )}`;
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Unable to fetch station list.');
-  const data = await response.json();
-  console.log('📦 NOAA full response:', data);
-  let rawStations: Station[] = data.stations || [];
-  console.log('📄 Raw stations returned:', rawStations.length);
-
-  if (lat != null && lon != null && rawStations.length > 0) {
-    const { getDistanceKm } = require('./geo');
-    rawStations = rawStations
-      .map((s: any) => {
-        const latRaw = s.lat ?? s.latitude;
-        const lonRaw = s.lng ?? s.longitude;
-        const sLat =
-          typeof latRaw === 'number' ? latRaw : parseFloat(latRaw ?? '');
-        const sLon =
-          typeof lonRaw === 'number' ? lonRaw : parseFloat(lonRaw ?? '');
-        const distance =
-          !isNaN(sLat) && !isNaN(sLon)
-            ? getDistanceKm(lat, lon, sLat, sLon)
-            : Infinity;
-        return { ...s, distance };
-      })
-      .filter((s: any) => s.distance <= radiusKm)
-      .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-
-    console.log(
-      `📊 Filtered to ${rawStations.length} stations within ${radiusKm}km`,
-    );
-  }
-
-  cacheService.set(key, rawStations, STATION_CACHE_TTL);
-  console.log('🏁 Returning stations:', rawStations);
-  return rawStations;
+  products?: string[];
+  type?: string;
 }
 
 export async function getStationsNearCoordinates(
   lat: number,
   lon: number,
-  radiusKm = 100,
+  radiusKm = 30
 ): Promise<Station[]> {
-  const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+  const cacheKey = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+  
+  try {
+    // Return cached stations if available
+    const cached = cacheService.get<Station[]>(cacheKey);
+    if (cached?.length) {
+      console.log('📡 Using cached stations:', cached.length);
+      return cached;
+    }
 
-  console.log('🌐 Requesting stations near coordinates:', { lat, lon, radiusKm });
+    console.log('🌐 Fetching stations from NOAA API...');
+    const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`NOAA API request failed with status ${response.status}`);
+    }
 
-  const cached = cacheService.get<Station[]>(key);
-  if (cached) {
-    return cached;
+    const data = await response.json();
+    const rawStations: any[] = data.stations || [];
+    console.log('📦 Raw stations received:', rawStations.length);
+
+    // Process and filter stations
+    const processedStations = rawStations
+      .map(station => {
+        const stationLat = parseFloat(station.lat || station.latitude);
+        const stationLon = parseFloat(station.lng || station.longitude);
+        
+        return {
+          id: station.id,
+          name: station.name,
+          latitude: stationLat,
+          longitude: stationLon,
+          state: station.state,
+          products: station.products,
+          type: station.type,
+          distance: getDistanceKm(lat, lon, stationLat, stationLon)
+        };
+      })
+      .filter(station => {
+        const hasTideData = station.products?.includes('tidepredictions');
+        const withinRadius = station.distance <= radiusKm;
+        const hasValidCoords = !isNaN(station.latitude) && !isNaN(station.longitude);
+        
+        return hasTideData && withinRadius && hasValidCoords;
+      })
+      .sort((a, b) => a.distance - b.distance);
+
+    console.log(`📊 Filtered to ${processedStations.length} valid stations`);
+
+    // Cache only if we have valid stations
+    if (processedStations.length > 0) {
+      cacheService.set(cacheKey, processedStations, STATION_CACHE_TTL);
+    }
+
+    return processedStations;
+  } catch (error) {
+    console.error('Failed to fetch stations:', error);
+    throw error;
   }
+}
 
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
-
-  console.log('➡️ NOAA stations request:', url);
-  const response = await fetch(url);
-  console.log('⬅️ NOAA response status:', response.status);
-  if (!response.ok) throw new Error('Unable to fetch station list.');
-  const data = await response.json();
-  console.log('📦 NOAA full response:', data);
-  const rawStations: Station[] = data.stations || [];
-  console.log('📄 Raw stations returned:', rawStations.length);
-  console.log(
-    '📝 Raw station IDs:',
-    rawStations.map((s: any) => `${s.id}:${s.name}`).join(', '),
-  );
-
-  const { getDistanceKm } = require('./geo');
-
-  const stations = rawStations
-    .map((s: any) => {
-      const latRaw = s.lat ?? s.latitude;
-      const lonRaw = s.lng ?? s.longitude;
-      const sLat =
-        typeof latRaw === 'number' ? latRaw : parseFloat(latRaw ?? '');
-      const sLon =
-        typeof lonRaw === 'number' ? lonRaw : parseFloat(lonRaw ?? '');
-      const distance =
-        !isNaN(sLat) && !isNaN(sLon)
-          ? getDistanceKm(lat, lon, sLat, sLon)
-          : Infinity;
-      return { ...s, distance };
-    })
-    .filter((s: any) => {
-      const products: string[] = s.products || [];
-      const supportsTide =
-        products.includes('tidepredictions') || products.includes('water_level');
-      return supportsTide && s.distance <= radiusKm;
-    })
-    .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-
-  cacheService.set(key, stations, STATION_CACHE_TTL);
-  console.log('✅ Filtered stations count:', stations.length);
-  console.log(
-    '🏅 Sorted station order:',
-    stations.map((s) => `${s.id}:${s.name}`).join(', '),
-  );
-  console.log('🏁 Returning stations:', stations);
-  return stations;
+export async function getClosestStation(
+  lat: number,
+  lon: number,
+  radiusKm = 30
+): Promise<Station | null> {
+  try {
+    const stations = await getStationsNearCoordinates(lat, lon, radiusKm);
+    if (!stations.length) {
+      console.warn('No stations found within', radiusKm, 'km radius');
+      return null;
+    }
+    return stations[0];
+  } catch (error) {
+    console.error('Failed to find closest station:', error);
+    return null;
+  }
 }
 
 export async function getStationById(id: string): Promise<Station | null> {
-  const key = `station:${id}`;
-  const cached = cacheService.get<Station>(key);
-  if (cached) return cached;
+  const cacheKey = `station:${id}`;
+  
+  try {
+    // Check cache first
+    const cached = cacheService.get<Station>(cacheKey);
+    if (cached) {
+      console.log('📡 Using cached station:', id);
+      return cached;
+    }
 
-  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+    console.log('🌐 Fetching station details from NOAA API:', id);
+    const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`NOAA API request failed with status ${response.status}`);
+    }
 
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Unable to fetch station');
-  const data = await response.json();
-  if (!data.station) return null;
-  const station: Station = {
-    id: data.station.id,
-    name: data.station.name,
-    latitude: data.station.latitude,
-    longitude: data.station.longitude,
-    state: data.station.state,
-  };
-  cacheService.set(key, station, STATION_CACHE_TTL);
-  return station;
+    const data = await response.json();
+    if (!data.station) {
+      console.warn('Station not found:', id);
+      return null;
+    }
+
+    const station: Station = {
+      id: data.station.id,
+      name: data.station.name,
+      latitude: data.station.latitude,
+      longitude: data.station.longitude,
+      state: data.station.state
+    };
+
+    // Cache the station data
+    cacheService.set(cacheKey, station, STATION_CACHE_TTL);
+    return station;
+  } catch (error) {
+    console.error(`Failed to fetch station ${id}:`, error);
+    return null;
+  }
 }
 
-/**
- * Sort NOAA station results with the most relevant first.
- * - Filters out stations that do not support the water_level product.
- * - Prefers reference stations (type "R").
- * - Optionally prioritizes stations whose name contains the resolved city.
- * - Sorts by distance from the provided lat/lon when available.
- */
-export function sortStationsForDefault(
+export function sortStations(
   stations: Station[],
-  lat?: number,
-  lon?: number,
-  city?: string,
+  options?: {
+    lat?: number;
+    lon?: number;
+    city?: string;
+    prioritizeReferenceStations?: boolean;
+  }
 ): Station[] {
-  const cityLower = city?.toLowerCase() ?? '';
+  if (!stations.length) return [];
 
-  const getDist = (s: Station) => {
-    if (s.distance != null) return s.distance;
-    if (
-      lat != null &&
-      lon != null &&
-      typeof s.latitude === 'number' &&
-      typeof s.longitude === 'number'
-    ) {
-      // Lazy import to avoid circular deps
-      const { getDistanceKm } = require('./geo');
-      return getDistanceKm(lat, lon, s.latitude, s.longitude);
+  return [...stations].sort((a, b) => {
+    // 1. Prioritize stations with matching city name
+    if (options?.city) {
+      const cityLower = options.city.toLowerCase();
+      const aHasCity = a.name.toLowerCase().includes(cityLower);
+      const bHasCity = b.name.toLowerCase().includes(cityLower);
+      if (aHasCity !== bHasCity) return aHasCity ? -1 : 1;
     }
-    return Infinity;
-  };
 
-  return stations
-    .filter((s) => {
-      const products: string[] = (s as any).products || [];
-      return !products.length || products.includes('water_level');
-    })
-    .sort((a, b) => {
-      // city match
-      const aCity = cityLower && a.name.toLowerCase().includes(cityLower);
-      const bCity = cityLower && b.name.toLowerCase().includes(cityLower);
-      if (aCity !== bCity) return aCity ? -1 : 1;
+    // 2. Prioritize reference stations (type "R")
+    if (options?.prioritizeReferenceStations) {
+      if (a.type === 'R' && b.type !== 'R') return -1;
+      if (b.type === 'R' && a.type !== 'R') return 1;
+    }
 
-      // type preference
-      const aRef = (a as any).type === 'R';
-      const bRef = (b as any).type === 'R';
-      if (aRef !== bRef) return aRef ? -1 : 1;
+    // 3. Sort by distance if coordinates available
+    if (options?.lat && options?.lon) {
+      const aDistance = a.distance ?? getDistanceKm(options.lat, options.lon, a.latitude, a.longitude);
+      const bDistance = b.distance ?? getDistanceKm(options.lat, options.lon, b.latitude, b.longitude);
+      return aDistance - bDistance;
+    }
 
-      // distance
-      return getDist(a) - getDist(b);
-    });
+    // 4. Fallback to alphabetical
+    return a.name.localeCompare(b.name);
+  });
+}
+
+export async function getStationsForLocation(
+  userInput: string,
+  coords?: { lat: number; lon: number }
+): Promise<Station[]> {
+  if (!coords) {
+    throw new Error('Coordinates are required for station lookup');
+  }
+
+  const stations = await getStationsNearCoordinates(coords.lat, coords.lon);
+  return sortStations(stations, {
+    lat: coords.lat,
+    lon: coords.lon,
+    city: userInput,
+    prioritizeReferenceStations: true
+  });
 }
