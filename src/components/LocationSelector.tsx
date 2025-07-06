@@ -25,13 +25,15 @@ export default function LocationSelector({
   onLocationClear,
   forceOpen,
   onClose,
-  onStationSelect
+  onStationSelect,
+  onStationsFound
 }: {
   onSelect: (loc: SavedLocation) => void;
   onLocationClear?: () => void;
   forceOpen?: boolean;
   onClose?: () => void;
   onStationSelect?: (station: Station) => void;
+  onStationsFound?: (stations: Station[]) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAddNew, setShowAddNew] = useState(false);
@@ -132,6 +134,7 @@ export default function LocationSelector({
               onStationSelect={onStationSelect}
               onLocationClear={handleLocationClear}
               onClose={() => setIsOpen(false)}
+              onStationsFound={onStationsFound}
             />
           </div>
         ) : (

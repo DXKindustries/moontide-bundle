@@ -5,7 +5,7 @@ import { lookupZipCode } from '@/utils/zipCodeLookup';
 import { getCoordinatesForCity } from '@/services/geocodingService';
 import { LocationData } from '@/types/locationTypes';
 import { parseLocationInput, ParsedInput } from '@/utils/locationInputParser';
-import { getStationById } from '@/services/locationService';
+import { getStationById, getStationsForLocationInput } from '@/services/locationService';
 import { Station } from '@/services/tide/stationService';
 
 interface UseLocationSearchProps {
@@ -16,6 +16,7 @@ interface UseLocationSearchProps {
 
 export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }: UseLocationSearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [stations, setStations] = useState<Station[]>([]);
 
   const handleLocationSearch = async (input: string) => {
     if (!input.trim()) {
@@ -31,6 +32,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     }
 
     setIsLoading(true);
+    setStations([]);
     console.log('🔍 Parsed input:', parsed);
 
     try {
@@ -57,16 +59,32 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
           };
         }
       } else if (parsed.type === 'stationName') {
-        location = {
-          zipCode: '',
-          city: parsed.stationName!,
-          state: '',
-          lat: null,
-          lng: null,
-          isManual: true,
-          timestamp: Date.now(),
-        };
-        toast.success(`Location saved: ${parsed.stationName} (manual entry)`);
+        const results = await getStationsForLocationInput(parsed.stationName!);
+        if (results.length === 1) {
+          const station = results[0];
+          onStationSelect?.(station);
+          location = {
+            zipCode: '',
+            city: station.name,
+            state: station.state || '',
+            lat: station.latitude,
+            lng: station.longitude,
+            isManual: false,
+            timestamp: Date.now(),
+          };
+        } else {
+          setStations(results);
+          location = {
+            zipCode: '',
+            city: parsed.stationName!,
+            state: '',
+            lat: null,
+            lng: null,
+            isManual: true,
+            timestamp: Date.now(),
+          };
+          toast.success(`Location saved: ${parsed.stationName} (manual entry)`);
+        }
       }
 
       if (location) {
@@ -163,6 +181,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
 
   return {
     isLoading,
-    handleLocationSearch
+    handleLocationSearch,
+    stations,
   };
 };

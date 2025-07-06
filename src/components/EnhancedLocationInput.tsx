@@ -15,13 +15,14 @@ interface EnhancedLocationInputProps {
   onStationSelect?: (station: Station) => void;
   onLocationClear?: () => void;
   onClose: () => void;
+  onStationsFound?: (stations: Station[]) => void;
 }
 
 interface SavedLocationWithNickname extends LocationData {
   nickname?: string;
 }
 
-export default function EnhancedLocationInput({ onLocationSelect, onStationSelect, onLocationClear, onClose }: EnhancedLocationInputProps) {
+export default function EnhancedLocationInput({ onLocationSelect, onStationSelect, onLocationClear, onClose, onStationsFound }: EnhancedLocationInputProps) {
   const [savedLocations, setSavedLocations] = useState<SavedLocationWithNickname[]>([]);
   const [editingNickname, setEditingNickname] = useState<string | null>(null);
   const [nicknameInput, setNicknameInput] = useState('');
@@ -91,6 +92,7 @@ export default function EnhancedLocationInput({ onLocationSelect, onStationSelec
         onLocationSelect={handleLocationSelect}
         onStationSelect={onStationSelect}
         onClose={onClose}
+        onStationsFound={onStationsFound}
         placeholder="02840 or Newport, RI"
       />
       <div className="-mt-2 space-y-2">

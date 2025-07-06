@@ -10,6 +10,7 @@ interface UnifiedLocationInputProps {
   onLocationSelect: (location: LocationData) => void;
   onStationSelect?: (station: Station) => void;
   onClose?: () => void;
+  onStationsFound?: (stations: Station[]) => void;
   placeholder?: string;
   autoFocus?: boolean;
 }
@@ -18,14 +19,19 @@ export default function UnifiedLocationInput({
   onLocationSelect,
   onStationSelect,
   onClose,
+  onStationsFound,
   placeholder = "ZIP, City State, or NOAA Station Name/ID",
   autoFocus = true
 }: UnifiedLocationInputProps) {
-  const { isLoading: searchLoading, handleLocationSearch } = useLocationSearch({
+  const { isLoading: searchLoading, handleLocationSearch, stations } = useLocationSearch({
     onLocationSelect,
     onStationSelect,
     onClose
   });
+
+  React.useEffect(() => {
+    if (onStationsFound) onStationsFound(stations);
+  }, [stations, onStationsFound]);
 
   const { isLoading: gpsLoading, handleGPSRequest } = useGPSLocation({
     onLocationSelect,
