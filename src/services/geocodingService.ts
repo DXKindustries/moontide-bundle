@@ -28,22 +28,24 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
   try {
     console.log(`🌐 Fetching coordinates from geocoding API for ZIP: ${zipCode}`);
     const response = await fetch(`${GEOCODING_API_BASE}${zipCode}`);
-    
+
     if (!response.ok) {
       throw new Error(`Geocoding API returned ${response.status}`);
     }
-    
-    const data = await response.json();
-    
-    if (data && data.places && data.places.length > 0) {
-      const place = data.places[0];
+
+    const apiData = await response.json();
+    console.log('[ZIP] Raw API response:', apiData);
+
+    if (apiData && apiData.places && apiData.places.length > 0) {
+      const place = apiData.places[0];
       const result = {
         lat: parseFloat(place.latitude),
         lng: parseFloat(place.longitude),
         city: place['place name'],
         state: place['state abbreviation']
       };
-      
+
+      console.log('[ZIP] Derived coordinates:', { lat: result.lat, lng: result.lng });
       console.log(`✅ Geocoded ZIP ${zipCode}:`, result);
       cacheService.set(cacheKey, result, ZIP_CACHE_TTL);
       return result;

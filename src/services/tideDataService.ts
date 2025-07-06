@@ -46,9 +46,11 @@ export async function getTideData(
     end_date: format(end),
   }).toString()}`;
   console.log('📡 getTideData fetch:', { stationId, url });
+  console.log('[TIDE] Fetch URL:', url);
   let raw: any;
   try {
     const resp = await fetch(url);
+    console.log('[TIDE] Response status:', resp.status);
     if (!resp.ok) {
       console.error('❌ NOAA response error', resp.status);
       throw new Error('Unable to fetch tide data');
