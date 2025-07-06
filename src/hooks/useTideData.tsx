@@ -113,6 +113,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           idStr,
           dateIso
         );
+        console.log('✅ Tide data fetched for station', idStr);
         console.log('🌊 NOAA predictions length:', predictions.length);
 
         // Fetch detailed six-minute data around today for smooth chart lines
