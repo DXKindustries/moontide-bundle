@@ -286,22 +286,22 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       }
     };
 
-    // React to changes in the selected location or station
+    // React to changes in the selected location coordinates or station id
     useEffect(() => {
       console.log('[ZIP] Coordinates:', { lat: location?.lat, lng: location?.lng });
       console.log('[ZIP] Station ID:', station?.id);
-      if (location?.lat != null && location?.lng != null && station) {
-        console.log('[TIDE] Fetch URL:', buildNoaaUrl(String(station.id), getCurrentIsoDateString()));
+      if (
+        location?.lat != null &&
+        location?.lng != null &&
+        station?.id
+      ) {
+        console.log(
+          '[TIDE] Fetch URL:',
+          buildNoaaUrl(String(station.id), getCurrentIsoDateString()),
+        );
         fetchTideDataForStation(location, station);
       }
-    }, [location, station]);
-
-  // Refetch when the station id itself changes to avoid race conditions
-  useEffect(() => {
-    if (location && station?.id) {
-      fetchTideDataForStation(location, station);
-    }
-  }, [station?.id]);
+    }, [location?.lat, location?.lng, station?.id]);
 
   return {
     isLoading,
