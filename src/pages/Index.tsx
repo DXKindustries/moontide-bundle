@@ -88,6 +88,7 @@ const Index = () => {
     setIsStationLoading(true);
     getStationsForLocationInput(input, currentLocation.lat, currentLocation.lng)
       .then((stations) => {
+        console.log('📡 Stations API returned', stations.length, 'items');
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
           setShowStationPicker(false);
@@ -99,6 +100,7 @@ const Index = () => {
             currentLocation.lng ?? undefined,
             currentLocation.cityState?.split(',')[0],
           );
+          console.log('📈 Sorted station IDs:', sorted.map(s => s.id));
           setAvailableStations(sorted);
           setShowStationPicker(true); // ← always let user choose
         }

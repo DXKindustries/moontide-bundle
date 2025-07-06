@@ -47,6 +47,8 @@ export async function getStationsNearCoordinates(
 ): Promise<Station[]> {
   const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
 
+  console.log('🌐 Requesting stations near coordinates:', { lat, lon, radiusKm });
+
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
     return cached;
@@ -54,10 +56,13 @@ export async function getStationsNearCoordinates(
 
   const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
 
+  console.log('➡️ NOAA stations request:', url);
   const response = await fetch(url);
+  console.log('⬅️ NOAA response status:', response.status);
   if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
   const rawStations: Station[] = data.stations || [];
+  console.log('📄 Raw stations returned:', rawStations.length);
 
   const { getDistanceKm } = require('./geo');
 
@@ -84,6 +89,7 @@ export async function getStationsNearCoordinates(
     .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
   cacheService.set(key, stations, STATION_CACHE_TTL);
+  console.log('✅ Filtered stations count:', stations.length);
   return stations;
 }
 

@@ -19,6 +19,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
   const [stations, setStations] = useState<Station[]>([]);
 
   const handleLocationSearch = async (input: string) => {
+    console.log('📝 handleLocationSearch input:', input);
     if (!input.trim()) {
       toast.error('Please enter a location');
       return;
