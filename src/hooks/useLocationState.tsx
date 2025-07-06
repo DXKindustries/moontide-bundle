@@ -13,11 +13,10 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
     const newLocation = locationStorage.getCurrentLocation();
     if (
       newLocation &&
-      (newLocation.id || newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
+      (newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
     ) {
       return {
         id:
-          newLocation.id ||
           newLocation.zipCode ||
           `${newLocation.city}-${newLocation.state}`,
         name: newLocation.nickname || newLocation.city,
@@ -29,14 +28,14 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
       };
     }
 
-    const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
+    const saved: any = safeLocalStorage.get(CURRENT_LOCATION_KEY);
     if (
       saved &&
-      (saved.id || saved.zipCode || saved.city || (saved.lat != null && saved.lng != null))
+      (saved.id || saved.zipCode || saved.cityState || (saved.lat != null && saved.lng != null))
     ) {
       return {
         ...saved,
-        id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
+        id: saved.id || saved.zipCode || `${saved.cityState}`,
         country: saved.country || 'USA',
       } as SavedLocation & { id: string; country: string };
     }

@@ -45,7 +45,7 @@ const MoonPhase = ({
     hasCurrentLocation: !!currentLocation,
     hasLocation,
     zipCode: currentLocation?.zipCode,
-    city: currentLocation?.city
+    city: currentLocation?.cityState
   });
 
   // Calculate the actual moon phase for today
