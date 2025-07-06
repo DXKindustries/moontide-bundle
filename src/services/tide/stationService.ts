@@ -63,6 +63,10 @@ export async function getStationsNearCoordinates(
   const data = await response.json();
   const rawStations: Station[] = data.stations || [];
   console.log('📄 Raw stations returned:', rawStations.length);
+  console.log(
+    '📝 Raw station IDs:',
+    rawStations.map((s: any) => `${s.id}:${s.name}`).join(', '),
+  );
 
   const { getDistanceKm } = require('./geo');
 
@@ -90,6 +94,10 @@ export async function getStationsNearCoordinates(
 
   cacheService.set(key, stations, STATION_CACHE_TTL);
   console.log('✅ Filtered stations count:', stations.length);
+  console.log(
+    '🏅 Sorted station order:',
+    stations.map((s) => `${s.id}:${s.name}`).join(', '),
+  );
   return stations;
 }
 

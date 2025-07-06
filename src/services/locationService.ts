@@ -23,6 +23,7 @@ export async function getStationsForLocationInput(
   lat?: number,
   lon?: number,
 ): Promise<Station[]> {
+  console.log('📡 getStationsForLocationInput:', { userInput, lat, lon });
   return getStationsForUserLocation(userInput, lat, lon);
 }
 

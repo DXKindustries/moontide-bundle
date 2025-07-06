@@ -12,6 +12,11 @@ export async function getStationsForUserLocation(
   lat?: number,
   lon?: number,
 ): Promise<Station[]> {
+  console.log('🔎 getStationsForUserLocation:', {
+    userInput,
+    lat,
+    lon,
+  });
   if (lat != null && lon != null) {
     const nearby = await getStationsNearCoordinates(lat, lon);
     if (nearby.length > 0) return nearby;
