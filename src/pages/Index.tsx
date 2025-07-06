@@ -94,8 +94,11 @@ const Index = () => {
     setIsStationLoading(true);
     getStationsForLocationInput(input, currentLocation.lat, currentLocation.lng)
       .then((stations) => {
+        console.log('📡 Stations API response payload:', stations);
         console.log('📡 Stations API returned', stations.length, 'items');
+        console.log(stations.length > 0 ? '✅ Stations found' : '❌ No stations found');
         if (!stations || stations.length === 0) {
+          console.log('🏁 Final availableStations: []');
           setAvailableStations([]);
           setShowStationPicker(false);
           toast.error('No tide stations found nearby — try another ZIP or location.');
@@ -107,6 +110,7 @@ const Index = () => {
             currentLocation.cityState?.split(',')[0],
           );
           console.log('📈 Sorted station IDs:', sorted.map(s => s.id));
+          console.log('🏁 Final availableStations:', sorted);
           setAvailableStations(sorted);
           if (!selectedStation && sorted.length > 0) {
             console.log('🎯 Auto-selecting station:', sorted[0]);
