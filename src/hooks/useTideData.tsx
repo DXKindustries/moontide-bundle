@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isSameDay } from 'date-fns';
-import { getTideData, Prediction } from '@/services/tideDataService';
+import { getTideData, Prediction, buildNoaaUrl } from '@/services/tideDataService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
 import {
@@ -213,8 +213,15 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       }
     };
 
-    fetchTideDataForStation(location, station);
-  }, [location, station]);
+    // React to changes in the selected location or station
+    useEffect(() => {
+      console.log('[ZIP] Coordinates:', { lat: location?.lat, lng: location?.lng });
+      console.log('[ZIP] Station ID:', station?.id);
+      if (location?.lat != null && location?.lng != null && station) {
+        console.log('[TIDE] Fetch URL:', buildNoaaUrl(String(station.id), getCurrentIsoDateString()));
+        fetchTideDataForStation(location, station);
+      }
+    }, [location, station]);
 
   // Refetch when the station id itself changes to avoid race conditions
   useEffect(() => {
