@@ -73,6 +73,7 @@ async function fetchTier(
     { product: 'predictions', interval: 'hilo' },
   ];
 
+  let lastErr: any = null;
   for (const tier of tiers) {
     const p: QueryParams = { ...base, ...tier };
     const key = cacheKey(p);
@@ -89,6 +90,8 @@ async function fetchTier(
       return rows;
     }
 
+    lastErr = err;
+
     console.info(
       `ℹ️ No data for ${tier.product}/${tier.interval} → trying next tier`,
       err,
@@ -97,7 +100,7 @@ async function fetchTier(
 
   console.warn('⚠️ NOAA returned no data for any tier', {
     station: station.id,
-    err,
+    err: lastErr,
   });
   return { predictions: [] }; // allow UI to show “no data”
 }

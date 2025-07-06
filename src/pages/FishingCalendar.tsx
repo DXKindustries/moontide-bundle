@@ -113,7 +113,11 @@ const Calendar = () => {
       const lowTides = allEvents.filter((e) => !e.isHigh);
 
       // Calculate solar times
-      const solarTimes = calculateSolarTimes(date, currentLocation);
+      const solarTimes = calculateSolarTimes(
+        date,
+        currentLocation?.lat ?? undefined,
+        currentLocation?.lng ?? undefined
+      );
 
       // Calculate optimal fishing windows (example logic)
       const optimalFishingWindows: {
@@ -198,12 +202,19 @@ const Calendar = () => {
         )}
 
         <div className="w-full">
-          <CalendarCard selectedDate={selectedDate} />
+          <CalendarCard
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+            weeklyForecast={weeklyForecast}
+          />
         </div>
 
-        {selectedDateInfo && (
-          <SelectedDateDetails info={selectedDateInfo} isLoading={isLoading} />
-        )}
+          {selectedDateInfo && selectedDate && (
+            <SelectedDateDetails
+              selectedDate={selectedDate}
+              selectedDateInfo={selectedDateInfo}
+            />
+          )}
       </main>
     </div>
   );

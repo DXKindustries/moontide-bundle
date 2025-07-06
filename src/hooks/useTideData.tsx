@@ -111,8 +111,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         });
         const predictions: Prediction[] = await getTideData(
           idStr,
-          dateIso,
-          7
+          dateIso
         );
         console.log('🌊 NOAA predictions length:', predictions.length);
 
