@@ -68,6 +68,7 @@ const Index = () => {
     if (locationChanged && selectedStation) setSelectedStation(null);
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
+    console.log('📍 Station lookup for:', { input, lat: currentLocation.lat, lon: currentLocation.lng });
     setIsStationLoading(true);
     getStationsForLocationInput(input, currentLocation.lat, currentLocation.lng)
       .then((stations) => {
@@ -83,8 +84,17 @@ const Index = () => {
             currentLocation.cityState?.split(',')[0],
           );
           setAvailableStations(sorted);
-          if (sorted.length === 1) {
+
+          const reference = sorted.find((s) => (s as any).type === 'R');
+
+          if (reference) {
+            console.log('⚓ Auto-selected reference station:', reference);
+            setSelectedStation(reference);
+            console.log('📡 stationId set to', reference.id);
+            setShowStationPicker(false);
+          } else if (sorted.length === 1) {
             setSelectedStation(sorted[0]);
+            console.log('📡 stationId set to', sorted[0].id);
             setShowStationPicker(false);
           } else {
             setShowStationPicker(true);
