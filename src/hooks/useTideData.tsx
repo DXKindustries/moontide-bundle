@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { isSameDay } from 'date-fns';
 import { getTideData, Prediction, buildNoaaUrl } from '@/services/tideDataService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
-import { filterStations, NOAAStation } from '@/services/stationFinder';
-import { safeLocalStorage } from '@/utils/localStorage';
+import { filterStations } from '@/services/stationFinder';
+import { getCachedStations } from '@/services/stationCache';
 import {
   getCurrentIsoDateString,
   getCurrentTimeString,
@@ -58,27 +58,24 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
   const [stationName, setStationName] = useState<string | null>(null);
   const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
-  const [stations, setStations] = useState<NOAAStation[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
+  const isFetching = useRef(false);
 
-  const STATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
+  const nearestStation = useMemo(() => {
+    if (!location?.lat || !location.lng || stations.length === 0) return null;
+    const id = filterStations({ lat: location.lat, lng: location.lng }, stations as any);
+    return stations.find((s) => String(s.id) === String(id)) || null;
+  }, [stations, location?.lat, location?.lng]);
 
-  const loadCachedStations = (lat: number, lng: number): NOAAStation[] | null => {
-    const key = `stations:${lat.toFixed(3)},${lng.toFixed(3)}`;
-    const cached = safeLocalStorage.get(key);
-    if (cached && cached.expiry > Date.now()) {
-      return cached.data as NOAAStation[];
-    }
-    return null;
+  const logRender = (message: string) => {
+    console.log(`[RENDER-${Date.now()}] ${message}`, {
+      coordinates: location ? { lat: location.lat, lng: location.lng } : null,
+      stationId,
+      isLoading,
+    });
   };
 
-  const saveCachedStations = (
-    lat: number,
-    lng: number,
-    data: NOAAStation[],
-  ) => {
-    const key = `stations:${lat.toFixed(3)},${lng.toFixed(3)}`;
-    safeLocalStorage.set(key, { data, expiry: Date.now() + STATION_CACHE_TTL });
-  };
+  logRender('TideData component mounted');
 
   // When only coordinates are available, fetch stations and pick the closest
   useEffect(() => {
@@ -87,20 +84,15 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     const controller = new AbortController();
 
     const fetchStationsAndTideData = async () => {
+      if (isFetching.current) return;
+      isFetching.current = true;
       try {
         setIsLoading(true);
 
-        const cached = loadCachedStations(location.lat!, location.lng!);
-        let list: NOAAStation[] = cached ?? [];
-
-        if (!cached) {
-          const url = `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=${location.lat}&lon=${location.lng}&radius=30`;
-          const res = await fetch(url, { signal: controller.signal });
-          if (!res.ok) throw new Error('Unable to fetch station list');
-          const data = await res.json();
-          list = Array.isArray(data?.stations) ? data.stations : [];
-          saveCachedStations(location.lat!, location.lng!, list);
-        }
+        const list = await getCachedStations({
+          lat: location.lat!,
+          lng: location.lng!,
+        });
 
         setStations(list);
 
@@ -110,6 +102,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         );
 
         if (!closestId) {
+          console.error('[STATION] No stations in 30km radius');
           setError('No tide stations within 30km');
           setIsInland(true);
           return;
@@ -120,14 +113,15 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           await fetchTideDataForStation(location, {
             id: String(st.id),
             name: st.name,
-            latitude: parseFloat(String(st.lat)),
-            longitude: parseFloat(String(st.lng)),
+            latitude: parseFloat(String((st as any).lat ?? st.latitude)),
+            longitude: parseFloat(String((st as any).lng ?? st.longitude)),
           });
         }
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setError(err instanceof Error ? err.message : 'Failed to fetch station');
       } finally {
+        isFetching.current = false;
         setIsLoading(false);
       }
     };
@@ -292,22 +286,22 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       }
     };
 
-    // React to changes in the selected location or station
+    // React to changes in the selected location coordinates or station id
     useEffect(() => {
       console.log('[ZIP] Coordinates:', { lat: location?.lat, lng: location?.lng });
       console.log('[ZIP] Station ID:', station?.id);
-      if (location?.lat != null && location?.lng != null && station) {
-        console.log('[TIDE] Fetch URL:', buildNoaaUrl(String(station.id), getCurrentIsoDateString()));
+      if (
+        location?.lat != null &&
+        location?.lng != null &&
+        station?.id
+      ) {
+        console.log(
+          '[TIDE] Fetch URL:',
+          buildNoaaUrl(String(station.id), getCurrentIsoDateString()),
+        );
         fetchTideDataForStation(location, station);
       }
-    }, [location, station]);
-
-  // Refetch when the station id itself changes to avoid race conditions
-  useEffect(() => {
-    if (location && station?.id) {
-      fetchTideDataForStation(location, station);
-    }
-  }, [station?.id]);
+    }, [location?.lat, location?.lng, station?.id]);
 
   return {
     isLoading,
