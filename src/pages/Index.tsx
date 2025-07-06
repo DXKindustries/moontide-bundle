@@ -70,7 +70,13 @@ const Index = () => {
         currentLocation.cityState?.split(',')[0],
       );
       setAvailableStations(sorted);
-      setShowStationPicker(true); // ← always let user choose
+      if (!selectedStation && sorted.length > 0) {
+        console.log('🎯 Auto-selecting station from incoming list:', sorted[0]);
+        setSelectedStation(sorted[0]);
+        setShowStationPicker(sorted.length > 1);
+      } else {
+        setShowStationPicker(true);
+      }
       setIncomingStations(null);
       return;
     }
@@ -102,7 +108,13 @@ const Index = () => {
           );
           console.log('📈 Sorted station IDs:', sorted.map(s => s.id));
           setAvailableStations(sorted);
-          setShowStationPicker(true); // ← always let user choose
+          if (!selectedStation && sorted.length > 0) {
+            console.log('🎯 Auto-selecting station:', sorted[0]);
+            setSelectedStation(sorted[0]);
+            setShowStationPicker(sorted.length > 1);
+          } else {
+            setShowStationPicker(true);
+          }
         }
       })
       .catch(() => {

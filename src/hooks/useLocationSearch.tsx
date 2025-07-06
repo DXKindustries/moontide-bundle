@@ -121,6 +121,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         timestamp: Date.now()
       };
       console.log('✅ ZIP lookup successful:', location);
+      console.log('📌 Geocoded coordinates:', location.lat, location.lng);
       return location;
     }
     return null;
@@ -141,6 +142,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         timestamp: Date.now()
       };
       console.log('✅ City/State/ZIP verification successful:', location);
+      console.log('📌 Geocoded coordinates:', location.lat, location.lng);
       return location;
     }
     return null;
@@ -161,6 +163,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         timestamp: Date.now()
       };
       console.log('✅ City/State geocoding successful:', location);
+      console.log('📌 Geocoded coordinates:', location.lat, location.lng);
       return location;
     } else {
       // Fallback to manual entry (no coordinates)
