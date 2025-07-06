@@ -80,6 +80,10 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       setIsLoading(true);
       setError(null);
       setIsInland(false);
+      console.log('🚀 Tide data fetch triggered for', {
+        location,
+        stationId: station?.id,
+      });
 
       try {
         const chosen = station;
