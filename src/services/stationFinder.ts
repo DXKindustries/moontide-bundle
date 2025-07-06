@@ -18,15 +18,19 @@ export interface NOAAStation {
  */
 export function filterStations(
   userCoords: { lat: number; lng: number },
-  stations: NOAAStation[],
+  stations: Array<NOAAStation | any>,
 ): string | null {
-  const stationsWithDistance = stations.map((s) => ({
-    ...s,
-    distance: haversineDistance(
-      userCoords,
-      { lat: Number(s.lat), lng: Number(s.lng) },
-    ),
-  }));
+  const stationsWithDistance = stations.map((s) => {
+    const lat = (s as any).lat ?? (s as any).latitude;
+    const lng = (s as any).lng ?? (s as any).longitude;
+    return {
+      ...s,
+      distance: haversineDistance(userCoords, {
+        lat: Number(lat),
+        lng: Number(lng),
+      }),
+    };
+  });
 
   console.log('[STATION] Raw stations:', stations.length);
 
