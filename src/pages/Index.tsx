@@ -70,10 +70,10 @@ const Index = () => {
         currentLocation.cityState?.split(',')[0],
       );
       setAvailableStations(sorted);
-      if (!selectedStation && sorted.length > 0) {
-        console.log('🎯 Auto-selecting station from incoming list:', sorted[0]);
+      if (sorted.length === 1) {
+        console.log('🎯 Auto-selecting sole station from incoming list:', sorted[0]);
         setSelectedStation(sorted[0]);
-        setShowStationPicker(sorted.length > 1);
+        setShowStationPicker(false);
       } else {
         setShowStationPicker(true);
       }
@@ -112,10 +112,10 @@ const Index = () => {
           console.log('📈 Sorted station IDs:', sorted.map(s => s.id));
           console.log('🏁 Final availableStations:', sorted);
           setAvailableStations(sorted);
-          if (!selectedStation && sorted.length > 0) {
-            console.log('🎯 Auto-selecting station:', sorted[0]);
+          if (sorted.length === 1) {
+            console.log('🎯 Auto-selecting sole station:', sorted[0]);
             setSelectedStation(sorted[0]);
-            setShowStationPicker(sorted.length > 1);
+            setShowStationPicker(false);
           } else {
             setShowStationPicker(true);
           }
