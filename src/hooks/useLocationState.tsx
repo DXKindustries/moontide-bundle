@@ -16,9 +16,7 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
       (newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
     ) {
       return {
-        id:
-          newLocation.zipCode ||
-          `${newLocation.city}-${newLocation.state}`,
+        id: newLocation.zipCode || `${newLocation.city}-${newLocation.state}`,
         name: newLocation.nickname || newLocation.city,
         country: 'USA',
         zipCode: newLocation.zipCode || '',
@@ -86,13 +84,9 @@ export const useLocationState = () => {
   /* ---------- setters with logging / persistence ---------- */
 
   const setCurrentLocationWithLogging = useCallback(
-    (
-      location: (SavedLocation & { id: string; country: string }) | null,
-    ) => {
-      console.log(
-        '🔄 useLocationState: setCurrentLocation called with:',
-        location,
-      );
+    (location: (SavedLocation & { id: string; country: string }) | null) => {
+      console.log('🔄 useLocationState: setCurrentLocation called with:', location);
+      
       setCurrentLocation(prev => {
         if (
           prev?.id === location?.id &&
@@ -104,13 +98,14 @@ export const useLocationState = () => {
         }
         return location;
       });
+      
       console.log(
         location
           ? '✅ useLocationState: User now has a location'
-          : '🎯 useLocationState: User has no location',
+          : '🎯 useLocationState: User has no location'
       );
     },
-    [],
+    []
   );
 
   const setSelectedStationWithPersist = useCallback(
@@ -122,7 +117,7 @@ export const useLocationState = () => {
         console.warn('⚠️ Error saving station selection:', err);
       }
     },
-    [],
+    []
   );
 
   // Log whenever the selected station changes so we can verify stationId
@@ -135,14 +130,12 @@ export const useLocationState = () => {
   useEffect(() => {
     console.log(
       '📝 useLocationState useEffect: Setting document title for location:',
-      currentLocation?.name,
+      currentLocation?.name
     );
-    document.title = `MoonTide - ${
-      currentLocation?.name ?? 'Choose Location'
-    }`;
+    document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
     console.log(
       '🔄 useLocationState useEffect: Location state change detected - hasLocation:',
-      !!currentLocation,
+      !!currentLocation
     );
   }, [currentLocation]);
 
