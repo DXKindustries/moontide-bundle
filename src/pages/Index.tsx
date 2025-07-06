@@ -1,4 +1,3 @@
-
 import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
@@ -24,7 +23,6 @@ const Index = () => {
     setSelectedStation
   } = useLocationState();
 
-  // Ensure the location selector is closed when arriving on the dashboard
   useLayoutEffect(() => {
     setShowLocationSelector(false);
   }, []);
@@ -72,17 +70,7 @@ const Index = () => {
         currentLocation.cityState?.split(',')[0],
       );
       setAvailableStations(sorted);
-
-      const reference = sorted.find((s) => (s as any).type === 'R');
-      if (reference) {
-        setSelectedStation(reference);
-        setShowStationPicker(false);
-      } else if (sorted.length === 1) {
-        setSelectedStation(sorted[0]);
-        setShowStationPicker(false);
-      } else {
-        setShowStationPicker(true);
-      }
+      setShowStationPicker(true); // ← always let user choose
       setIncomingStations(null);
       return;
     }
@@ -112,14 +100,7 @@ const Index = () => {
             currentLocation.cityState?.split(',')[0],
           );
           setAvailableStations(sorted);
-
-          if (sorted.length === 1) {
-            setSelectedStation(sorted[0]);
-            console.log('📡 stationId set to', sorted[0].id);
-            setShowStationPicker(false);
-          } else if (sorted.length > 1) {
-            setShowStationPicker(true);
-          }
+          setShowStationPicker(true); // ← always let user choose
         }
       })
       .catch(() => {
