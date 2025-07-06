@@ -1,6 +1,6 @@
 // src/services/tide/stationService.ts
 import { cacheService } from '../cacheService';
-import { getDistanceKm } from '@/utils/geoUtils';
+import { haversineDistance } from '@/utils/geo'; // Update path to match your project structure
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 const STATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
@@ -18,10 +18,10 @@ export interface Station {
 
 export async function getStationsNearCoordinates(
   lat: number,
-  lon: number,
+  lng: number,
   radiusKm = 30
 ): Promise<Station[]> {
-  const cacheKey = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+  const cacheKey = `stations:${lat.toFixed(3)},${lng.toFixed(3)},${radiusKm}`;
   
   try {
     // Return cached stations if available
@@ -32,7 +32,7 @@ export async function getStationsNearCoordinates(
     }
 
     console.log('🌐 Fetching stations from NOAA API...');
-    const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
+    const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lng=${lng}&radius=${radiusKm}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -47,32 +47,32 @@ export async function getStationsNearCoordinates(
     const processedStations = rawStations
       .map(station => {
         const stationLat = parseFloat(station.lat || station.latitude);
-        const stationLon = parseFloat(station.lng || station.longitude);
+        const stationLng = parseFloat(station.lng || station.longitude);
         
         return {
           id: station.id,
           name: station.name,
           latitude: stationLat,
-          longitude: stationLon,
+          longitude: stationLng,
           state: station.state,
           products: station.products,
           type: station.type,
-          distance: getDistanceKm(lat, lon, stationLat, stationLon)
+          distance: haversineDistance(
+            { lat, lng },
+            { lat: stationLat, lng: stationLng }
+          )
         };
       })
-      .filter(station => {
-        const hasTideData = station.products?.includes('tidepredictions');
-        const withinRadius = station.distance <= radiusKm;
-        const hasValidCoords = !isNaN(station.latitude) && !isNaN(station.longitude);
-        
-        return hasTideData && withinRadius && hasValidCoords;
-      })
+      .filter(station => 
+        station.distance <= radiusKm && 
+        station.products?.includes('tidepredictions')
+      )
       .sort((a, b) => a.distance - b.distance);
 
     console.log(`📊 Filtered to ${processedStations.length} valid stations`);
 
-    // Cache only if we have valid stations
-    if (processedStations.length > 0) {
+    // Only cache if we found stations
+    if (processedStations.length) {
       cacheService.set(cacheKey, processedStations, STATION_CACHE_TTL);
     }
 
@@ -85,16 +85,11 @@ export async function getStationsNearCoordinates(
 
 export async function getClosestStation(
   lat: number,
-  lon: number,
-  radiusKm = 30
+  lng: number
 ): Promise<Station | null> {
   try {
-    const stations = await getStationsNearCoordinates(lat, lon, radiusKm);
-    if (!stations.length) {
-      console.warn('No stations found within', radiusKm, 'km radius');
-      return null;
-    }
-    return stations[0];
+    const stations = await getStationsNearCoordinates(lat, lng);
+    return stations[0] || null;
   } catch (error) {
     console.error('Failed to find closest station:', error);
     return null;
@@ -147,7 +142,7 @@ export function sortStations(
   stations: Station[],
   options?: {
     lat?: number;
-    lon?: number;
+    lng?: number;
     city?: string;
     prioritizeReferenceStations?: boolean;
   }
@@ -170,30 +165,19 @@ export function sortStations(
     }
 
     // 3. Sort by distance if coordinates available
-    if (options?.lat && options?.lon) {
-      const aDistance = a.distance ?? getDistanceKm(options.lat, options.lon, a.latitude, a.longitude);
-      const bDistance = b.distance ?? getDistanceKm(options.lat, options.lon, b.latitude, b.longitude);
+    if (options?.lat && options?.lng) {
+      const aDistance = a.distance ?? haversineDistance(
+        { lat: options.lat, lng: options.lng },
+        { lat: a.latitude, lng: a.longitude }
+      );
+      const bDistance = b.distance ?? haversineDistance(
+        { lat: options.lat, lng: options.lng },
+        { lat: b.latitude, lng: b.longitude }
+      );
       return aDistance - bDistance;
     }
 
     // 4. Fallback to alphabetical
     return a.name.localeCompare(b.name);
-  });
-}
-
-export async function getStationsForLocation(
-  userInput: string,
-  coords?: { lat: number; lon: number }
-): Promise<Station[]> {
-  if (!coords) {
-    throw new Error('Coordinates are required for station lookup');
-  }
-
-  const stations = await getStationsNearCoordinates(coords.lat, coords.lon);
-  return sortStations(stations, {
-    lat: coords.lat,
-    lon: coords.lon,
-    city: userInput,
-    prioritizeReferenceStations: true
   });
 }
