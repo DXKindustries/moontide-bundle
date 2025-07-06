@@ -85,18 +85,11 @@ const Index = () => {
           );
           setAvailableStations(sorted);
 
-          const reference = sorted.find((s) => (s as any).type === 'R');
-
-          if (reference) {
-            console.log('⚓ Auto-selected reference station:', reference);
-            setSelectedStation(reference);
-            console.log('📡 stationId set to', reference.id);
-            setShowStationPicker(false);
-          } else if (sorted.length === 1) {
+          if (sorted.length === 1) {
             setSelectedStation(sorted[0]);
             console.log('📡 stationId set to', sorted[0].id);
             setShowStationPicker(false);
-          } else {
+          } else if (sorted.length > 1) {
             setShowStationPicker(true);
           }
         }
