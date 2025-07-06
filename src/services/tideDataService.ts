@@ -6,6 +6,27 @@
 const NOAA_DATA_BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
+export function buildNoaaUrl(stationId: string, dateIso: string): string {
+  const start = new Date(dateIso);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+
+  const format = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
+
+  return `${NOAA_DATA_BASE}?${new URLSearchParams({
+    product: 'predictions',
+    application: 'LunarWaveWatcher',
+    format: 'json',
+    datum: 'MLLW',
+    time_zone: 'lst_ldt',
+    interval: 'hilo',
+    units: 'english',
+    station: stationId,
+    begin_date: format(start),
+    end_date: format(end),
+  }).toString()}`;
+}
+
 export interface Prediction {
   /** ISO date-time in the station’s local time zone (e.g. “2025-06-25T04:36:00”) */
   timeIso: string;
