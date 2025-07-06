@@ -11,6 +11,7 @@ interface AppHeaderProps {
   stationName: string | null;
   onLocationChange: (location: SavedLocation) => void;
   onStationSelect?: (station: Station) => void;
+  onStationsFound?: (stations: Station[]) => void;
   onLocationClear?: () => void;
   hasError?: boolean;
   forceShowLocationSelector?: boolean;
@@ -22,6 +23,7 @@ export default function AppHeader({
   stationName,
   onLocationChange,
   onStationSelect,
+  onStationsFound,
   onLocationClear,
   hasError,
   forceShowLocationSelector,
@@ -58,6 +60,7 @@ export default function AppHeader({
             <LocationSelector
               onSelect={onLocationChange}
               onStationSelect={onStationSelect}
+              onStationsFound={onStationsFound}
               forceOpen={forceShowLocationSelector}
               onClose={onLocationSelectorClose}
             />

@@ -38,11 +38,16 @@ const Index = () => {
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
   const [isStationLoading, setIsStationLoading] = useState(false);
+  const [incomingStations, setIncomingStations] = useState<Station[] | null>(null);
   const prevLocationIdRef = useRef<string | null>(currentLocation?.id || null);
 
   const handleStationSelect = (st: Station) => {
     console.log('🎯 Index onSelect station:', st);
     setSelectedStation(st);
+  };
+
+  const handleStationsFound = (stations: Station[]) => {
+    setIncomingStations(stations);
   };
 
   console.log('🌊 Current location for useTideData:', currentLocation);
@@ -58,6 +63,29 @@ const Index = () => {
 
     const locationChanged = prevLocationIdRef.current !== currentLocation.id;
     prevLocationIdRef.current = currentLocation.id;
+
+    if (incomingStations) {
+      const sorted = sortStationsForDefault(
+        incomingStations,
+        currentLocation.lat ?? undefined,
+        currentLocation.lng ?? undefined,
+        currentLocation.cityState?.split(',')[0],
+      );
+      setAvailableStations(sorted);
+
+      const reference = sorted.find((s) => (s as any).type === 'R');
+      if (reference) {
+        setSelectedStation(reference);
+        setShowStationPicker(false);
+      } else if (sorted.length === 1) {
+        setSelectedStation(sorted[0]);
+        setShowStationPicker(false);
+      } else {
+        setShowStationPicker(true);
+      }
+      setIncomingStations(null);
+      return;
+    }
 
     if (!locationChanged && selectedStation) {
       if (showStationPicker) setShowStationPicker(false);
@@ -108,7 +136,7 @@ const Index = () => {
       .finally(() => {
         setIsStationLoading(false);
       });
-  }, [currentLocation]);
+  }, [currentLocation, incomingStations]);
 
   const {
     isLoading,
@@ -140,6 +168,7 @@ const Index = () => {
         stationName={stationName}
         onLocationChange={handleLocationChange}
         onStationSelect={handleStationSelect}
+        onStationsFound={handleStationsFound}
         onLocationClear={handleLocationClear}
         hasError={!!error}
         forceShowLocationSelector={showLocationSelector}
