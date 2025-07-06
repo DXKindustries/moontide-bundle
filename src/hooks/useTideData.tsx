@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import { getTideData, Prediction, buildNoaaUrl } from '@/services/tideDataService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
+import { filterStations, NOAAStation } from '@/services/stationFinder';
+import { safeLocalStorage } from '@/utils/localStorage';
 import {
   getCurrentIsoDateString,
   getCurrentTimeString,
@@ -56,6 +58,83 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
   const [stationName, setStationName] = useState<string | null>(null);
   const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
+  const [stations, setStations] = useState<NOAAStation[]>([]);
+
+  const STATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
+
+  const loadCachedStations = (lat: number, lng: number): NOAAStation[] | null => {
+    const key = `stations:${lat.toFixed(3)},${lng.toFixed(3)}`;
+    const cached = safeLocalStorage.get(key);
+    if (cached && cached.expiry > Date.now()) {
+      return cached.data as NOAAStation[];
+    }
+    return null;
+  };
+
+  const saveCachedStations = (
+    lat: number,
+    lng: number,
+    data: NOAAStation[],
+  ) => {
+    const key = `stations:${lat.toFixed(3)},${lng.toFixed(3)}`;
+    safeLocalStorage.set(key, { data, expiry: Date.now() + STATION_CACHE_TTL });
+  };
+
+  // When only coordinates are available, fetch stations and pick the closest
+  useEffect(() => {
+    if (!location?.lat || !location.lng || station) return;
+
+    const controller = new AbortController();
+
+    const fetchStationsAndTideData = async () => {
+      try {
+        setIsLoading(true);
+
+        const cached = loadCachedStations(location.lat!, location.lng!);
+        let list: NOAAStation[] = cached ?? [];
+
+        if (!cached) {
+          const url = `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=${location.lat}&lon=${location.lng}&radius=30`;
+          const res = await fetch(url, { signal: controller.signal });
+          if (!res.ok) throw new Error('Unable to fetch station list');
+          const data = await res.json();
+          list = Array.isArray(data?.stations) ? data.stations : [];
+          saveCachedStations(location.lat!, location.lng!, list);
+        }
+
+        setStations(list);
+
+        const closestId = filterStations(
+          { lat: location.lat!, lng: location.lng! },
+          list,
+        );
+
+        if (!closestId) {
+          setError('No tide stations within 30km');
+          setIsInland(true);
+          return;
+        }
+
+        const st = list.find((s) => String(s.id) === String(closestId));
+        if (st) {
+          await fetchTideDataForStation(location, {
+            id: String(st.id),
+            name: st.name,
+            latitude: parseFloat(String(st.lat)),
+            longitude: parseFloat(String(st.lng)),
+          });
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError(err instanceof Error ? err.message : 'Failed to fetch station');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStationsAndTideData();
+    return () => controller.abort();
+  }, [location?.lat, location?.lng, station]);
 
   // Update current time every minute so the "Now" indicator stays accurate
   useEffect(() => {
