@@ -18,10 +18,10 @@ export async function getStationsForUserLocation(
     lon,
   });
   if (lat != null && lon != null) {
-    const nearby = await getStationsNearCoordinates(lat, lon);
+    const nearby = await getStationsNearCoordinates(lat, lon, 30);
     if (nearby.length > 0) return nearby;
     console.log('🔄 Falling back to name search with distance filter');
-    return getStationsForLocation(userInput, lat, lon);
+    return getStationsForLocation(userInput, lat, lon, 30);
   }
   return getStationsForLocation(userInput);
 }
