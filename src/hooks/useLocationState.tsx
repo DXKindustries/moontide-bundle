@@ -93,8 +93,17 @@ export const useLocationState = () => {
         '🔄 useLocationState: setCurrentLocation called with:',
         location,
       );
-      setCurrentLocation(location);
-
+      setCurrentLocation(prev => {
+        if (
+          prev?.id === location?.id &&
+          prev?.zipCode === location?.zipCode &&
+          prev?.lat === location?.lat &&
+          prev?.lng === location?.lng
+        ) {
+          return prev;
+        }
+        return location;
+      });
       console.log(
         location
           ? '✅ useLocationState: User now has a location'
