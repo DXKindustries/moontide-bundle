@@ -35,8 +35,13 @@ export async function getStationsForLocation(
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
   const data = await response.json();
+  console.log('📦 NOAA full response:', data);
   const stations = data.stations || [];
+  console.log(
+    stations.length > 0 ? '✅ Stations found' : '❌ No stations found',
+  );
   cacheService.set(key, stations, STATION_CACHE_TTL);
+  console.log('🏁 Returning stations:', stations);
   return stations;
 }
 
@@ -61,6 +66,7 @@ export async function getStationsNearCoordinates(
   console.log('⬅️ NOAA response status:', response.status);
   if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
+  console.log('📦 NOAA full response:', data);
   const rawStations: Station[] = data.stations || [];
   console.log('📄 Raw stations returned:', rawStations.length);
   console.log(
@@ -98,6 +104,7 @@ export async function getStationsNearCoordinates(
     '🏅 Sorted station order:',
     stations.map((s) => `${s.id}:${s.name}`).join(', '),
   );
+  console.log('🏁 Returning stations:', stations);
   return stations;
 }
 
