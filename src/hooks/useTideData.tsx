@@ -65,32 +65,22 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    setCurrentDate(getCurrentIsoDateString());
-    setCurrentTime(getCurrentTimeString());
-
-    if (!location || !station) {
-      setIsLoading(false);
-      setError(null);
-      // Keep previously loaded data so navigating away doesn't clear charts
-      return;
-    }
-
-    const checkInlandAndFetch = async () => {
+  const fetchTideDataForStation = async (
+    loc: NonNullable<UseTideDataParams['location']>,
+    chosen: Station,
+  ) => {
       setIsLoading(true);
       setError(null);
       setIsInland(false);
       console.log('🚀 Tide data fetch triggered for', {
-        location,
-        stationId: station?.id,
+        location: loc,
+        stationId: chosen?.id,
       });
 
       try {
-        const chosen = station;
-
         // At this point we should have a chosen station
         if (!chosen?.id) {
-          console.warn('No station ID available for location', location);
+          console.warn('No station ID available for location', loc);
           setStationId(null);
           setIsLoading(false);
           return;
@@ -100,9 +90,9 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         const dateIso = formatDateAsLocalIso(startDate);
 
         // Debug logging before fetching tide data
-        console.log('📍 Selected station id:', station?.id);
-        console.log('ZIP:', location?.zipCode);
-        console.log('Lat/Lng:', location?.lat, location?.lng);
+        console.log('📍 Selected station id:', chosen.id);
+        console.log('ZIP:', loc?.zipCode);
+        console.log('Lat/Lng:', loc?.lat, loc?.lng);
 
         const idStr = String(chosen.id);
         console.log('🌐 useTideData getTideData:', {
@@ -223,8 +213,15 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       }
     };
 
-    checkInlandAndFetch();
+    fetchTideDataForStation(location, station);
   }, [location, station]);
+
+  // Refetch when the station id itself changes to avoid race conditions
+  useEffect(() => {
+    if (location && station?.id) {
+      fetchTideDataForStation(location, station);
+    }
+  }, [station?.id]);
 
   return {
     isLoading,

@@ -93,6 +93,7 @@ export async function findNearestRealStation(lat: number, lng: number): Promise<
     const nearest = stationsWithDistance.find(station => station.distance <= 200);
     
     if (nearest) {
+      console.log('[STATION] Closest station:', nearest.id);
       console.log(`🎯 Found nearest station: ${nearest.name} (${nearest.id}) - ${nearest.distance.toFixed(1)}km away`);
       return {
         id: nearest.id,
@@ -106,6 +107,7 @@ export async function findNearestRealStation(lat: number, lng: number): Promise<
     // If no station within 200km, just return the closest one
     if (stationsWithDistance.length > 0) {
       const closest = stationsWithDistance[0];
+      console.log('[STATION] Closest station:', closest.id);
       console.log(`🎯 Using closest available station: ${closest.name} (${closest.id}) - ${closest.distance.toFixed(1)}km away`);
       return {
         id: closest.id,
