@@ -91,9 +91,9 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           setIsLoading(false);
           return;
         }
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
-        const dateIso = formatDateAsLocalIso(startDate);
+        const initialStartDate = new Date();
+        initialStartDate.setDate(initialStartDate.getDate() - 1); // include prior day for smoother charts
+        const dateIso = formatDateAsLocalIso(initialStartDate);
 
         // Debug logging before fetching tide data
         console.log("ZIP:", location?.zipCode);
@@ -131,6 +131,17 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         );
+        const startDate = rangeStart.toISOString();
+        const endDate = rangeEnd.toISOString();
+        console.log('[TIDE-DEBUG] Raw API Response:', {
+          station: stationId,
+          predictions: rawData.predictions.map(p => ({
+            time: p.t,
+            height: p.v,
+            type: p.type // 'H' for high, 'L' for low
+          })),
+          requestWindow: `${startDate} → ${endDate}`
+        });
         console.log('🌊 NOAA six-minute raw:', rawData);
         console.log('[TIDE] Raw NOAA Data:', {
           station: stationId,
@@ -143,6 +154,16 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           overnight: predictions.filter(p => {
             const date = new Date(p.t);
             return date.getHours() >= 18 || date.getHours() <= 6;
+          })
+        });
+        console.log('[TIDE-DEBUG] Processed Cycles:', {
+          today: predictions.filter(p => {
+            const date = new Date(p.time);
+            return isToday(date);
+          }),
+          overnight: predictions.filter(p => {
+            const date = new Date(p.time);
+            return date.getHours() >= 18 || date.getHours() <= 6; // 6PM-6AM
           })
         });
         const detailedPoints: TidePoint[] = Array.isArray(rawData?.predictions)

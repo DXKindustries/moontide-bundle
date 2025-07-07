@@ -17,7 +17,35 @@ export async function getStationsForUserLocation(
   if (lat != null && lon != null) {
     const urlNear = `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=100`;
     console.log('[DEBUG] NOAA fetch URL:', urlNear);
+    const stationId = '';
+    const startDate = '';
+    const endDate = '';
+    const url = urlNear;
+    console.log('[NOAA-DEBUG] Request URL:', {
+      fullURL: url,
+      params: {
+        station: stationId,
+        begin_date: startDate,
+        end_date: endDate,
+        product: 'predictions',
+        interval: '6'
+      },
+      timestamp: new Date().toISOString()
+    });
     const nearby = await getStationsNearCoordinates(lat, lon);
+    const data = { stations: nearby };
+    const lng = lon;
+    console.log('[NOAA-DEBUG] Nearby Stations:', {
+      radius: '30km',
+      validStations: data.stations
+        .filter(s => s.type === 'T') // Only tide stations
+        .map(s => ({
+          id: s.id,
+          name: s.name,
+          distance: `${(calculateDistance(lat, lng, s.lat, s.lng)).toFixed(1)}km`,
+          active: s.id === stationId
+        }))
+    });
     console.log('[STATIONS] Nearby Stations:', {
       radius: '30km',
       count: nearby.length,
