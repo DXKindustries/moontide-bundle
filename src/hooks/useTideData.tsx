@@ -133,46 +133,84 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         );
         const startDate = rangeStart.toISOString();
         const endDate = rangeEnd.toISOString();
+        console.log('🌊 NOAA six-minute raw:', rawData);
+
+        const formatYYYYMMDD = (d: Date) =>
+          `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+        const noaaRequestURL = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${new URLSearchParams({
+          product: 'water_level',
+          application: 'MoonTide',
+          format: 'json',
+          datum: 'MLLW',
+          time_zone: 'lst_ldt',
+          units: 'english',
+          station: chosen.id,
+          begin_date: formatYYYYMMDD(rangeStart),
+          end_date: formatYYYYMMDD(rangeEnd),
+          interval: '6'
+        }).toString()}`;
+
+        if (!rawData?.predictions) {
+          console.error('[TIDE-ERROR] NOAA Data Validation Failed:', {
+            stationId,
+            rawData: rawData ?? 'NULL_RESPONSE',
+            requestURL: noaaRequestURL
+          });
+          throw new Error('Invalid tide data: predictions array missing');
+        }
+
+        console.log('[TIDE-SAFE] Validated Data:', {
+          station: stationId,
+          predictionCount: rawData.predictions.length,
+          firstLast: {
+            first: rawData.predictions[0]?.t || 'N/A',
+            last: rawData.predictions.slice(-1)[0]?.t || 'N/A'
+          },
+          cycles: {
+            high: rawData.predictions.filter(p => p.type === 'H').length,
+            low: rawData.predictions.filter(p => p.type === 'L').length
+          }
+        });
+
+        const safePredictions = rawData?.predictions?.map(p => ({
+          time: p.t,
+          height: p.v,
+          type: p.type
+        })) || [];
+
         console.log('[TIDE-DEBUG] Raw API Response:', {
           station: stationId,
-          predictions: rawData.predictions.map(p => ({
-            time: p.t,
-            height: p.v,
-            type: p.type // 'H' for high, 'L' for low
-          })),
+          predictions: safePredictions,
           requestWindow: `${startDate} → ${endDate}`
         });
-        console.log('🌊 NOAA six-minute raw:', rawData);
-        console.log('[TIDE] Raw NOAA Data:', {
-          station: stationId,
-          predictionCount: rawData?.predictions?.length || 0,
-          timeRange: `${rawData?.predictions?.[0]?.t} → ${rawData?.predictions?.slice(-1)[0]?.t}`
+
+        console.log('[TIDE-SAFE] Processed:', {
+          count: safePredictions.length,
+          today: safePredictions.filter(p => isToday(new Date(p.time)))
         });
-        const predictions = Array.isArray(rawData?.predictions) ? rawData.predictions : [];
+
         console.log('[TIDE] Filtered Cycles:', {
-          today: predictions.filter(p => isToday(new Date(p.t))),
-          overnight: predictions.filter(p => {
-            const date = new Date(p.t);
+          today: safePredictions.filter(p => isToday(new Date(p.time))),
+          overnight: safePredictions.filter(p => {
+            const date = new Date(p.time);
             return date.getHours() >= 18 || date.getHours() <= 6;
           })
         });
         console.log('[TIDE-DEBUG] Processed Cycles:', {
-          today: predictions.filter(p => {
+          today: safePredictions.filter(p => {
             const date = new Date(p.time);
             return isToday(date);
           }),
-          overnight: predictions.filter(p => {
+          overnight: safePredictions.filter(p => {
             const date = new Date(p.time);
             return date.getHours() >= 18 || date.getHours() <= 6; // 6PM-6AM
           })
         });
-        const detailedPoints: TidePoint[] = Array.isArray(rawData?.predictions)
-          ? rawData.predictions.map((p: { t: string; v: string }) => ({
-              time: `${p.t.replace(' ', 'T')}:00`,
-              height: parseFloat(p.v),
-              isHighTide: null
-            }))
-          : [];
+        const detailedPoints: TidePoint[] = safePredictions.map((p: { time: string; height: string }) => ({
+            time: `${p.time.replace(' ', 'T')}:00`,
+            height: parseFloat(p.height),
+            isHighTide: null
+          }));
 
         const tidePoints: TidePoint[] = hiLoPredictions
           .map((p) => ({
