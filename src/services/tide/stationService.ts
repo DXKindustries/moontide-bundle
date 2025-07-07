@@ -6,7 +6,7 @@ const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi
 const STATION_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 // Types
-interface Station {
+export interface Station {
   id: string;
   name: string;
   latitude: number;
@@ -74,6 +74,74 @@ export async function getStationsNearCoordinates(
     console.error('Failed to fetch stations:', error);
     throw error;
   }
+}
+
+export async function getStationById(id: string): Promise<Station | null> {
+  const cacheKey = `station:${id}`;
+  try {
+    const cached = cacheService.get<Station>(cacheKey);
+    if (cached) return cached;
+
+    const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const info = data.station ?? data.stations?.[0];
+    if (!info) return null;
+
+    const station: Station = {
+      ...info,
+      latitude: parseFloat(info.lat ?? info.latitude),
+      longitude: parseFloat(info.lng ?? info.longitude),
+    };
+    cacheService.set(cacheKey, station, STATION_CACHE_TTL);
+    return station;
+  } catch (error) {
+    console.error(`Failed to fetch station ${id}:`, error);
+    return null;
+  }
+}
+
+export function sortStationsForDefault(
+  stations: Station[],
+  lat?: number,
+  lng?: number,
+  city?: string,
+): Station[] {
+  const cityLower = city?.toLowerCase() ?? '';
+
+  const getDist = (s: Station) => {
+    if (s.distance != null) return s.distance;
+    if (
+      lat != null &&
+      lng != null &&
+      typeof s.latitude === 'number' &&
+      typeof s.longitude === 'number'
+    ) {
+      return haversineDistance(
+        { lat, lng },
+        { lat: s.latitude, lng: s.longitude },
+      );
+    }
+    return Infinity;
+  };
+
+  return stations
+    .filter((s) => {
+      const products: string[] = (s as any).products || [];
+      return !products.length || products.includes('water_level');
+    })
+    .sort((a, b) => {
+      const aCity = cityLower && a.name.toLowerCase().includes(cityLower);
+      const bCity = cityLower && b.name.toLowerCase().includes(cityLower);
+      if (aCity !== bCity) return aCity ? -1 : 1;
+
+      const aRef = (a as any).type === 'R';
+      const bRef = (b as any).type === 'R';
+      if (aRef !== bRef) return aRef ? -1 : 1;
+
+      return getDist(a) - getDist(b);
+    });
 }
 
 // Placeholder - implement or remove based on your needs
