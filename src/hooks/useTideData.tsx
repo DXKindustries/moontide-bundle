@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { isSameDay } from 'date-fns';
+import { isSameDay, isToday } from 'date-fns';
 import { getTideData, Prediction } from '@/services/tideDataService';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
@@ -104,12 +104,12 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           stationId: chosen.id,
           date: dateIso
         });
-        const predictions: Prediction[] = await getTideData(
+        const hiLoPredictions: Prediction[] = await getTideData(
           chosen.id,
           dateIso,
           7
         );
-        console.log('🌊 NOAA predictions length:', predictions.length);
+        console.log('🌊 NOAA predictions length:', hiLoPredictions.length);
 
         // Fetch detailed six-minute data around today for smooth chart lines
         const rangeStart = new Date();
@@ -121,7 +121,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         });
-        const detailedRaw = await fetchSixMinuteRange(
+        const rawData = await fetchSixMinuteRange(
           {
             id: chosen.id,
             name: chosen.name,
@@ -131,16 +131,29 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         );
-        console.log('🌊 NOAA six-minute raw:', detailedRaw);
-        const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
-          ? detailedRaw.predictions.map((p: { t: string; v: string }) => ({
+        console.log('🌊 NOAA six-minute raw:', rawData);
+        console.log('[TIDE] Raw NOAA Data:', {
+          station: stationId,
+          predictionCount: rawData?.predictions?.length || 0,
+          timeRange: `${rawData?.predictions?.[0]?.t} → ${rawData?.predictions?.slice(-1)[0]?.t}`
+        });
+        const predictions = Array.isArray(rawData?.predictions) ? rawData.predictions : [];
+        console.log('[TIDE] Filtered Cycles:', {
+          today: predictions.filter(p => isToday(new Date(p.t))),
+          overnight: predictions.filter(p => {
+            const date = new Date(p.t);
+            return date.getHours() >= 18 || date.getHours() <= 6;
+          })
+        });
+        const detailedPoints: TidePoint[] = Array.isArray(rawData?.predictions)
+          ? rawData.predictions.map((p: { t: string; v: string }) => ({
               time: `${p.t.replace(' ', 'T')}:00`,
               height: parseFloat(p.v),
               isHighTide: null
             }))
           : [];
 
-        const tidePoints: TidePoint[] = predictions
+        const tidePoints: TidePoint[] = hiLoPredictions
           .map((p) => ({
             time: p.timeIso,
             height: p.valueFt,
