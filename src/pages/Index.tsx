@@ -11,6 +11,7 @@ import LocationManager from '@/components/LocationManager';
 import StationPicker from '@/components/StationPicker';
 import { getStationsForLocationInput } from '@/services/locationService';
 import { Station, sortStationsForDefault } from '@/services/tide/stationService';
+import { logStationOptions } from '@/utils/stationUtils';
 
 const Index = () => {
   console.log('🚀 Index component rendering...');
@@ -82,6 +83,7 @@ const Index = () => {
             currentLocation.lng ?? undefined,
             currentLocation.cityState?.split(',')[0],
           );
+          logStationOptions(selectedStation?.id || null, sorted);
           setAvailableStations(sorted);
           if (sorted.length === 1) {
             setSelectedStation(sorted[0]);
