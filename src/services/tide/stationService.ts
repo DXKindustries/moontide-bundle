@@ -32,6 +32,7 @@ export async function getStationsForLocation(
     userInput,
   )}`;
 
+  console.log('[DEBUG] stationService fetch:', { url, userInput });
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
   const data = await response.json();
@@ -54,6 +55,7 @@ export async function getStationsNearCoordinates(
 
   const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
 
+  console.log('[DEBUG] stationService fetch:', { url, lat, lon, radiusKm });
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
@@ -69,6 +71,7 @@ export async function getStationById(id: string): Promise<Station | null> {
 
   const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
 
+  console.log('[DEBUG] stationService fetch:', { url, id });
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station');
   const data = await response.json();
