@@ -60,19 +60,47 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
 
 export async function getCoordinatesForCity(city: string, state: string): Promise<GeocodeResult | null> {
   console.log(`🏙️ Getting coordinates for city: ${city}, ${state}`);
-  
+
   const cacheKey = `city:${city.toLowerCase()}-${state.toLowerCase()}`;
-  
+
   // Check cache first
   const cached = cacheService.get<GeocodeResult>(cacheKey);
   if (cached) {
     console.log(`✅ Found ${city}, ${state} in cache`);
     return cached;
   }
-  
-  // For now we don't have a reliable free API for city/state geocoding
-  console.log(`⚠️ No coordinates found for ${city}, ${state}`);
-  return null;
+
+  try {
+    console.log(`🌐 Fetching coordinates from geocoding API for city: ${city}, ${state}`);
+    const url = `${GEOCODING_API_BASE}${state}/${encodeURIComponent(city)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Geocoding API returned ${response.status}`);
+    }
+
+    const apiData = await response.json();
+    console.log('[CITY] Raw API response:', apiData);
+
+    if (apiData && apiData.places && apiData.places.length > 0) {
+      const place = apiData.places[0];
+      const result = {
+        lat: parseFloat(place.latitude),
+        lng: parseFloat(place.longitude),
+        city: place['place name'] || city,
+        state: place['state abbreviation'] || state
+      } as GeocodeResult;
+
+      console.log('[CITY] Derived coordinates:', { lat: result.lat, lng: result.lng });
+      console.log(`✅ Geocoded ${city}, ${state}:`, result);
+      cacheService.set(cacheKey, result, CITY_CACHE_TTL);
+      return result;
+    }
+
+    throw new Error('No location data found');
+  } catch (error) {
+    console.warn(`⚠️ Geocoding failed for ${city}, ${state}:`, error);
+    return null;
+  }
 }
 
 // Cache management utilities
