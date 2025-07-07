@@ -265,6 +265,12 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
             } as TideForecast;
           });
 
+        console.log('[DEBUG] Final tide data shapes:', {
+          detailedPoints: detailedPoints.length,
+          tidePoints: tidePoints.length,
+          forecastDays: forecast.length,
+        });
+
         setTideData(curveData);
         setTideEvents(tidePoints);
         setWeeklyForecast(forecast);
@@ -275,6 +281,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setIsInland(false);
         setIsLoading(false);
       } catch (err) {
+        console.error('[DEBUG] Tide data processing error:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         setTideData([]);
