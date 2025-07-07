@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
@@ -44,9 +44,9 @@ const Index = () => {
     setSelectedStation(st);
   };
 
-  const handleStationsFound = (stations: Station[]) => {
+  const handleStationsFound = useCallback((stations: Station[]) => {
     setIncomingStations(stations);
-  };
+  }, []);
 
   console.log('🌊 Current location for useTideData:', currentLocation);
 
