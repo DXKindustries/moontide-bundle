@@ -70,6 +70,7 @@ export async function getStationById(id: string): Promise<Station | null> {
   const url = ${NOAA_MDAPI_BASE}/stations/${id}.json;
 
   const response = await fetch(url);
+  if (response.status === 404) return null;
   if (!response.ok) throw new Error('Unable to fetch station');
   const data = await response.json();
   if (!data.station) return null;
