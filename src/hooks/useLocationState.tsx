@@ -11,10 +11,7 @@ const CURRENT_STATION_KEY = 'moontide-current-station';
 function getInitialLocation(): (SavedLocation & { id: string; country: string }) | null {
   try {
     const newLocation = locationStorage.getCurrentLocation();
-    if (
-      newLocation &&
-      (newLocation.id || newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
-    ) {
+    if (newLocation?.id || newLocation?.zipCode || newLocation?.city || (newLocation?.lat != null && newLocation?.lng != null)) {
       return {
         id: newLocation.id || newLocation.zipCode || `${newLocation.city}-${newLocation.state}`,
         name: newLocation.nickname || newLocation.city,
@@ -27,97 +24,81 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
     }
 
     const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-    if (saved && (saved.id || saved.zipCode || saved.city || (saved.lat != null && saved.lng != null))) {
+    if (saved?.id || saved?.zipCode || saved?.city || (saved?.lat != null && saved?.lng != null)) {
       return {
         ...saved,
         id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
         country: saved.country || 'USA',
-      } as SavedLocation & { id: string; country: string };
+      };
     }
   } catch (error) {
-    console.warn('Error reading location from storage:', error);
+    console.warn('Error reading location:', error);
   }
-
   return null;
 }
 
 function getInitialStation(): Station | null {
   try {
     const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
-    return saved && (saved.id || saved.stationId) ? (saved as Station) : null;
+    return saved?.id ? saved as Station : null;
   } catch {
     return null;
   }
 }
 
 export const useLocationState = () => {
-  const initialLocation = getInitialLocation();
-  const initialStation = getInitialStation();
-
-  const [currentLocation, setCurrentLocation] = useState<
-    (SavedLocation & { id: string; country: string }) | null
-  >(initialLocation);
-
-  const [showLocationSelector, setShowLocationSelector] = useState(
-    !initialLocation && !initialStation
-  );
-
-  const [selectedStation, setSelectedStation] = useState<Station | null>(
-    initialStation
-  );
+  const [currentLocation, setCurrentLocation] = useState(() => getInitialLocation());
+  const [selectedStation, setSelectedStation] = useState<Station | null>(() => getInitialStation());
+  const [showLocationSelector, setShowLocationSelector] = useState(!getInitialLocation() && !getInitialStation());
 
   const routerLocation = useRouterLocation();
+
+  const setCurrentLocationWithPersist = useCallback((location: (SavedLocation & { id: string; country: string }) | null) => {
+    setCurrentLocation(location);
+    try {
+      safeLocalStorage.set(CURRENT_LOCATION_KEY, location);
+    } catch (err) {
+      console.warn('Error saving location:', err);
+    }
+  }, []);
+
+  const setSelectedStationWithPersist = useCallback((station: Station | null) => {
+    setSelectedStation(station);
+    if (station) {
+      setCurrentLocationWithPersist({
+        id: station.id,
+        name: station.name,
+        country: 'USA',
+        zipCode: '',
+        cityState: station.city ? `${station.city}, ${station.state}` : '',
+        lat: station.latitude,
+        lng: station.longitude
+      });
+    }
+    try {
+      safeLocalStorage.set(CURRENT_STATION_KEY, station);
+    } catch (err) {
+      console.warn('Error saving station:', err);
+    }
+  }, [setCurrentLocationWithPersist]);
 
   useEffect(() => {
     setShowLocationSelector(false);
   }, [routerLocation.pathname]);
-
-  const setCurrentLocationWithLogging = useCallback(
-    (location: (SavedLocation & { id: string; country: string }) | null) => {
-      setCurrentLocation(location);
-    },
-    []
-  );
-
-  const setSelectedStationWithPersist = useCallback(
-    (station: Station | null) => {
-      setSelectedStation(station);
-      try {
-        safeLocalStorage.set(CURRENT_STATION_KEY, station);
-      } catch (err) {
-        console.warn('Error saving station selection:', err);
-      }
-    },
-    []
-  );
 
   useEffect(() => {
     document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
   }, [currentLocation]);
 
   useEffect(() => {
-    const storedLocation = getInitialLocation();
-    if (storedLocation) {
-      setCurrentLocationWithLogging(storedLocation);
-    }
-
-    const storedStation = getInitialStation();
-    if (storedStation) {
-      setSelectedStationWithPersist(storedStation);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentLocation && selectedStation) {
-      setShowLocationSelector(false);
-    } else if (!currentLocation && !selectedStation) {
+    if (!currentLocation && !selectedStation) {
       setShowLocationSelector(true);
     }
   }, [currentLocation, selectedStation]);
 
   return {
     currentLocation,
-    setCurrentLocation: setCurrentLocationWithLogging,
+    setCurrentLocation: setCurrentLocationWithPersist,
     showLocationSelector,
     setShowLocationSelector,
     selectedStation,
