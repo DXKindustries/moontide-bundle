@@ -39,23 +39,36 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   throw new Error('Unable to fetch live station data from NOAA. Please check your internet connection.');
 }
 
-function processStationData(data: any, source: string): NoaaStationMetadata[] {
-  if (data && data.stations) {
+interface RawStation {
+  id: string;
+  name: string;
+  lat: string | number;
+  lng: string | number;
+  state?: string;
+  type?: string;
+}
+
+function processStationData(
+  data: { stations?: RawStation[] } | null,
+  source: string,
+): NoaaStationMetadata[] {
+  if (data && Array.isArray(data.stations)) {
     // Filter for tide stations only and convert to our format
     stationCache = data.stations
-      .filter((station: any) => 
-        station.type === 'tide' && 
-        station.lat && 
-        station.lng &&
-        station.id &&
-        station.name
+      .filter(
+        (station) =>
+          station.type === 'tide' &&
+          station.lat != null &&
+          station.lng != null &&
+          station.id != null &&
+          station.name != null,
       )
-      .map((station: any) => ({
+      .map((station) => ({
         id: station.id,
         name: station.name,
-        lat: parseFloat(station.lat),
-        lng: parseFloat(station.lng),
-        state: station.state
+        lat: parseFloat(String(station.lat)),
+        lng: parseFloat(String(station.lng)),
+        state: station.state,
       }));
     
     console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via ${source}`);

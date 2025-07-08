@@ -4,6 +4,7 @@ import TideChart from '@/components/TideChart';
 import WeeklyForecast from '@/components/WeeklyForecast';
 import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
+import { SavedLocation } from './LocationSelector';
 import { formatApiDate } from '@/utils/dateTimeUtils';
 
 interface MainContentProps {
@@ -14,7 +15,7 @@ interface MainContentProps {
   weeklyForecast: TideForecast[];
   currentDate: string;
   currentTime: string;
-  currentLocation: any;
+  currentLocation: (SavedLocation & { id: string; country: string }) | null;
   stationName: string | null;
   stationId: string | null;
   onGetStarted?: (location?: LocationData) => void;

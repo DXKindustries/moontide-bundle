@@ -22,17 +22,17 @@ const memoryStore: Record<string, string> = {};
 /*  Internal helpers                                         */
 /*───────────────────────────────────────────────────────────*/
 
-function safeGet(key: string): any {
+function safeGet<T>(key: string): T | null {
   try {
     const raw = window.localStorage.getItem(PREFIX + key);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     // quota exceeded or privacy-mode
-    return memoryStore[key] ? JSON.parse(memoryStore[key]) : null;
+    return memoryStore[key] ? (JSON.parse(memoryStore[key]) as T) : null;
   }
 }
 
-function safeSet(key: string, value: any) {
+function safeSet<T>(key: string, value: T): void {
   const raw = JSON.stringify(value);
   try {
     window.localStorage.setItem(PREFIX + key, raw);
@@ -45,15 +45,14 @@ function safeSet(key: string, value: any) {
 /*  Public API                                               */
 /*───────────────────────────────────────────────────────────*/
 
-export const safeLocalStorage: {
-  get: (key: string) => any;
-  set: (key: string, value: any) => void;
-  /** legacy aliases so older code (getItem / setItem) still works */
-  getItem?: (key: string) => any;
-  setItem?: (key: string, value: any) => void;
-} = {
+export const safeLocalStorage = {
   get: safeGet,
   set: safeSet,
+} as {
+  get: typeof safeGet;
+  set: typeof safeSet;
+  getItem?: typeof safeGet;
+  setItem?: typeof safeSet;
 };
 
 // ── legacy method aliases ───────────────────────────────────
