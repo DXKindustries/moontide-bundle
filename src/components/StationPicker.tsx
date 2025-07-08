@@ -20,36 +20,58 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setSelectedId(currentStationId || (stations[0]?.id || ''));
+    if (currentStationId && stations.some(s => s.id === currentStationId)) {
+      setSelectedId(currentStationId);
+    } else if (stations.length > 0) {
+      setSelectedId(stations[0].id);
+    }
   }, [stations, currentStationId]);
 
   const handleConfirm = () => {
     const station = stations.find((s) => s.id === selectedId);
-    if (station) onSelect(station);
-    onClose();
+    if (station) {
+      onSelect(station);
+      onClose();
+    }
   };
 
   const handleManualSearch = async () => {
     const id = manualId.trim();
     if (!/^\d{7}$/.test(id)) {
-      toast.error('Enter 7-digit NOAA Station ID');
+      toast.error('Please enter a valid 7-digit NOAA Station ID');
       return;
     }
 
     setIsLoading(true);
     try {
       const response = await fetch(
-        `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/${id}.json`
+        `https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/${id}.json?type=waterlevels`
       );
-      const data = await response.json();
-      if (data.stations?.[0]) {
-        onSelect(data.stations[0]);
-        onClose();
-      } else {
-        toast.error('Station not found');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } catch {
-      toast.error('Network error');
+
+      const data = await response.json();
+      if (!data.stations || data.stations.length === 0) {
+        throw new Error('Station not found in NOAA database');
+      }
+
+      const stationData = data.stations[0];
+      const station: Station = {
+        id: stationData.id,
+        name: stationData.name,
+        latitude: parseFloat(stationData.lat),
+        longitude: parseFloat(stationData.lng),
+        state: stationData.state,
+        city: stationData.city || '',
+        type: 'R' // Default to reference station
+      };
+
+      onSelect(station);
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch station data');
     } finally {
       setIsLoading(false);
     }
@@ -57,48 +79,55 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md max-w-[100vw] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
         <DialogHeader>
-          <DialogTitle>Select NOAA Station</DialogTitle>
+          <DialogTitle>Select Tide Station</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 mt-2">
           <div className="flex gap-2">
             <Input
               value={manualId}
-              onChange={(e) => setManualId(e.target.value)}
+              onChange={(e) => setManualId(e.target.value.replace(/\D/g, ''))}
               placeholder="Enter 7-digit Station ID"
+              maxLength={7}
             />
             <Button 
               onClick={handleManualSearch}
-              disabled={!manualId.trim() || isLoading}
+              disabled={!manualId || manualId.length !== 7 || isLoading}
             >
-              {isLoading ? 'Searching...' : 'Go'}
+              {isLoading ? 'Searching...' : 'Lookup'}
             </Button>
           </div>
-          <Select value={selectedId} onValueChange={setSelectedId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose station" />
-            </SelectTrigger>
-            <SelectContent className="max-h-40 max-w-[90vw]">
-              {stations.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name} ({s.id})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleConfirm} 
-              className="flex-1"
-              disabled={!selectedId}
-            >
-              Confirm
-            </Button>
-          </div>
+
+          {stations.length > 0 && (
+            <>
+              <Select value={selectedId} onValueChange={setSelectedId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select from list" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px]">
+                  {stations.map((station) => (
+                    <SelectItem key={station.id} value={station.id}>
+                      {station.name} ({station.id}) {station.city && `- ${station.city}, ${station.state}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={onClose} className="flex-1">
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleConfirm} 
+                  className="flex-1"
+                  disabled={!selectedId}
+                >
+                  Select Station
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
