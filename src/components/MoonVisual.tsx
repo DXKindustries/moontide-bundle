@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 type MoonVisualProps = {
@@ -7,8 +6,6 @@ type MoonVisualProps = {
 };
 
 const MoonVisual = ({ phase, illumination }: MoonVisualProps) => {
-  console.log('🌙 MoonVisual received:', { phase, illumination });
-
   // Calculate visual representation of moon phase with original purple/blue color scheme
   const getMoonPhaseVisual = () => {
     switch (phase) {
