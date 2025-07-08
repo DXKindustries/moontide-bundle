@@ -1,6 +1,8 @@
 // src/services/tide/stationService.ts
 
 import { cacheService } from '../cacheService';
+// ⬇️ Replace this with the correct path to your local station list:
+import { allStations } from '../data/allStations'; // <-- Update if needed
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 
@@ -62,24 +64,16 @@ export async function getStationsNearCoordinates(
   return stations;
 }
 
+// 🟢 MODIFIED: Use the local station list for Station ID lookups!
 export async function getStationById(id: string): Promise<Station | null> {
   const key = `station:${id}`;
   const cached = cacheService.get<Station>(key);
   if (cached) return cached;
 
-  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+  // Instead of NOAA API, do a local lookup:
+  const station = allStations.find((s) => s.id === id);
+  if (!station) return null;
 
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Unable to fetch station');
-  const data = await response.json();
-  if (!data.station) return null;
-  const station: Station = {
-    id: data.station.id,
-    name: data.station.name,
-    latitude: data.station.latitude,
-    longitude: data.station.longitude,
-    state: data.station.state,
-  };
   cacheService.set(key, station, STATION_CACHE_TTL);
   return station;
 }
