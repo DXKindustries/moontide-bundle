@@ -16,10 +16,7 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
       (newLocation.id || newLocation.zipCode || newLocation.city || (newLocation.lat != null && newLocation.lng != null))
     ) {
       return {
-        id:
-          newLocation.id ||
-          newLocation.zipCode ||
-          `${newLocation.city}-${newLocation.state}`,
+        id: newLocation.id || newLocation.zipCode || `${newLocation.city}-${newLocation.state}`,
         name: newLocation.nickname || newLocation.city,
         country: 'USA',
         zipCode: newLocation.zipCode || '',
@@ -30,10 +27,7 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
     }
 
     const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-    if (
-      saved &&
-      (saved.id || saved.zipCode || saved.city || (saved.lat != null && saved.lng != null))
-    ) {
+    if (saved && (saved.id || saved.zipCode || saved.city || (saved.lat != null && saved.lng != null))) {
       return {
         ...saved,
         id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
@@ -41,7 +35,7 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
       } as SavedLocation & { id: string; country: string };
     }
   } catch (error) {
-    console.warn('⚠️ Error reading location from storage:', error);
+    console.warn('Error reading location from storage:', error);
   }
 
   return null;
@@ -57,52 +51,32 @@ function getInitialStation(): Station | null {
 }
 
 export const useLocationState = () => {
-  console.log('🏗️ useLocationState hook initializing...');
-
   const initialLocation = getInitialLocation();
   const initialStation = getInitialStation();
 
   const [currentLocation, setCurrentLocation] = useState<
     (SavedLocation & { id: string; country: string }) | null
-  >(() => {
-    console.log('📍 Initializing currentLocation state...');
-    return initialLocation;
-  });
+  >(initialLocation);
 
-  const [showLocationSelector, setShowLocationSelector] = useState(() =>
+  const [showLocationSelector, setShowLocationSelector] = useState(
     !initialLocation && !initialStation
   );
 
-  const [selectedStation, setSelectedStation] = useState<Station | null>(() =>
+  const [selectedStation, setSelectedStation] = useState<Station | null>(
     initialStation
   );
 
   const routerLocation = useRouterLocation();
 
-  // Close any open location selector when navigating to a new route
   useEffect(() => {
     setShowLocationSelector(false);
   }, [routerLocation.pathname]);
 
-  /* ---------- setters with logging / persistence ---------- */
-
   const setCurrentLocationWithLogging = useCallback(
-    (
-      location: (SavedLocation & { id: string; country: string }) | null,
-    ) => {
-      console.log(
-        '🔄 useLocationState: setCurrentLocation called with:',
-        location,
-      );
+    (location: (SavedLocation & { id: string; country: string }) | null) => {
       setCurrentLocation(location);
-
-      console.log(
-        location
-          ? '✅ useLocationState: User now has a location'
-          : '🎯 useLocationState: User has no location',
-      );
     },
-    [],
+    []
   );
 
   const setSelectedStationWithPersist = useCallback(
@@ -111,29 +85,16 @@ export const useLocationState = () => {
       try {
         safeLocalStorage.set(CURRENT_STATION_KEY, station);
       } catch (err) {
-        console.warn('⚠️ Error saving station selection:', err);
+        console.warn('Error saving station selection:', err);
       }
     },
-    [],
+    []
   );
 
-  /* ---------- side-effect: update page title on location change ---------- */
-
   useEffect(() => {
-    console.log(
-      '📝 useLocationState useEffect: Setting document title for location:',
-      currentLocation?.name,
-    );
-    document.title = `MoonTide - ${
-      currentLocation?.name ?? 'Choose Location'
-    }`;
-    console.log(
-      '🔄 useLocationState useEffect: Location state change detected - hasLocation:',
-      !!currentLocation,
-    );
+    document.title = `MoonTide - ${currentLocation?.name ?? 'Choose Location'}`;
   }, [currentLocation]);
 
-  // Sync state with storage on mount so navigation between pages keeps location
   useEffect(() => {
     const storedLocation = getInitialLocation();
     if (storedLocation) {
@@ -146,7 +107,6 @@ export const useLocationState = () => {
     }
   }, []);
 
-  // Keep modal visibility in sync with stored location and station
   useEffect(() => {
     if (currentLocation && selectedStation) {
       setShowLocationSelector(false);
@@ -154,8 +114,6 @@ export const useLocationState = () => {
       setShowLocationSelector(true);
     }
   }, [currentLocation, selectedStation]);
-
-  /* ---------- what the hook exposes ---------- */
 
   return {
     currentLocation,

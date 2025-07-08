@@ -11,8 +11,6 @@ import {
 import { TidePoint, TideForecast, TideCycle, TideEvent } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
-// Internal shape for grouping tide events by date
-
 function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[] {
   const filtered = events
     .filter((e) => isSameDay(new Date(e.time), targetDate))
@@ -22,8 +20,8 @@ function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[
 
 type UseTideDataParams = {
   location: {
-    id: string;        // stationId
-    name: string;      // user label, city/state, etc
+    id: string;
+    name: string;
     country?: string;
     zipCode?: string;
     lat?: number;
@@ -57,7 +55,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
   const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
 
-  // Update current time every minute so the "Now" indicator stays accurate
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTimeString());
@@ -72,7 +69,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     if (!location || !station) {
       setIsLoading(false);
       setError(null);
-      // Keep previously loaded data so navigating away doesn't clear charts
       return;
     }
 
@@ -83,44 +79,27 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
       try {
         const chosen = station;
-
-        // At this point we should have a chosen station
         if (!chosen?.id) {
-          console.warn('No station ID available for location', location);
           setStationId(null);
           setIsLoading(false);
           return;
         }
+
         const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 1); // include prior day for smoother charts
+        startDate.setDate(startDate.getDate() - 1);
         const dateIso = formatDateAsLocalIso(startDate);
 
-        // Debug logging before fetching tide data
-        console.log("ZIP:", location?.zipCode);
-        console.log("Lat/Lng:", location?.latitude, location?.longitude);
-        console.log("Station ID:", station?.id);
-
-        console.log('🌐 useTideData getTideData:', {
-          stationId: chosen.id,
-          date: dateIso
-        });
         const predictions: Prediction[] = await getTideData(
           chosen.id,
           dateIso,
           7
         );
-        console.log('🌊 NOAA predictions length:', predictions.length);
 
-        // Fetch detailed six-minute data around today for smooth chart lines
         const rangeStart = new Date();
         rangeStart.setDate(rangeStart.getDate() - 1);
         const rangeEnd = new Date();
         rangeEnd.setDate(rangeEnd.getDate() + 1);
-        console.log('🌐 useTideData fetchSixMinuteRange:', {
-          stationId: chosen.id,
-          rangeStart,
-          rangeEnd
-        });
+        
         const detailedRaw = await fetchSixMinuteRange(
           {
             id: chosen.id,
@@ -131,7 +110,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         );
-        console.log('🌊 NOAA six-minute raw:', detailedRaw);
+
         const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
           ? detailedRaw.predictions.map((p: { t: string; v: string }) => ({
               time: `${p.t.replace(' ', 'T')}:00`,
@@ -150,7 +129,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
         const curveData = detailedPoints.length > 0 ? detailedPoints : tidePoints;
 
-        // Group tide events by their local date
         const eventsByDate: Record<string, TideEvent[]> = {};
         tidePoints.forEach((tp) => {
           if (tp.isHighTide === null) return;
@@ -163,7 +141,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           });
         });
 
-        // Build cycles strictly within each day to ensure two cycles per day
         const cyclesByDate: Record<string, TideCycle[]> = {};
         Object.keys(eventsByDate).forEach((date) => {
           const events = eventsByDate[date].sort((a, b) =>
@@ -200,11 +177,8 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setTideData(curveData);
         setTideEvents(tidePoints);
         setWeeklyForecast(forecast);
-        setCurrentDate(getCurrentIsoDateString());
-        setCurrentTime(getCurrentTimeString());
         setStationName(chosen.name || location.name || null);
         setStationId(chosen.id);
-        setIsInland(false);
         setIsLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
@@ -214,7 +188,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setWeeklyForecast([]);
         setStationName(null);
         setStationId(null);
-        setIsInland(false);
       }
     };
 
