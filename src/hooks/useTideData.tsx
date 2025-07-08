@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { isSameDay } from 'date-fns';
 import { getTideData, Prediction } from '@/services/tideDataService';
+import { debugLog } from '@/utils/debugLogger';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
 import { Station } from '@/services/tide/stationService';
 import {
@@ -76,6 +77,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       setIsLoading(true);
       setError(null);
       setIsInland(false);
+      debugLog('Fetching tide data for station', station);
 
       try {
         const chosen = station;
@@ -89,17 +91,20 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         startDate.setDate(startDate.getDate() - 1);
         const dateIso = formatDateAsLocalIso(startDate);
 
+        debugLog('Requesting 7 day predictions', { stationId: chosen.id, dateIso });
         const predictions: Prediction[] = await getTideData(
           chosen.id,
           dateIso,
           7
         );
+        debugLog('Predictions received', { count: predictions.length });
 
         const rangeStart = new Date();
         rangeStart.setDate(rangeStart.getDate() - 1);
         const rangeEnd = new Date();
         rangeEnd.setDate(rangeEnd.getDate() + 1);
         
+        debugLog('Fetching 6 minute range');
         const detailedRaw = await fetchSixMinuteRange(
           {
             id: chosen.id,
@@ -110,6 +115,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           rangeStart,
           rangeEnd
         );
+        debugLog('6 minute range fetched', { hasData: !!detailedRaw?.predictions?.length });
 
         const detailedPoints: TidePoint[] = Array.isArray(detailedRaw?.predictions)
           ? detailedRaw.predictions.map((p: { t: string; v: string }) => ({
@@ -179,8 +185,14 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setWeeklyForecast(forecast);
         setStationName(chosen.name || location.name || null);
         setStationId(chosen.id);
+        debugLog('Tide data state updated', {
+          points: curveData.length,
+          events: tidePoints.length,
+          forecastDays: forecast.length,
+        });
         setIsLoading(false);
       } catch (err) {
+        debugLog('Tide data fetch failed', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
         setIsLoading(false);
         setTideData([]);
