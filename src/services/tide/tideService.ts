@@ -63,10 +63,12 @@ async function tryFetch(url: string) {
   }
 }
 
+import type { NoaaTideResponse } from './types';
+
 async function fetchTier(
   base: Omit<QueryParams, 'product' | 'interval'>,
   station: NoaaStation,
-): Promise<any> {
+): Promise<NoaaTideResponse> {
   const tiers: Array<Pick<QueryParams, 'product' | 'interval'>> = [
     { product: 'water_level', interval: '6' },
     { product: 'predictions', interval: 'h' },
@@ -77,7 +79,7 @@ async function fetchTier(
     const p: QueryParams = { ...base, ...tier };
     const key = cacheKey(p);
 
-    const cached = cacheService.get<any>(key);
+    const cached = cacheService.get<NoaaTideResponse>(key);
     if (cached) {
       console.log(`✅ Cache HIT for ${key}`);
       return cached;

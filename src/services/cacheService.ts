@@ -6,7 +6,7 @@ interface CacheEntry<T> {
 }
 
 class CacheService {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private readonly DEFAULT_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
   set<T>(key: string, data: T, ttl: number = this.DEFAULT_TTL): void {
