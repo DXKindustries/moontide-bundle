@@ -45,9 +45,10 @@ export async function getTideData(
   let raw: unknown;
   try {
     const resp = await fetch(url);
+    debugLog('Tide data HTTP status', { stationId, status: resp.status });
     if (!resp.ok) throw new Error('Unable to fetch tide data');
     raw = await resp.json();
-    debugLog('Tide data response received', { stationId });
+    debugLog('Tide data response received', { stationId, raw });
   } catch (err) {
     debugLog('Tide data fetch error', err);
     throw err instanceof Error ? err : new Error('Failed to fetch tide data');
@@ -55,10 +56,14 @@ export async function getTideData(
 
   const data = raw as { predictions?: { t: string; v: string; type: 'H' | 'L' }[] };
   const list = Array.isArray(data?.predictions) ? data.predictions : [];
+  if (!Array.isArray(data?.predictions)) {
+    debugLog('Predictions missing in response', { stationId, raw });
+  }
   debugLog('Parsed tide predictions', { stationId, count: list.length });
   return list.map((p: { t: string; v: string; type: 'H' | 'L' }): Prediction => ({
     timeIso: `${p.t.replace(' ', 'T')}:00`,
     valueFt: parseFloat(p.v),
     kind: p.type,
-  }));
-}export { getStationsForUserLocation } from './noaaService';
+  }));}
+
+export { getStationsForUserLocation } from './noaaService';
