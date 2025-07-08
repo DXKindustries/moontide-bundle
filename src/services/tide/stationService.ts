@@ -67,7 +67,7 @@ export async function getStationById(id: string): Promise<Station | null> {
   const cached = cacheService.get<Station>(key);
   if (cached) return cached;
 
-  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
+  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json?type=waterlevels`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station');
