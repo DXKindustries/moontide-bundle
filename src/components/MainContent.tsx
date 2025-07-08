@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MoonPhase from '@/components/MoonPhase';
 import TideChart from '@/components/TideChart';
@@ -41,8 +40,6 @@ export default function MainContent({
     moonset: "07:15",
     date: formatApiDate(currentDate)
   };
-
-  console.log('MainContent onGetStarted function:', onGetStarted);
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
