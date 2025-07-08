@@ -1,8 +1,6 @@
 // src/services/tide/stationService.ts
 
 import { cacheService } from '../cacheService';
-// ⬇️ Replace this with the correct path to your local station list:
-import { allStations } from '../data/allStations'; // <-- Update if needed
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 
@@ -23,16 +21,16 @@ export interface Station {
 export async function getStationsForLocation(
   userInput: string
 ): Promise<Station[]> {
-  const key = `stations:${userInput.toLowerCase()}`;
+  const key = stations:${userInput.toLowerCase()};
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
     return cached;
   }
 
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
+  const url = ${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
     userInput,
-  )}`;
+  )};
 
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
@@ -47,14 +45,14 @@ export async function getStationsNearCoordinates(
   lon: number,
   radiusKm = 100,
 ): Promise<Station[]> {
-  const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
+  const key = stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm};
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
     return cached;
   }
 
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
+  const url = ${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm};
 
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station list.');
@@ -64,16 +62,24 @@ export async function getStationsNearCoordinates(
   return stations;
 }
 
-// 🟢 MODIFIED: Use the local station list for Station ID lookups!
 export async function getStationById(id: string): Promise<Station | null> {
-  const key = `station:${id}`;
+  const key = station:${id};
   const cached = cacheService.get<Station>(key);
   if (cached) return cached;
 
-  // Instead of NOAA API, do a local lookup:
-  const station = allStations.find((s) => s.id === id);
-  if (!station) return null;
+  const url = ${NOAA_MDAPI_BASE}/stations/${id}.json;
 
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Unable to fetch station');
+  const data = await response.json();
+  if (!data.station) return null;
+  const station: Station = {
+    id: data.station.id,
+    name: data.station.name,
+    latitude: data.station.latitude,
+    longitude: data.station.longitude,
+    state: data.station.state,
+  };
   cacheService.set(key, station, STATION_CACHE_TTL);
   return station;
 }
@@ -128,3 +134,5 @@ export function sortStationsForDefault(
       return getDist(a) - getDist(b);
     });
 }
+
+
