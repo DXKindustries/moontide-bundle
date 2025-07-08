@@ -7,6 +7,7 @@ import { LocationData } from '@/types/locationTypes';
 import { parseLocationInput, ParsedInput } from '@/utils/locationInputParser';
 import { getStationById } from '@/services/locationService';
 import { Station } from '@/services/tide/stationService';
+import { debugLog } from '@/utils/debugLogger';
 
 interface UseLocationSearchProps {
   onLocationSelect: (location: LocationData) => void;
@@ -31,7 +32,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     }
 
     setIsLoading(true);
-    console.log('🔍 Parsed input:', parsed);
+    debugLog('Parsed location input', parsed);
 
     try {
       let location: LocationData | null = null;
@@ -43,7 +44,9 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
       } else if (parsed.type === 'cityState') {
         location = await handleCityStateLookup(parsed);
       } else if (parsed.type === 'stationId') {
+        debugLog('Station ID detected, fetching station', parsed.stationId);
         const station = await getStationById(parsed.stationId!);
+        debugLog('Station lookup result', station);
         if (station) {
           onStationSelect?.(station);
           location = {
@@ -70,16 +73,18 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
       }
 
       if (location) {
+        debugLog('Location search resolved', location);
         onLocationSelect(location);
         if (!location.isManual) {
           toast.success(`Location saved: ${location.city}, ${location.state}`);
         }
         onClose?.();
       } else {
+        debugLog('Location search returned no result');
         toast.error('Location not found. Please check your input and try again.');
       }
     } catch (error) {
-      console.error('🚨 Location search error:', error);
+      debugLog('Location search error', error);
       toast.error('Unable to find location. Please try a different format.');
     } finally {
       setIsLoading(false);
@@ -87,7 +92,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
   };
 
   const handleZipLookup = async (parsed: ParsedInput): Promise<LocationData | null> => {
-    console.log('🏷️ Looking up ZIP code:', parsed.zipCode);
+    debugLog('Looking up ZIP code', parsed.zipCode);
     const result = await lookupZipCode(parsed.zipCode!);
     if (result && result.places && result.places.length > 0) {
       const place = result.places[0];
@@ -101,14 +106,14 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         isManual: false,
         timestamp: Date.now()
       };
-      console.log('✅ ZIP lookup successful:', location);
+      debugLog('ZIP lookup successful', location);
       return location;
     }
     return null;
   };
 
   const handleCityStateZipLookup = async (parsed: ParsedInput): Promise<LocationData | null> => {
-    console.log('🏷️ Verifying city/state with ZIP:', parsed);
+    debugLog('Verifying city/state with ZIP', parsed);
     const result = await lookupZipCode(parsed.zipCode!);
     if (result && result.places && result.places.length > 0) {
       const place = result.places[0];
@@ -121,14 +126,14 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         isManual: false,
         timestamp: Date.now()
       };
-      console.log('✅ City/State/ZIP verification successful:', location);
+      debugLog('City/State/ZIP verification successful', location);
       return location;
     }
     return null;
   };
 
   const handleCityStateLookup = async (parsed: ParsedInput): Promise<LocationData | null> => {
-    console.log('🏙️ Attempting to geocode city/state:', parsed);
+    debugLog('Attempting to geocode city/state', parsed);
     const geocodeResult = await getCoordinatesForCity(parsed.city!, parsed.state!);
     
     if (geocodeResult) {
@@ -141,11 +146,11 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         isManual: false,
         timestamp: Date.now()
       };
-      console.log('✅ City/State geocoding successful:', location);
+      debugLog('City/State geocoding successful', location);
       return location;
     } else {
       // Fallback to manual entry (no coordinates)
-      console.log('📝 Fallback to manual city/state entry:', parsed);
+      debugLog('Fallback to manual city/state entry', parsed);
       const location = {
         zipCode: '',
         city: parsed.city!,
@@ -155,7 +160,7 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         isManual: true,
         timestamp: Date.now()
       };
-      console.log('✅ Manual location created:', location);
+      debugLog('Manual location created', location);
       toast.success(`Location saved: ${location.city}, ${location.state} (manual entry)`);
       return location;
     }
