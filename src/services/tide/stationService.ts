@@ -1,6 +1,7 @@
 // src/services/tide/stationService.ts
 
 import { cacheService } from '../cacheService';
+import { getDistanceKm } from './geo';
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 
@@ -108,8 +109,6 @@ export function sortStationsForDefault(
       typeof s.latitude === 'number' &&
       typeof s.longitude === 'number'
     ) {
-      // Lazy import to avoid circular deps
-      const { getDistanceKm } = require('./geo');
       return getDistanceKm(lat, lon, s.latitude, s.longitude);
     }
     return Infinity;
@@ -117,7 +116,7 @@ export function sortStationsForDefault(
 
   return stations
     .filter((s) => {
-      const products: string[] = (s as any).products || [];
+      const products: string[] = (s as { products?: string[] }).products ?? [];
       return !products.length || products.includes('water_level');
     })
     .sort((a, b) => {
@@ -127,8 +126,8 @@ export function sortStationsForDefault(
       if (aCity !== bCity) return aCity ? -1 : 1;
 
       // type preference
-      const aRef = (a as any).type === 'R';
-      const bRef = (b as any).type === 'R';
+      const aRef = (a as { type?: string }).type === 'R';
+      const bRef = (b as { type?: string }).type === 'R';
       if (aRef !== bRef) return aRef ? -1 : 1;
 
       // distance

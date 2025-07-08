@@ -7,8 +7,19 @@ import { cacheService } from '@/services/cacheService';
 import { clearGeocodingCache, getCacheStats } from '@/services/geocodingService';
 import { toast } from 'sonner';
 
+interface CacheEntryStats {
+  key: string;
+  age: number;
+  ttl: number;
+}
+
+interface CacheStats {
+  size: number;
+  entries: CacheEntryStats[];
+}
+
 export default function CacheManagement() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<CacheStats | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -136,7 +147,7 @@ export default function CacheManagement() {
                   Cache Entries ({stats.entries.length})
                 </h4>
                 <div className="max-h-80 overflow-y-auto space-y-2 border rounded-lg p-3">
-                  {stats.entries.map((entry: any, index: number) => (
+                  {stats.entries.map((entry: CacheEntryStats, index: number) => (
                     <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg text-sm">
                       <div className="flex-1 min-w-0 mr-4">
                         <div className="font-mono text-xs truncate text-blue-600">
