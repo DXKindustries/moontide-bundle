@@ -34,18 +34,18 @@ function saveZipCache(zip: string, data: ZipApiResponse) {
 }
 
 export const lookupZipCode = async (
-  zipCode: string | number | Promise<any> | Record<string, unknown>
+  zipCode: string | number | Promise<unknown> | Record<string, unknown>
 ): Promise<ZipApiResponse | null> => {
-  if (typeof (zipCode as any)?.then === 'function') {
+  if (typeof (zipCode as { then?: () => unknown })?.then === 'function') {
     zipCode = await zipCode;
   }
 
   // unwrap common object shapes
   if (typeof zipCode === 'object' && zipCode !== null) {
     zipCode =
-      (zipCode as any).zip ??
-      (zipCode as any).zipCode ??
-      (zipCode as any).value ??
+      (zipCode as Record<string, unknown>).zip ??
+      (zipCode as Record<string, unknown>).zipCode ??
+      (zipCode as Record<string, unknown>).value ??
       '';
   }
 
@@ -96,7 +96,7 @@ export const lookupZipCode = async (
 /*───────────────────────────────────────────────────────────*/
 
 export async function formatCityStateFromZip(
-  zipCode: string | number | Promise<any> | Record<string, unknown>
+  zipCode: string | number | Promise<unknown> | Record<string, unknown>
 ) {
   // ...rest of your function
 }
