@@ -21,16 +21,16 @@ export interface Station {
 export async function getStationsForLocation(
   userInput: string
 ): Promise<Station[]> {
-  const key = stations:${userInput.toLowerCase()};
+  const key = `stations:${userInput.toLowerCase()}`;
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
     return cached;
   }
 
-  const url = ${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
     userInput,
-  )};
+  )}`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
@@ -45,14 +45,14 @@ export async function getStationsNearCoordinates(
   lon: number,
   radiusKm = 100,
 ): Promise<Station[]> {
-  const key = stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm};
+  const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
     return cached;
   }
 
-  const url = ${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm};
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
 
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station list.');
@@ -63,11 +63,11 @@ export async function getStationsNearCoordinates(
 }
 
 export async function getStationById(id: string): Promise<Station | null> {
-  const key = station:${id};
+  const key = `station:${id}`;
   const cached = cacheService.get<Station>(key);
   if (cached) return cached;
 
-  const url = ${NOAA_MDAPI_BASE}/stations/${id}.json;
+  const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
 
   const response = await fetch(url);
   if (response.status === 404) return null;
