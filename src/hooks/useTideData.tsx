@@ -13,7 +13,7 @@ import { calculateMoonPhase } from '@/utils/lunarUtils';
 
 function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[] {
   const filtered = events
-    .filter((e) => isSameDay(new Date(e.time), targetDate)
+    .filter((e) => isSameDay(new Date(e.time), targetDate))
     .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
   return filtered.slice(0, 4);
 }
