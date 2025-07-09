@@ -7,6 +7,7 @@ import { LocationData } from '@/types/locationTypes';
 import { parseLocationInput, ParsedInput } from '@/utils/locationInputParser';
 import { getStationById } from '@/services/locationService';
 import { Station } from '@/services/tide/stationService';
+import { persistStationCurrentLocation } from '@/utils/currentLocation';
 import { debugLog } from '@/utils/debugLogger';
 
 interface UseLocationSearchProps {
@@ -46,12 +47,15 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
       } else if (parsed.type === 'stationId') {
         debugLog('Station ID detected, fetching station', parsed.stationId);
         const station = await getStationById(parsed.stationId!);
-        debugLog('Station lookup result', station);
+        console.log('Fetched station object:', station);
         if (station) {
+          persistStationCurrentLocation(station);
           onStationSelect?.(station);
           toast.success(`Using station ${station.name}`);
           onClose?.();
           return; // station handler sets current location
+        } else {
+          console.error('Station object is undefined, not saving.');
         }
       } else if (parsed.type === 'stationName') {
         location = {
