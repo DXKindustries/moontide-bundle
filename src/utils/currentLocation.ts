@@ -7,11 +7,12 @@ import type { Station } from '@/services/tide/stationService';
 const CURRENT_LOCATION_KEY = 'currentLocation';
 
 export function persistStationCurrentLocation(station?: Station | null) {
-  console.log('Fetched station object:', station);
   if (!station) {
     console.error('Station object is undefined, not saving.');
     return;
   }
+  const stationObject = station;
+  console.log('💾 Saving fetched station object:', stationObject);
   console.log('Saving station currentLocation to storage:', station);
   const storageObj = {
     stationId: station.id,
