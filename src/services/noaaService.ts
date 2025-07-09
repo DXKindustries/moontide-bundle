@@ -1,22 +1,39 @@
 // src/services/noaaService.ts
 
-import {
-  getStationsForLocation,
-  getStationsNearCoordinates,
-} from './tide/stationService';
+import { getStationsNearCoordinates } from './tide/stationService';
 import { Station } from './tide/stationService';
+import { normalizeState } from '@/utils/stateNames';
+import { getDistanceKm } from './tide/geo';
 
 // Always use dynamic live lookup for NOAA stations
 export async function getStationsForUserLocation(
   userInput: string,
   lat?: number,
   lon?: number,
+  state?: string,
 ): Promise<Station[]> {
+  const radius = 30;
   if (lat != null && lon != null) {
-    const nearby = await getStationsNearCoordinates(lat, lon);
-    if (nearby.length > 0) return nearby;
+    const all = await getStationsNearCoordinates(lat, lon, radius);
+    const filtered = all
+      .filter(
+        (s) =>
+          typeof s.latitude === 'number' &&
+          typeof s.longitude === 'number' &&
+          getDistanceKm(lat, lon, s.latitude, s.longitude) <= radius,
+      );
+
+    if (state) {
+      const target = normalizeState(state);
+      const inState = filtered.filter(
+        (s) => normalizeState(String(s.state ?? '')) === target,
+      );
+      if (inState.length > 0) return inState;
+    }
+
+    return filtered;
   }
-  return getStationsForLocation(userInput);
+  return [];
 }
 
 // There is no 'getNearestStation' or similar export.
