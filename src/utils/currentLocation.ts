@@ -2,7 +2,9 @@ import { SavedLocation } from '@/components/LocationSelector';
 import { LocationData } from '@/types/locationTypes';
 import { safeLocalStorage } from './localStorage';
 import { locationStorage } from './locationStorage';
+import { addLocationHistory } from './locationHistory';
 import type { Station } from '@/services/tide/stationService';
+import type { LocationHistoryEntry } from '@/types/locationHistory';
 
 const CURRENT_LOCATION_KEY = 'currentLocation';
 
@@ -37,6 +39,20 @@ export function persistStationCurrentLocation(station?: Station | null) {
     nickname: undefined,
   };
   locationStorage.saveCurrentLocation(locationData);
+
+  const entry: LocationHistoryEntry = {
+    stationId: station.id,
+    stationName: station.name,
+    nickname: undefined,
+    lat: station.latitude,
+    lng: station.longitude,
+    city: station.city ?? '',
+    state: station.state ?? '',
+    zipCode: station.zip ?? '',
+    sourceType: 'station',
+    timestamp: Date.now(),
+  };
+  addLocationHistory(entry);
 }
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
@@ -75,6 +91,20 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     nickname: location.name !== city ? location.name : undefined,
   };
   locationStorage.saveCurrentLocation(locationData);
+
+  const entry: LocationHistoryEntry = {
+    stationId: storageObj.stationId ?? location.id,
+    stationName: storageObj.stationName ?? location.name,
+    nickname: location.name !== city ? location.name : undefined,
+    lat: location.lat,
+    lng: location.lng,
+    city: city || undefined,
+    state: state || undefined,
+    zipCode: location.zipCode || undefined,
+    sourceType: storageObj.sourceType,
+    timestamp: Date.now(),
+  };
+  addLocationHistory(entry);
 }
 
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
