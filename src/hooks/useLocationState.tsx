@@ -48,6 +48,9 @@ export const useLocationState = () => {
   const setSelectedStationWithPersist = useCallback((station: Station | null) => {
     setSelectedStation(station);
     if (station) {
+      console.log('Station selected:', station.id, station.name);
+    }
+    if (station) {
       // Merge the selected station into the previous location so we retain ZIP/city info.
       const mergedLocation = {
         ...(currentLocation ?? {
