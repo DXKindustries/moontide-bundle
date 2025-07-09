@@ -64,6 +64,8 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
           state: '',
           lat: null,
           lng: null,
+          stationId: undefined,
+          stationName: parsed.stationName!,
           isManual: true,
           timestamp: Date.now(),
         };
@@ -101,6 +103,8 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         state: stateAbbr,
         lat: parseFloat(place.latitude),
         lng: parseFloat(place.longitude),
+        stationId: undefined,
+        stationName: undefined,
         isManual: false,
         timestamp: Date.now()
       };
@@ -121,6 +125,8 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         state: parsed.state!,
         lat: parseFloat(place.latitude),
         lng: parseFloat(place.longitude),
+        stationId: undefined,
+        stationName: undefined,
         isManual: false,
         timestamp: Date.now()
       };
@@ -141,6 +147,8 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         state: parsed.state!,
         lat: geocodeResult.lat,
         lng: geocodeResult.lng,
+        stationId: undefined,
+        stationName: undefined,
         isManual: false,
         timestamp: Date.now()
       };
@@ -155,6 +163,8 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         state: parsed.state!,
         lat: null,
         lng: null,
+        stationId: undefined,
+        stationName: undefined,
         isManual: true,
         timestamp: Date.now()
       };

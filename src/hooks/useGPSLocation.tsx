@@ -29,6 +29,8 @@ export const useGPSLocation = ({ onLocationSelect, onClose }: UseGPSLocationProp
             state: 'Current',
             lat: latitude,
             lng: longitude,
+            stationId: undefined,
+            stationName: undefined,
             isManual: false,
             timestamp: Date.now()
           };
