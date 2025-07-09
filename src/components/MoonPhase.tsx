@@ -7,7 +7,6 @@ import FullMoonBanner from './FullMoonBanner';
 import MoonVisual from './MoonVisual';
 import MoonData from './MoonData';
 import SolarInfo from './SolarInfo';
-import OnboardingInfo from './OnboardingInfo';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
 
@@ -98,14 +97,6 @@ const MoonPhase = ({
 
           <div className="border-t border-muted pt-4 w-full space-y-4">
             <SolarInfo solarTimes={solarTimes} />
-
-            {!hasLocation && (
-              <OnboardingInfo
-                onGetStarted={onGetStarted || (() => {})}
-                currentLocation={currentLocation}
-                hasData={hasData}
-              />
-            )}
           </div>
         </CardContent>
       </Card>
