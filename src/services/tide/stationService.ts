@@ -84,6 +84,7 @@ export async function getStationById(id: string): Promise<Station | null> {
   if (response.status === 404) return null;
   if (!response.ok) throw new Error('Unable to fetch station');
   const data = await response.json();
+  console.log('Fetched station object:', data.station);
   if (!data.station) return null;
   const station: Station = {
     id: data.station.id,
