@@ -80,22 +80,35 @@ export async function getStationById(id: string): Promise<Station | null> {
 
   const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
   debugLog('Fetching station by ID', { id, url });
-  const response = await fetch(url);
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error('Unable to fetch station');
-  const data = await response.json();
-  console.log('Fetched station object:', data.station);
-  if (!data.station) return null;
-  const station: Station = {
-    id: data.station.id,
-    name: data.station.name,
-    latitude: data.station.latitude,
-    longitude: data.station.longitude,
-    state: data.station.state,
-  };
-  debugLog('Station fetched', station);
-  cacheService.set(key, station, STATION_CACHE_TTL);
-  return station;
+  try {
+    const response = await fetch(url);
+    console.log('🟡 Raw station fetch result:', response);
+    if (response.status === 404) return null;
+    let data;
+    try {
+      data = await response.json();
+      console.log('🟢 Response JSON (if applicable):', data);
+    } catch (jsonError) {
+      console.error('Error parsing station response JSON:', jsonError);
+      throw jsonError;
+    }
+    if (!response.ok) throw new Error('Unable to fetch station');
+    console.log('Fetched station object:', data.station);
+    if (!data.station) return null;
+    const station: Station = {
+      id: data.station.id,
+      name: data.station.name,
+      latitude: data.station.latitude,
+      longitude: data.station.longitude,
+      state: data.station.state,
+    };
+    debugLog('Station fetched', station);
+    cacheService.set(key, station, STATION_CACHE_TTL);
+    return station;
+  } catch (error) {
+    console.error('Error fetching station by ID:', error);
+    throw error;
+  }
 }
 
 /**
