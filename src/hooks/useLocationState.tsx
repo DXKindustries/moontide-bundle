@@ -2,39 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
-import { locationStorage } from '@/utils/locationStorage';
+import { persistCurrentLocation, loadCurrentLocation, clearCurrentLocation } from '@/utils/currentLocation';
 import { Station } from '@/services/tide/stationService';
 
-const CURRENT_LOCATION_KEY = 'moontide-current-location';
 const CURRENT_STATION_KEY = 'moontide-current-station';
 
 function getInitialLocation(): (SavedLocation & { id: string; country: string }) | null {
   try {
-    const newLocation = locationStorage.getCurrentLocation();
-    if (newLocation?.id || newLocation?.zipCode || newLocation?.city || (newLocation?.lat != null && newLocation?.lng != null)) {
-      return {
-        id: newLocation.id || newLocation.zipCode || `${newLocation.city}-${newLocation.state}`,
-        name: newLocation.nickname || newLocation.city,
-        country: 'USA',
-        zipCode: newLocation.zipCode || '',
-        cityState: `${newLocation.city}, ${newLocation.state}`,
-        lat: newLocation.lat ?? null,
-        lng: newLocation.lng ?? null,
-      };
-    }
-
-    const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-    if (saved?.id || saved?.zipCode || saved?.city || (saved?.lat != null && saved?.lng != null)) {
-      return {
-        ...saved,
-        id: saved.id || saved.zipCode || `${saved.city}-${saved.state}`,
-        country: saved.country || 'USA',
-      };
-    }
+    return loadCurrentLocation();
   } catch (error) {
     console.warn('Error reading location:', error);
+    return null;
   }
-  return null;
 }
 
 function getInitialStation(): Station | null {
@@ -56,7 +35,11 @@ export const useLocationState = () => {
   const setCurrentLocationWithPersist = useCallback((location: (SavedLocation & { id: string; country: string }) | null) => {
     setCurrentLocation(location);
     try {
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, location);
+      if (location) {
+        persistCurrentLocation(location);
+      } else {
+        clearCurrentLocation();
+      }
     } catch (err) {
       console.warn('Error saving location:', err);
     }
