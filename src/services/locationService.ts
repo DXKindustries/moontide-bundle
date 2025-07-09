@@ -9,8 +9,9 @@ export async function isInlandLocation(
   lat?: number,
   lon?: number,
   stationId?: string,
+  state?: string,
 ): Promise<boolean> {
-  const stations = await getStationsForUserLocation(userInput, lat, lon);
+  const stations = await getStationsForUserLocation(userInput, lat, lon, state);
   if (stationId) {
     return !stations.some((station) => station.id === stationId);
   }
@@ -22,8 +23,9 @@ export async function getStationsForLocationInput(
   userInput: string,
   lat?: number,
   lon?: number,
+  state?: string,
 ): Promise<Station[]> {
-  return getStationsForUserLocation(userInput, lat, lon);
+  return getStationsForUserLocation(userInput, lat, lon, state);
 }
 
 export async function getStationById(id: string): Promise<Station | null> {

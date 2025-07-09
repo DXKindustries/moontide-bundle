@@ -70,14 +70,28 @@ const Index = () => {
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
     setIsStationLoading(true);
-    getStationsForLocationInput(input, currentLocation.lat, currentLocation.lng)
+    getStationsForLocationInput(
+      input,
+      currentLocation.lat,
+      currentLocation.lng,
+      currentLocation.cityState?.split(',')[1]?.trim(),
+    )
       .then((stations) => {
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
           setShowStationPicker(false);
           toast.error('No NOAA stations found for this location.');
         } else {
+          const stateCode = currentLocation.cityState?.split(',')[1]?.trim()?.toUpperCase();
           let filtered = stations;
+          if (stateCode) {
+            const inState = stations.filter((s) => s.state?.toUpperCase() === stateCode);
+            if (inState.length > 0) {
+              filtered = inState;
+            } else {
+              toast.warning('No NOAA stations found in state, showing nearby alternatives');
+            }
+          }
           if (
             typeof currentLocation.lat === 'number' &&
             typeof currentLocation.lng === 'number'
@@ -85,7 +99,7 @@ const Index = () => {
             filtered = filterStationsNearby(
               currentLocation.lat,
               currentLocation.lng,
-              stations,
+              filtered,
             );
             console.log('📍 Nearby stations:', filtered);
           }
