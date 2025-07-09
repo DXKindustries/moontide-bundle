@@ -54,9 +54,6 @@ export default function MainContent({
           moonset={moonPhaseData.moonset}
           date={moonPhaseData.date}
           currentLocation={currentLocation}
-          stationName={stationName}
-          stationId={stationId}
-          error={error}
           onGetStarted={onGetStarted}
           hasData={hasData}
         />
