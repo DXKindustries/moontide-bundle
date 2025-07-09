@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import FishingCalendar from "./pages/FishingCalendar";
 import Settings from "./pages/Settings";
 import MassachusettsStationMapTest from "./pages/MassachusettsStationMapTest";
+import LocationOnboardingStep1 from "./pages/LocationOnboardingStep1";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,8 +23,9 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/fishing-calendar" element={<FishingCalendar />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/ma-station-map-test" element={<MassachusettsStationMapTest />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="/ma-station-map-test" element={<MassachusettsStationMapTest />} />
+        <Route path="/location-onboarding-step1" element={<LocationOnboardingStep1 />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
