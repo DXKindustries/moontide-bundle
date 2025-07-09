@@ -1,11 +1,8 @@
 
 import { toast } from 'sonner';
 import { SavedLocation } from '@/components/LocationSelector';
-import { safeLocalStorage } from '@/utils/localStorage';
-import { locationStorage } from '@/utils/locationStorage';
 import { LocationData } from '@/types/locationTypes';
-
-const CURRENT_LOCATION_KEY = 'moontide-current-location';
+import { persistCurrentLocation, clearCurrentLocation } from '@/utils/currentLocation';
 
 interface LocationManagerProps {
   setCurrentLocation: (location: SavedLocation & { id: string; country: string } | null) => void;
@@ -28,20 +25,7 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
     
     // Save to storage
     try {
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, updatedLocation);
-      
-      const [actualCity, actualState] = updatedLocation.cityState.split(', ');
-      const locationData: LocationData = {
-        zipCode: updatedLocation.zipCode,
-        city: actualCity || updatedLocation.name,
-        state: actualState || '',
-        lat: updatedLocation.lat,
-        lng: updatedLocation.lng,
-        isManual: false,
-        nickname: updatedLocation.name !== actualCity ? updatedLocation.name : undefined
-      };
-      locationStorage.saveCurrentLocation(locationData);
-      
+      persistCurrentLocation(updatedLocation);
       console.log('💾 LocationManager: Location saved successfully');
     } catch (error) {
       console.error('❌ LocationManager: Error saving location:', error);
@@ -56,8 +40,7 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
     
     // Clear storage first
     try {
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
-      locationStorage.clearCurrentLocation();
+      clearCurrentLocation();
     } catch (error) {
       console.error('❌ LocationManager: Error clearing location:', error);
     }
