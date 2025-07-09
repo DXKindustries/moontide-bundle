@@ -49,15 +49,9 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
         debugLog('Station lookup result', station);
         if (station) {
           onStationSelect?.(station);
-          location = {
-            zipCode: '',
-            city: station.name,
-            state: station.state || '',
-            lat: station.latitude,
-            lng: station.longitude,
-            isManual: false,
-            timestamp: Date.now(),
-          };
+          toast.success(`Using station ${station.name}`);
+          onClose?.();
+          return; // station handler sets current location
         }
       } else if (parsed.type === 'stationName') {
         location = {
