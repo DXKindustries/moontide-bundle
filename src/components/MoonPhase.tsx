@@ -24,6 +24,7 @@ type MoonPhaseProps = {
   stationId?: string | null;
   error?: string | null;
   onGetStarted?: (location?: LocationData) => void;
+  hasData?: boolean;
 }
 
 const MoonPhase = ({
@@ -37,10 +38,18 @@ const MoonPhase = ({
   stationName,
   stationId,
   error,
-  onGetStarted
+  onGetStarted,
+  hasData
 }: MoonPhaseProps) => {
   // Simplified location detection - just check if location exists and has basic data
-  const hasLocation = Boolean(currentLocation && (currentLocation.zipCode || currentLocation.cityState));
+  const hasLocation = Boolean(
+    currentLocation &&
+    (
+      currentLocation.zipCode ||
+      currentLocation.cityState ||
+      (typeof currentLocation.lat === 'number' && typeof currentLocation.lng === 'number')
+    )
+  );
 
   console.log('🌙 MoonPhase - Location check:', {
     hasCurrentLocation: !!currentLocation,
@@ -105,7 +114,11 @@ const MoonPhase = ({
                 error={error}
               />
             ) : (
-              <OnboardingInfo onGetStarted={onGetStarted || (() => {})} />
+              <OnboardingInfo
+                onGetStarted={onGetStarted || (() => {})}
+                currentLocation={currentLocation}
+                hasData={hasData}
+              />
             )}
           </div>
         </CardContent>
