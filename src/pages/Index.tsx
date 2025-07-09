@@ -80,7 +80,7 @@ const Index = () => {
         if (!stations || stations.length === 0) {
           setAvailableStations([]);
           setShowStationPicker(false);
-          toast.error('No NOAA stations found for this location.');
+          toast.error('No tide stations found within 30km of your location.');
         } else {
           const stateCode = currentLocation.cityState?.split(',')[1]?.trim()?.toUpperCase();
           let filtered = stations;
@@ -111,7 +111,10 @@ const Index = () => {
             currentLocation.cityState?.split(',')[0],
           );
           setAvailableStations(sorted);
-          if (sorted.length === 1) {
+          if (sorted.length === 0) {
+            toast.error('No tide stations found within 30km of your location.');
+            setShowStationPicker(false);
+          } else if (sorted.length === 1) {
             setSelectedStation(sorted[0]);
             setShowStationPicker(false);
           } else {
