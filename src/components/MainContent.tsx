@@ -42,6 +42,8 @@ export default function MainContent({
     date: formatApiDate(currentDate)
   };
 
+  const hasData = tideData.length > 0 || weeklyForecast.length > 0;
+
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -56,6 +58,7 @@ export default function MainContent({
           stationId={stationId}
           error={error}
           onGetStarted={onGetStarted}
+          hasData={hasData}
         />
 
         <TideChart
