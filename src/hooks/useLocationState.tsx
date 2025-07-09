@@ -65,22 +65,33 @@ export const useLocationState = () => {
   const setSelectedStationWithPersist = useCallback((station: Station | null) => {
     setSelectedStation(station);
     if (station) {
-      setCurrentLocationWithPersist({
+      // Merge the selected station into the previous location so we retain ZIP/city info.
+      const mergedLocation = {
+        ...(currentLocation ?? {
+          id: station.id,
+          name: station.name,
+          country: 'USA',
+          zipCode: '',
+          cityState: station.city ? `${station.city}, ${station.state}` : '',
+          lat: station.latitude,
+          lng: station.longitude
+        }),
         id: station.id,
         name: station.name,
-        country: 'USA',
-        zipCode: '',
-        cityState: station.city ? `${station.city}, ${station.state}` : '',
+        cityState: station.city ? `${station.city}, ${station.state}` : currentLocation?.cityState ?? '',
         lat: station.latitude,
         lng: station.longitude
-      });
+      } as SavedLocation & { id: string; country: string };
+
+      console.log('🔀 Merged location with station:', mergedLocation);
+      setCurrentLocationWithPersist(mergedLocation);
     }
     try {
       safeLocalStorage.set(CURRENT_STATION_KEY, station);
     } catch (err) {
       console.warn('Error saving station:', err);
     }
-  }, [setCurrentLocationWithPersist]);
+  }, [currentLocation, setCurrentLocationWithPersist]);
 
   useEffect(() => {
     setShowLocationSelector(false);
@@ -103,5 +114,4 @@ export const useLocationState = () => {
     setShowLocationSelector,
     selectedStation,
     setSelectedStation: setSelectedStationWithPersist,
-  };
-};
+  };};
