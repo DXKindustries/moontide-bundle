@@ -24,7 +24,8 @@ export function persistStationCurrentLocation(station?: Station | null) {
     lng: station.longitude,
     zipCode: station.zip ?? '',
     city: station.city ?? '',
-    sourceType: 'station' as const,
+    nickname: undefined,
+    isManual: false,
   };
   safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
   console.log('Station currentLocation saved.');
@@ -35,6 +36,8 @@ export function persistStationCurrentLocation(station?: Station | null) {
     state: station.state ?? '',
     lat: station.latitude,
     lng: station.longitude,
+    stationId: station.id,
+    stationName: station.name,
     isManual: false,
     nickname: undefined,
   };
@@ -64,7 +67,10 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
         state: state || '',
         lat: location.lat,
         lng: location.lng,
-        sourceType: 'zip' as const,
+        stationId: undefined,
+        stationName: undefined,
+        nickname: location.name !== city ? location.name : undefined,
+        isManual: false,
       }
     : {
         stationId: location.id,
@@ -74,7 +80,8 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
         lng: location.lng,
         zipCode: location.zipCode || '',
         city: city || '',
-        sourceType: 'station' as const,
+        nickname: location.name !== city ? location.name : undefined,
+        isManual: false,
       };
 
   console.log('Saving current location to storage:', storageObj);
@@ -87,6 +94,8 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     state: state || '',
     lat: location.lat,
     lng: location.lng,
+    stationId: storageObj.stationId,
+    stationName: storageObj.stationName,
     isManual: false,
     nickname: location.name !== city ? location.name : undefined,
   };
@@ -101,7 +110,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     city: city || undefined,
     state: state || undefined,
     zipCode: location.zipCode || undefined,
-    sourceType: storageObj.sourceType,
+    sourceType: location.zipCode ? 'zip' : 'station',
     timestamp: Date.now(),
   };
   addLocationHistory(entry);
@@ -111,20 +120,9 @@ export function loadCurrentLocation(): (SavedLocation & { id: string; country: s
   const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
   console.log('Loaded currentLocation from storage:', saved);
   if (saved) {
-    if (saved.sourceType === 'station') {
-      return {
-        id: saved.stationId,
-        name: saved.stationName,
-        country: 'USA',
-        zipCode: saved.zipCode || '',
-        cityState: `${saved.city ?? ''}, ${saved.state ?? ''}`,
-        lat: saved.lat ?? null,
-        lng: saved.lng ?? null,
-      };
-    }
     return {
-      id: saved.zipCode || `${saved.city}-${saved.state}`,
-      name: saved.city,
+      id: saved.stationId || saved.zipCode || `${saved.city}-${saved.state}`,
+      name: saved.nickname || saved.stationName || saved.city,
       country: 'USA',
       zipCode: saved.zipCode || '',
       cityState: `${saved.city}, ${saved.state}`,

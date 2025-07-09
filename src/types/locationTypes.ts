@@ -5,6 +5,8 @@ export interface LocationData {
   state: string;
   lat: number | null;
   lng: number | null;
+  stationId?: string;
+  stationName?: string;
   isManual: boolean;
   timestamp?: number; // When this location was saved
   nickname?: string; // User-defined nickname for the location
