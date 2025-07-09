@@ -33,3 +33,29 @@ export function findNearbyStations(
     .filter((s) => s.distanceKm <= 30)
     .sort((a, b) => a.distanceKm - b.distanceKm);
 }
+
+export function filterStationsNearby(
+  selectedLat: number,
+  selectedLon: number,
+  stationList: { lat?: number; lng?: number; latitude?: number; longitude?: number }[],
+  radiusKm = 30,
+): typeof stationList {
+  return stationList
+    .filter((station) => {
+      const lat = station.lat ?? station.latitude;
+      const lon = station.lng ?? station.longitude;
+      if (typeof lat !== 'number' || typeof lon !== 'number') return false;
+      const dist = getDistanceKm(selectedLat, selectedLon, lat, lon);
+      return dist <= radiusKm;
+    })
+    .sort((a, b) => {
+      const aLat = a.lat ?? a.latitude;
+      const aLon = a.lng ?? a.longitude;
+      const bLat = b.lat ?? b.latitude;
+      const bLon = b.lng ?? b.longitude;
+      return (
+        getDistanceKm(selectedLat, selectedLon, aLat as number, aLon as number) -
+        getDistanceKm(selectedLat, selectedLon, bLat as number, bLon as number)
+      );
+    });
+}
