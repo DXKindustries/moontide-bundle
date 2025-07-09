@@ -6,12 +6,15 @@ import { Info, Search, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UnifiedLocationInput from './UnifiedLocationInput';
 import { LocationData } from '@/types/locationTypes';
+import { SavedLocation } from './LocationSelector';
 
 type OnboardingInfoProps = {
   onGetStarted: (location?: LocationData) => void;
+  currentLocation?: (SavedLocation & { id: string; country: string }) | null;
+  hasData?: boolean;
 };
 
-const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
+const OnboardingInfo = ({ onGetStarted, currentLocation, hasData }: OnboardingInfoProps) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [nickname, setNickname] = useState('');
 
@@ -37,6 +40,10 @@ const OnboardingInfo = ({ onGetStarted }: OnboardingInfoProps) => {
   const handleModalClose = () => {
     setShowLocationModal(false);
   };
+
+  if (currentLocation && hasData) {
+    return null;
+  }
 
   return (
     <>
