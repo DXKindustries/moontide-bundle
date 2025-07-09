@@ -2,8 +2,41 @@ import { SavedLocation } from '@/components/LocationSelector';
 import { LocationData } from '@/types/locationTypes';
 import { safeLocalStorage } from './localStorage';
 import { locationStorage } from './locationStorage';
+import type { Station } from '@/services/tide/stationService';
 
 const CURRENT_LOCATION_KEY = 'currentLocation';
+
+export function persistStationCurrentLocation(station?: Station | null) {
+  console.log('Fetched station object:', station);
+  if (!station) {
+    console.error('Station object is undefined, not saving.');
+    return;
+  }
+  console.log('Saving station currentLocation to storage:', station);
+  const storageObj = {
+    stationId: station.id,
+    stationName: station.name,
+    state: station.state ?? '',
+    lat: station.latitude,
+    lng: station.longitude,
+    zipCode: station.zip ?? '',
+    city: station.city ?? '',
+    sourceType: 'station' as const,
+  };
+  safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
+  console.log('Station currentLocation saved.');
+
+  const locationData: LocationData = {
+    zipCode: station.zip ?? '',
+    city: station.city ?? station.name,
+    state: station.state ?? '',
+    lat: station.latitude,
+    lng: station.longitude,
+    isManual: false,
+    nickname: undefined,
+  };
+  locationStorage.saveCurrentLocation(locationData);
+}
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
   const [city, state] = location.cityState.split(', ');
