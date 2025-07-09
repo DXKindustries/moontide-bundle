@@ -12,8 +12,6 @@ import StationPicker from '@/components/StationPicker';
 import { getStationsForLocationInput } from '@/services/locationService';
 import { Station, sortStationsForDefault } from '@/services/tide/stationService';
 import { filterStationsNearby } from '@/utils/stationSearch';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 const Index = () => {
   console.log('🚀 Index component rendering...');
@@ -186,11 +184,6 @@ const Index = () => {
         currentStationId={selectedStation?.id || null}
         onClose={() => setShowStationPicker(false)}
       />
-
-      {/* Temporary button for MA station map testing */}
-      <Link to="/ma-station-map-test" className="absolute bottom-4 right-4 z-20">
-        <Button variant="outline">Test MA Stations</Button>
-      </Link>
     </div>
   );
 };
