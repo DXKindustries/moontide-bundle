@@ -97,6 +97,10 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     if (result && result.places && result.places.length > 0) {
       const place = result.places[0];
       const stateAbbr = place['state abbreviation'] || place.state;
+      if (stateAbbr.toUpperCase() !== parsed.state) {
+        toast.error('ZIP code state does not match input state');
+        return null;
+      }
       const location = {
         zipCode: parsed.zipCode!,
         city: place['place name'],
@@ -119,6 +123,11 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
     const result = await lookupZipCode(parsed.zipCode!);
     if (result && result.places && result.places.length > 0) {
       const place = result.places[0];
+      const stateAbbr = place['state abbreviation'] || place.state;
+      if (stateAbbr.toUpperCase() !== parsed.state) {
+        toast.error('ZIP code state does not match input state');
+        return null;
+      }
       const location = {
         zipCode: parsed.zipCode!,
         city: parsed.city!,
@@ -139,39 +148,27 @@ export const useLocationSearch = ({ onLocationSelect, onStationSelect, onClose }
   const handleCityStateLookup = async (parsed: ParsedInput): Promise<LocationData | null> => {
     debugLog('Attempting to geocode city/state', parsed);
     const geocodeResult = await getCoordinatesForCity(parsed.city!, parsed.state!);
-    
-    if (geocodeResult) {
-      const location = {
-        zipCode: '',
-        city: parsed.city!,
-        state: parsed.state!,
-        lat: geocodeResult.lat,
-        lng: geocodeResult.lng,
-        stationId: undefined,
-        stationName: undefined,
-        isManual: false,
-        timestamp: Date.now()
-      };
-      debugLog('City/State geocoding successful', location);
-      return location;
-    } else {
-      // Fallback to manual entry (no coordinates)
-      debugLog('Fallback to manual city/state entry', parsed);
-      const location = {
-        zipCode: '',
-        city: parsed.city!,
-        state: parsed.state!,
-        lat: null,
-        lng: null,
-        stationId: undefined,
-        stationName: undefined,
-        isManual: true,
-        timestamp: Date.now()
-      };
-      debugLog('Manual location created', location);
-      toast.success(`Location saved: ${location.city}, ${location.state} (manual entry)`);
-      return location;
+    if (!geocodeResult) {
+      toast.error('Unable to geocode city and state');
+      return null;
     }
+    if (geocodeResult.state.toUpperCase() !== parsed.state) {
+      toast.error('Geocoded state does not match input state');
+      return null;
+    }
+    const location = {
+      zipCode: '',
+      city: parsed.city!,
+      state: parsed.state!,
+      lat: geocodeResult.lat,
+      lng: geocodeResult.lng,
+      stationId: undefined,
+      stationName: undefined,
+      isManual: false,
+      timestamp: Date.now()
+    };
+    debugLog('City/State geocoding successful', location);
+    return location;
   };
 
   return {
