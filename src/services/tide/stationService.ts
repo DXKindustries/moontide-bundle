@@ -93,14 +93,18 @@ export async function getStationById(id: string): Promise<Station | null> {
       throw jsonError;
     }
     if (!response.ok) throw new Error('Unable to fetch station');
-    console.log('Fetched station object:', data.station);
-    if (!data.station) return null;
+    const stationData = Array.isArray(data.stations) ? data.stations[0] : null;
+    if (!stationData) {
+      console.error('❌ No station found for this ID');
+      return null;
+    }
+    console.log('Fetched station object:', stationData);
     const station: Station = {
-      id: data.station.id,
-      name: data.station.name,
-      latitude: data.station.latitude,
-      longitude: data.station.longitude,
-      state: data.station.state,
+      id: stationData.id,
+      name: stationData.name,
+      latitude: parseFloat(stationData.lat ?? stationData.latitude),
+      longitude: parseFloat(stationData.lng ?? stationData.longitude),
+      state: stationData.state,
     };
     debugLog('Station fetched', station);
     cacheService.set(key, station, STATION_CACHE_TTL);
