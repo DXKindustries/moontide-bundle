@@ -58,19 +58,58 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
 
 export async function getCoordinatesForCity(city: string, state: string): Promise<GeocodeResult | null> {
   console.log(`🏙️ Getting coordinates for city: ${city}, ${state}`);
-  
+
   const cacheKey = `city:${city.toLowerCase()}-${state.toLowerCase()}`;
-  
+
   // Check cache first
   const cached = cacheService.get<GeocodeResult>(cacheKey);
   if (cached) {
     console.log(`✅ Found ${city}, ${state} in cache`);
     return cached;
   }
-  
-  // For now we don't have a reliable free API for city/state geocoding
-  console.log(`⚠️ No coordinates found for ${city}, ${state}`);
-  return null;
+
+  try {
+    const url =
+      'https://nominatim.openstreetmap.org/search?' +
+      new URLSearchParams({
+        city,
+        state,
+        country: 'USA',
+        format: 'json',
+        limit: '1',
+        addressdetails: '1'
+      }).toString();
+
+    console.log(`🌐 Fetching coordinates from geocoding API for ${city}, ${state}`);
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'moontide-app' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Geocoding API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const resultData = data[0];
+      const address = resultData.address || {};
+      const result = {
+        lat: parseFloat(resultData.lat),
+        lng: parseFloat(resultData.lon),
+        city: address.city || address.town || address.village || city,
+        state: address.state_code || address.state || state
+      } as GeocodeResult;
+
+      console.log(`✅ Geocoded ${city}, ${state}:`, result);
+      cacheService.set(cacheKey, result, CITY_CACHE_TTL);
+      return result;
+    }
+
+    throw new Error('No location data found');
+  } catch (error) {
+    console.warn(`⚠️ Geocoding failed for ${city}, ${state}:`, error);
+    return null;
+  }
 }
 
 // Cache management utilities
@@ -79,5 +118,4 @@ export function getCacheStats() {
 }
 
 export function clearGeocodingCache() {
-  cacheService.clear();
-}
+  cacheService.clear();}
