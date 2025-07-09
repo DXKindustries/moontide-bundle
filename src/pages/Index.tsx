@@ -151,18 +151,14 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen pb-8 relative">
+    <div className="min-h-screen pb-8 pt-24 relative">
       <StarsBackdrop />
       <LoadingOverlay show={isStationLoading} message="Finding tide stations..." />
       <LoadingOverlay show={isLoading} message="Fetching tide data..." />
       
       <AppHeader
-        currentLocation={currentLocation}
-        stationName={stationName}
         onLocationChange={handleLocationChange}
         onStationSelect={handleStationSelect}
-        onLocationClear={handleLocationClear}
-        hasError={!!error}
         forceShowLocationSelector={showLocationSelector}
         onLocationSelectorClose={() => setShowLocationSelector(false)}
       />

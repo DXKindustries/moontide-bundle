@@ -25,13 +25,15 @@ export default function LocationSelector({
   onLocationClear,
   forceOpen,
   onClose,
-  onStationSelect
+  onStationSelect,
+  triggerContent
 }: {
   onSelect: (loc: SavedLocation) => void;
   onLocationClear?: () => void;
   forceOpen?: boolean;
   onClose?: () => void;
   onStationSelect?: (station: Station) => void;
+  triggerContent?: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAddNew, setShowAddNew] = useState(false);
@@ -108,8 +110,12 @@ export default function LocationSelector({
     <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium">
-          <MapPin size={16} />
-          Change
+          {triggerContent ?? (
+            <>
+              <MapPin size={16} />
+              Change
+            </>
+          )}
         </button>
       </DropdownMenuTrigger>
 
