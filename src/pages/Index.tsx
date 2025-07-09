@@ -3,6 +3,7 @@ import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
 import AppHeader from '@/components/AppHeader';
 import MainContent from '@/components/MainContent';
+import LocationOnboardingStep1 from './LocationOnboardingStep1';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { useTideData } from '@/hooks/useTideData';
@@ -149,6 +150,10 @@ const Index = () => {
     tideDataLength: tideData?.length || 0,
     hasCurrentLocation: !!currentLocation
   });
+
+  if (!currentLocation) {
+    return <LocationOnboardingStep1 />;
+  }
 
   return (
     <div className="min-h-screen pb-8 pt-24 relative">
