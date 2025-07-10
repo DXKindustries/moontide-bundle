@@ -107,7 +107,7 @@ const LocationOnboardingStep1 = () => {
 
   const radiusFilteredStations =
     radius && selectedStation
-      ? filteredStations.filter((s) => {
+      ? stations.filter((s) => {
           const dist = getDistanceKm(
             parseFloat(String(selectedStation.lat)),
             parseFloat(String(selectedStation.lng)),
