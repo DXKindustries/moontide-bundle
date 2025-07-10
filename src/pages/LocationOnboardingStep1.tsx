@@ -60,7 +60,10 @@ const LocationOnboardingStep1 = () => {
         }
         const data = await res.json();
         const all: RawStation[] = data.stations || [];
-        setStations(all);
+        const filtered = all.filter(
+          (st) => st.state?.toUpperCase() === selectedState.toUpperCase(),
+        );
+        setStations(filtered);
       } catch {
         setStations([]);
         setError('Unable to load stations. Check your connection.');
