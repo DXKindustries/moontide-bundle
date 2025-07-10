@@ -46,23 +46,30 @@ const LocationOnboardingStep1 = () => {
       setError(null);
       return;
     }
-    setLoading(true);
-    setError(null);
-    fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch station list');
-        return res.json();
-      })
-      .then((data) => {
+
+    const fetchStations = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json'
+        );
+        if (!res.ok) {
+          throw new Error('Failed to fetch station list');
+        }
+        const data = await res.json();
         const all: RawStation[] = data.stations || [];
         const filtered = all.filter((s) => s.state === selectedState);
         setStations(filtered);
-      })
-      .catch(() => {
+      } catch {
         setStations([]);
         setError('Unable to load stations. Check your connection.');
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStations();
   }, [selectedState]);
 
   const handleContinue = () => {
