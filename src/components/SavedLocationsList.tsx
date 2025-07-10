@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { locationStorage } from '@/utils/locationStorage';
+import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
 import LocationEditModal from './LocationEditModal';
 import { toast } from 'sonner';
@@ -18,7 +19,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [editingLocation, setEditingLocation] = useState<LocationData | null>(null);
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
-  const currentLocation = locationStorage.getCurrentLocation();
+  const { currentLocation } = useLocationState();
 
   const handleLocationClick = (location: LocationData): void => {
     onLocationSelect(location);
