@@ -67,6 +67,18 @@ export default function LocationSelector({
     };
 
     onSelect(savedLocation);
+
+    if (location.stationId && onStationSelect) {
+      const station: Station = {
+        id: location.stationId,
+        name: location.stationName || location.city,
+        latitude: location.lat ?? 0,
+        longitude: location.lng ?? 0,
+        state: location.state,
+        city: location.city
+      };
+      onStationSelect(station);
+    }
     setIsOpen(false);
   };
 
