@@ -12,3 +12,7 @@ export function addLocationHistory(entry: LocationHistoryEntry): void {
   const filtered = history.filter((h) => h.stationId !== entry.stationId);
   safeLocalStorage.set(HISTORY_KEY, [entry, ...filtered].slice(0, 20));
 }
+
+export function clearLocationHistory(): void {
+  safeLocalStorage.set(HISTORY_KEY, []);
+}

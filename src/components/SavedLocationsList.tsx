@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { locationStorage } from '@/utils/locationStorage';
+import { clearCurrentLocation } from '@/utils/currentLocation';
+import { clearLocationHistory } from '@/utils/locationHistory';
+import { safeLocalStorage } from '@/utils/localStorage';
 import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
 import LocationEditModal from './LocationEditModal';
@@ -19,7 +22,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [editingLocation, setEditingLocation] = useState<LocationData | null>(null);
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
-  const { currentLocation } = useLocationState();
+  const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
 
   const handleLocationClick = (location: LocationData): void => {
     onLocationSelect(location);
@@ -46,9 +49,17 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     if (deletingLocation) {
       console.log('🗑️ Deleting location:', deletingLocation);
       locationStorage.deleteLocation(deletingLocation);
-      setLocationHistory(locationStorage.getLocationHistory());
+      const updated = locationStorage.getLocationHistory();
+      setLocationHistory(updated);
       setDeletingLocation(null);
       toast.success('Location deleted');
+      if (updated.length === 0) {
+        clearCurrentLocation();
+        clearLocationHistory();
+        safeLocalStorage.set('moontide-current-station', null);
+        setCurrentLocation(null);
+        setSelectedStation(null);
+      }
     }
   };
 
