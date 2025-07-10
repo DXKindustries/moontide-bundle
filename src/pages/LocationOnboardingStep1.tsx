@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Loader2 } from 'lucide-react';
 import { useLocationState } from '@/hooks/useLocationState';
 import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
@@ -33,6 +34,7 @@ const LocationOnboardingStep1 = () => {
   const [search, setSearch] = useState('');
   const [selectedStation, setSelectedStation] = useState<RawStation | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { setSelectedStation: saveStation } = useLocationState();
   const navigate = useNavigate();
@@ -41,17 +43,25 @@ const LocationOnboardingStep1 = () => {
     if (!selectedState) {
       setStations([]);
       setSelectedStation(null);
+      setError(null);
       return;
     }
     setLoading(true);
+    setError(null);
     fetch('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch station list');
+        return res.json();
+      })
       .then((data) => {
         const all: RawStation[] = data.stations || [];
         const filtered = all.filter((s) => s.state === selectedState);
         setStations(filtered);
       })
-      .catch(() => setStations([]))
+      .catch(() => {
+        setStations([]);
+        setError('Unable to load stations. Check your connection.');
+      })
       .finally(() => setLoading(false));
   }, [selectedState]);
 
@@ -104,8 +114,18 @@ const LocationOnboardingStep1 = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {error && (
+              <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
+                {error}
+              </div>
+            )}
             <div className="max-h-64 overflow-y-auto border rounded-md divide-y">
-              {loading && <div className="p-2 text-sm">Loading stations...</div>}
+              {loading && (
+                <div className="p-2 text-sm flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading stations...
+                </div>
+              )}
               {!loading &&
                 filteredStations.map((st) => (
                   <div
@@ -119,7 +139,7 @@ const LocationOnboardingStep1 = () => {
                     </div>
                   </div>
                 ))}
-              {!loading && filteredStations.length === 0 && (
+              {!loading && !error && filteredStations.length === 0 && (
                 <div className="p-2 text-sm">No stations found</div>
               )}
             </div>
