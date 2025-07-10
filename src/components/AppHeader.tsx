@@ -29,11 +29,6 @@ export default function AppHeader({
               MoonTide
             </h1>
           </div>
-          <div className="flex gap-2">
-            <Link to="/location-onboarding-step1">
-              <Button variant="outline" size="sm">Test Onboarding</Button>
-            </Link>
-          </div>
         </div>
         <div className="flex items-center justify-evenly py-2 w-full">
           <Link to="/fishing-calendar">
