@@ -33,12 +33,7 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
   if (!station) {
     return (
       <div className="p-4 text-center text-muted-foreground">
-        <p className="text-lg font-medium">
-          No tide station found within 50&nbsp;km of this location.
-        </p>
-        <p className="text-sm">
-          Try a coastal ZIP or pick the nearest shoreline town.
-        </p>
+        Select a tide station to view data.
       </div>
     );
   }
