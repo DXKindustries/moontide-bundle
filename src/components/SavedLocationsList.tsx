@@ -53,12 +53,21 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
       setLocationHistory(updated);
       setDeletingLocation(null);
       toast.success('Location deleted');
-      if (updated.length === 0) {
+      const normalize = (val?: string) => (val || '').trim().toLowerCase();
+      const deletedIsCurrent = currentLocation &&
+        ((deletingLocation.zipCode && currentLocation.zipCode && normalize(deletingLocation.zipCode) === normalize(currentLocation.zipCode)) ||
+         (normalize(deletingLocation.city) === normalize(currentLocation.city) &&
+          normalize(deletingLocation.state) === normalize(currentLocation.state)));
+
+      if (deletedIsCurrent) {
         clearCurrentLocation();
-        clearLocationHistory();
         safeLocalStorage.set('moontide-current-station', null);
         setCurrentLocation(null);
         setSelectedStation(null);
+      }
+
+      if (updated.length === 0) {
+        clearLocationHistory();
       }
     }
   };
