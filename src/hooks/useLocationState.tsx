@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
@@ -25,7 +25,7 @@ function getInitialStation(): Station | null {
   }
 }
 
-export const useLocationState = () => {
+const useLocationStateValue = () => {
   const [currentLocation, setCurrentLocation] = useState(() => getInitialLocation());
   const [selectedStation, setSelectedStation] = useState<Station | null>(() => getInitialStation());
   const [showLocationSelector, setShowLocationSelector] = useState(!getInitialLocation() && !getInitialStation());
@@ -100,4 +100,22 @@ export const useLocationState = () => {
     setShowLocationSelector,
     selectedStation,
     setSelectedStation: setSelectedStationWithPersist,
-  };};
+  };
+};
+
+type LocationState = ReturnType<typeof useLocationStateValue>;
+
+const LocationContext = createContext<LocationState | undefined>(undefined);
+
+export const LocationProvider = ({ children }: { children: React.ReactNode }) => {
+  const value = useLocationStateValue();
+  return <LocationContext.Provider value={value}>{children}</LocationContext.Provider>;
+};
+
+export const useLocationState = () => {
+  const context = useContext(LocationContext);
+  if (!context) {
+    throw new Error('useLocationState must be used within a LocationProvider');
+  }
+  return context;
+};
