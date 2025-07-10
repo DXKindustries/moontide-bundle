@@ -37,6 +37,7 @@ const useLocationStateValue = () => {
     try {
       if (location) {
         persistCurrentLocation(location);
+        setShowLocationSelector(false);
       } else {
         clearCurrentLocation();
       }
@@ -71,6 +72,7 @@ const useLocationStateValue = () => {
 
       console.log('🔀 Merged location with station:', mergedLocation);
       setCurrentLocationWithPersist(mergedLocation);
+      setShowLocationSelector(false);
     }
     try {
       safeLocalStorage.set(CURRENT_STATION_KEY, station);
