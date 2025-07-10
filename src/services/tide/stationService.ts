@@ -31,7 +31,7 @@ export async function getStationsForLocation(
     return cached;
   }
 
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&name=${encodeURIComponent(
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&rows=200&name=${encodeURIComponent(
     userInput,
   )}`;
 
@@ -58,7 +58,7 @@ export async function getStationsNearCoordinates(
     return cached;
   }
 
-  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
+  const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&rows=200&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
 
   debugLog('Fetching stations near coordinates', { lat, lon, url });
   const response = await fetch(url);
