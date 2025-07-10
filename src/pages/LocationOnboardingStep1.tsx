@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StarsBackdrop from '@/components/StarsBackdrop';
+import AppBanner from '@/components/AppBanner';
+import MoonAnimation from '@/components/MoonAnimation';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -135,6 +137,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative p-4">
       <StarsBackdrop />
+      <AppBanner className="mb-4 relative z-10" />
       <div className="space-y-4 w-full max-w-md relative z-10">
         <h1 className="text-center text-xl font-bold">Choose a NOAA Station</h1>
 
@@ -216,6 +219,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           Show Tides
         </Button>
       </div>
+      <MoonAnimation className="relative z-10" />
     </div>
   );
 };
