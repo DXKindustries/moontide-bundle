@@ -27,7 +27,7 @@ const MassachusettsStationMapTest = () => {
     const fetchStations = async () => {
       try {
         const response = await fetch(
-          'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=200',
+          'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=10000',
         );
         if (!response.ok) throw new Error('Failed to fetch stations');
         const data = await response.json();
