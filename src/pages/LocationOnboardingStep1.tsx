@@ -14,6 +14,7 @@ import { useLocationState } from '@/hooks/useLocationState';
 import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
 import { Station } from '@/services/tide/stationService';
+import { getDistanceKm } from '@/services/tide/geo';
 
 interface RawStation {
   id: string;
@@ -33,11 +34,17 @@ const LocationOnboardingStep1 = () => {
   const [stations, setStations] = useState<RawStation[]>([]);
   const [search, setSearch] = useState('');
   const [selectedStation, setSelectedStation] = useState<RawStation | null>(null);
+  const [radius, setRadius] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { setSelectedStation: saveStation } = useLocationState();
   const navigate = useNavigate();
+
+  // Reset radius filter when the selected station changes
+  useEffect(() => {
+    setRadius(null);
+  }, [selectedStation]);
 
   useEffect(() => {
     if (!selectedState) {
@@ -98,6 +105,19 @@ const LocationOnboardingStep1 = () => {
     );
   });
 
+  const radiusFilteredStations =
+    radius && selectedStation
+      ? filteredStations.filter((s) => {
+          const dist = getDistanceKm(
+            parseFloat(String(selectedStation.lat)),
+            parseFloat(String(selectedStation.lng)),
+            parseFloat(String(s.lat)),
+            parseFloat(String(s.lng)),
+          );
+          return dist <= radius;
+        })
+      : filteredStations;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative p-4">
       <StarsBackdrop />
@@ -124,6 +144,19 @@ const LocationOnboardingStep1 = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            <div className="flex gap-2">
+              {[10, 20, 30].map((r) => (
+                <Button
+                  key={r}
+                  size="sm"
+                  variant={radius === r ? 'default' : 'outline'}
+                  disabled={!selectedStation}
+                  onClick={() => setRadius(r)}
+                >
+                  {r}km
+                </Button>
+              ))}
+            </div>
             {error && (
               <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
                 {error}
@@ -137,7 +170,7 @@ const LocationOnboardingStep1 = () => {
                 </div>
               )}
               {!loading &&
-                filteredStations.map((st) => (
+                radiusFilteredStations.map((st) => (
                   <div
                     key={st.id}
                     className={`p-2 cursor-pointer hover:bg-accent ${selectedStation?.id === st.id ? 'bg-accent' : ''}`}
@@ -149,7 +182,7 @@ const LocationOnboardingStep1 = () => {
                     </div>
                   </div>
                 ))}
-              {!loading && !error && filteredStations.length === 0 && (
+              {!loading && !error && radiusFilteredStations.length === 0 && (
                 <div className="p-2 text-sm">No stations found</div>
               )}
             </div>
