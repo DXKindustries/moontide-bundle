@@ -61,7 +61,9 @@ const Index = () => {
     const locationChanged = prevLocationIdRef.current !== currentLocation.id;
     prevLocationIdRef.current = currentLocation.id;
 
-    if (!locationChanged && selectedStation) {
+    // When the location ID matches the selected station ID, we already
+    // have the correct station and should skip any nearby search.
+    if (selectedStation && selectedStation.id === currentLocation.id) {
       if (showStationPicker) setShowStationPicker(false);
       if (availableStations.length !== 0) setAvailableStations([]);
       return;
