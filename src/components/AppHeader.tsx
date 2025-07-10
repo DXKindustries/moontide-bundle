@@ -30,9 +30,6 @@ export default function AppHeader({
             </h1>
           </div>
           <div className="flex gap-2">
-            <Link to="/ma-station-map-test">
-              <Button variant="outline" size="sm">Test MA Stations</Button>
-            </Link>
             <Link to="/location-onboarding-step1">
               <Button variant="outline" size="sm">Test Onboarding</Button>
             </Link>
