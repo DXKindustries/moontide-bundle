@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useLocationState } from '@/hooks/useLocationState';
 import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
@@ -96,6 +96,11 @@ const LocationOnboardingStep1 = () => {
     navigate('/');
   };
 
+  const handleClearSelection = () => {
+    setSelectedStation(null);
+    setRadius(null);
+  };
+
   const filteredStations = stations.filter((s) => {
     const term = search.toLowerCase();
     return (
@@ -106,7 +111,7 @@ const LocationOnboardingStep1 = () => {
   });
 
   const radiusFilteredStations =
-    radius && selectedStation
+    radius != null && selectedStation
       ? stations.filter((s) => {
           const dist = getDistanceKm(
             parseFloat(String(selectedStation.lat)),
@@ -144,7 +149,7 @@ const LocationOnboardingStep1 = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               {[10, 20, 30].map((r) => (
                 <Button
                   key={r}
@@ -156,6 +161,20 @@ const LocationOnboardingStep1 = () => {
                   {r}km
                 </Button>
               ))}
+              {selectedStation && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClearSelection}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" onClick={handleContinue}>
+                    Show Tides
+                  </Button>
+                </>
+              )}
             </div>
             {error && (
               <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
