@@ -52,7 +52,7 @@ const LocationOnboardingStep1 = () => {
       setError(null);
       try {
         const res = await fetch(
-          'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json'
+          'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=200'
         );
         if (!res.ok) {
           throw new Error('Failed to fetch station list');
