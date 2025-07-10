@@ -101,7 +101,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       onStationSelect(station);
     } else {
       saveStation(station);
-      navigate('/');
+      navigate('/', { replace: true });
     }
   };
 
