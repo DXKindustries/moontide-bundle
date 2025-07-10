@@ -41,6 +41,7 @@ const Index = () => {
   const [showStationPicker, setShowStationPicker] = useState(false);
   const [isStationLoading, setIsStationLoading] = useState(false);
   const prevLocationIdRef = useRef<string | null>(currentLocation?.id || null);
+  const prevStationIdRef = useRef<string | null>(selectedStation?.id || null);
 
   const handleStationSelect = (st: Station) => {
     console.log('🎯 Index onSelect station:', st);
@@ -60,6 +61,8 @@ const Index = () => {
 
     const locationChanged = prevLocationIdRef.current !== currentLocation.id;
     prevLocationIdRef.current = currentLocation.id;
+    const stationChanged = prevStationIdRef.current !== (selectedStation?.id || null);
+    prevStationIdRef.current = selectedStation?.id || null;
 
     // When the location ID matches the selected station ID, we already
     // have the correct station and should skip any nearby search.
@@ -69,7 +72,9 @@ const Index = () => {
       return;
     }
 
-    if (locationChanged && selectedStation) setSelectedStation(null);
+    if (locationChanged && !stationChanged && selectedStation) {
+      setSelectedStation(null);
+    }
 
     const input = currentLocation.zipCode || currentLocation.cityState || currentLocation.name;
     setIsStationLoading(true);
