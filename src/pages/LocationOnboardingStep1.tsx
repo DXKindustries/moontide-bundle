@@ -162,18 +162,13 @@ const LocationOnboardingStep1 = () => {
                 </Button>
               ))}
               {selectedStation && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleClearSelection}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" onClick={handleContinue}>
-                    Show Tides
-                  </Button>
-                </>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClearSelection}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               )}
             </div>
             {error && (
@@ -209,7 +204,7 @@ const LocationOnboardingStep1 = () => {
         )}
 
         <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
-          Continue
+          Show Tides
         </Button>
       </div>
     </div>
