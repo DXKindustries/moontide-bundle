@@ -29,7 +29,11 @@ const stateOptions = Object.entries(STATE_NAME_TO_ABBR)
   .map(([name, abbr]) => ({ value: abbr, label: name.replace(/\b\w/g, (l) => l.toUpperCase()) }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-const LocationOnboardingStep1 = () => {
+interface LocationOnboardingStep1Props {
+  onStationSelect?: (station: Station) => void;
+}
+
+const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Props) => {
   const [selectedState, setSelectedState] = useState('');
   const [stations, setStations] = useState<RawStation[]>([]);
   const [search, setSearch] = useState('');
@@ -92,8 +96,13 @@ const LocationOnboardingStep1 = () => {
       state: selectedStation.state,
       city: selectedStation.city,
     };
-    saveStation(station);
-    navigate('/');
+
+    if (onStationSelect) {
+      onStationSelect(station);
+    } else {
+      saveStation(station);
+      navigate('/');
+    }
   };
 
   const handleClearSelection = () => {

@@ -152,7 +152,9 @@ const Index = () => {
   });
 
   if (!currentLocation) {
-    return <LocationOnboardingStep1 />;
+    return (
+      <LocationOnboardingStep1 onStationSelect={handleStationSelect} />
+    );
   }
 
   return (
