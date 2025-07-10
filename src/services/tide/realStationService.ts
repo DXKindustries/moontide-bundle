@@ -8,7 +8,7 @@ interface NoaaStationMetadata {
   state?: string;
 }
 
-const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=200';
+const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=10000';
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
