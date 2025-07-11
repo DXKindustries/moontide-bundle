@@ -136,10 +136,13 @@ const WeeklyForecast = ({
                     index === 0 ? "bg-muted" : "hover:bg-muted transition-colors"
                   )}
                 >
-                  {/* Day and Date */}
+                  {/* Day and Date - show on one line */}
                   <div className="min-w-[7rem]">
-                    <p className="font-medium whitespace-nowrap">{day.day}</p>
-                    <p className="text-xs text-muted-foreground whitespace-nowrap">{day.date}</p>
+                    <p className="whitespace-nowrap">
+                      <span className="font-medium">{day.day}</span>
+                      {' '}–{' '}
+                      <span className="text-xs text-muted-foreground">{day.date}</span>
+                    </p>
                   </div>
 
                   {/* Moon Phase */}
@@ -162,7 +165,7 @@ const WeeklyForecast = ({
                   {/* Tide Info - display two tide cycles per day */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                     {day.cycles.map((cycle, idx) => (
-                      <div key={idx} className="text-sm">
+                      <div key={idx} className="text-xs sm:text-sm">
                         <p className="text-xs text-muted-foreground mb-1 whitespace-nowrap">Cycle {idx + 1}</p>
                         <p className="whitespace-nowrap">
                           {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)} - {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
