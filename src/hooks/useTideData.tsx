@@ -8,6 +8,7 @@ import {
   getCurrentIsoDateString,
   getCurrentTimeString,
   formatDateAsLocalIso,
+  parseIsoAsLocal,
 } from '@/utils/dateTimeUtils';
 import { TidePoint, TideForecast, TideCycle, TideEvent } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
@@ -135,25 +136,32 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
         const curveData = detailedPoints.length > 0 ? detailedPoints : tidePoints;
 
-        const eventsByDate: Record<string, TideEvent[]> = {};
-        tidePoints.forEach((tp) => {
-          if (tp.isHighTide === null) return;
-          const date = tp.time.slice(0, 10);
-          if (!eventsByDate[date]) eventsByDate[date] = [];
-          eventsByDate[date].push({
+        const eventList: TideEvent[] = tidePoints
+          .filter((tp) => tp.isHighTide !== null)
+          .map((tp) => ({
             time: tp.time,
             height: tp.height,
             isHigh: tp.isHighTide === true,
-          });
-        });
+          }))
+          .sort((a, b) => a.time.localeCompare(b.time));
+
+        const uniqueDates = Array.from(
+          new Set(eventList.map((e) => e.time.slice(0, 10)))
+        ).sort();
 
         const cyclesByDate: Record<string, TideCycle[]> = {};
-        Object.keys(eventsByDate).forEach((date) => {
-          const events = eventsByDate[date].sort((a, b) =>
-            a.time.localeCompare(b.time)
-          );
+        uniqueDates.forEach((date) => {
+          const start = parseIsoAsLocal(`${date}T00:00:00`);
+          const end = new Date(start);
+          end.setHours(end.getHours() + 30);
+
+          const events = eventList.filter((e) => {
+            const ts = parseIsoAsLocal(e.time).getTime();
+            return ts >= start.getTime() && ts < end.getTime();
+          });
+
           cyclesByDate[date] = [];
-          for (let i = 0; i < events.length - 1; i += 2) {
+          for (let i = 0; i < events.length - 1 && cyclesByDate[date].length < 2; i += 2) {
             cyclesByDate[date].push({
               first: events[i],
               second: events[i + 1],
