@@ -223,8 +223,8 @@ const TideChart = ({
                   content={<CustomTooltip />}
                   wrapperStyle={{
                     left: '50%',
-                    transform: 'translateX(-50%)',
-                    top: 10,
+                    transform: 'translate(-50%, -100%)',
+                    top: 0,
                   }}
                 />
                 <ReferenceLine
