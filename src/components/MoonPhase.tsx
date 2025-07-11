@@ -79,14 +79,12 @@ const MoonPhase = ({
     <div className="w-full">
       <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <div className="flex flex-col gap-2">
-              <span>{actualPhase}</span>
-              {fullMoonName && (
-                <FullMoonBanner fullMoonName={fullMoonName} />
-              )}
-            </div>
-            <span className="text-moon-primary text-sm">{date}</span>
+          <CardTitle className="flex flex-col items-center space-y-1">
+            <span className="whitespace-nowrap text-base font-semibold sm:text-lg">{actualPhase}</span>
+            {fullMoonName && (
+              <FullMoonBanner fullMoonName={fullMoonName} />
+            )}
+            <span className="text-moon-primary text-sm whitespace-nowrap sm:text-base">{date}</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-6">
