@@ -26,18 +26,24 @@ export const locationStorage = {
       const normState = (val: string | undefined) =>
         (normalizeStateName(val || '') || normalize(val)).toLowerCase();
       const filtered = history.filter(loc => {
+        const sameStationId =
+          location.stationId && loc.stationId && loc.stationId === location.stationId;
         const sameZip =
           location.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(location.zipCode);
         const sameCityState =
           normalize(loc.city) === normalize(location.city) &&
           normState(loc.state) === normState(location.state);
 
-        return !(sameZip || sameCityState);
+        return !(sameStationId || sameZip || sameCityState);
       });
-      
-      const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
-      console.log('📝 Saving new history:', newHistory);
-      safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
+
+      const hasMatch = filtered.length !== history.length;
+
+      if (!hasMatch) {
+        const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
+        console.log('📝 Saving new history:', newHistory);
+        safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
+      }
       
       console.log('✅ Location saved successfully');
     } catch (error) {
