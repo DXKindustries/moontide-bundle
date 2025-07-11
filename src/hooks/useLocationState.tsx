@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, useCallback, useContext } fr
 import { useLocation as useRouterLocation } from 'react-router-dom';
 import { SavedLocation } from '@/components/LocationSelector';
 import { safeLocalStorage } from '@/utils/localStorage';
+import { addFavorite } from '@/utils/stationFavorites';
 import { persistCurrentLocation, loadCurrentLocation, clearCurrentLocation } from '@/utils/currentLocation';
 import { Station } from '@/services/tide/stationService';
 
@@ -73,6 +74,7 @@ const useLocationStateValue = () => {
       console.log('🔀 Merged location with station:', mergedLocation);
       setCurrentLocationWithPersist(mergedLocation);
       setShowLocationSelector(false);
+      addFavorite(station);
     }
     try {
       safeLocalStorage.set(CURRENT_STATION_KEY, station);
