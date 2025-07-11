@@ -60,23 +60,21 @@ export default function LocationEditModal({ location, isOpen, onClose, onSave }:
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="city">City</Label>
-            <Input
-              id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-            />
+            <Label htmlFor="city">City (Optional)</Label>
+              <Input
+                id="city"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="state">State</Label>
-            <Input
-              id="state"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              required
-            />
+            <Label htmlFor="state">State (Optional)</Label>
+              <Input
+                id="state"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+              />
           </div>
           
           <div className="space-y-2">
@@ -93,7 +91,7 @@ export default function LocationEditModal({ location, isOpen, onClose, onSave }:
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!city.trim() || !state.trim()}>
+          <Button onClick={handleSave}>
             Save Changes
           </Button>
         </DialogFooter>
