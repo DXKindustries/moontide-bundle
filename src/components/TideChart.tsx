@@ -159,10 +159,8 @@ const TideChart = ({
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Tide Forecast</span>
-          <span className="text-moon-blue text-sm">{date}</span>
-        </CardTitle>
+        <CardTitle className="text-lg sm:text-2xl whitespace-nowrap">Tide Forecast</CardTitle>
+        <p className="text-moon-blue text-sm whitespace-nowrap">{date}</p>
         <LocationDisplay
           currentLocation={currentLocation || null}
           stationName={stationName || null}
