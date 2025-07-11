@@ -202,11 +202,9 @@ const TideChart = ({
                   dataKey="ts"
                   type="number"
                   domain={[startOfDay.getTime(), endOfRange.getTime()]}
-                  tickFormatter={(t) =>
-                    formatIsoToAmPm(formatDateTimeAsLocalIso(new Date(t)))
-                  }
+                  tickFormatter={() => ''}
                   ticks={tickValues}
-                  tick={{ fill: '#cbd5e1', fontSize: 12 }}
+                  tickLine={false}
                   axisLine={{ stroke: '#475569' }}
                 />
                 <YAxis
