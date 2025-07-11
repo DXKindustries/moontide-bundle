@@ -25,7 +25,7 @@ const SettingsItem = ({
   return (
     <Button
       variant="ghost"
-      className="w-full h-auto p-4 flex items-center justify-between hover:bg-gray-700/50 border-b border-gray-700 last:border-b-0 rounded-none"
+      className="w-full h-auto p-4 flex items-center justify-between hover:bg-gray-700/50 border-b border-gray-700 last:border-b-0 rounded-none whitespace-normal"
       onClick={onClick}
     >
       <div className="flex items-center space-x-3">
