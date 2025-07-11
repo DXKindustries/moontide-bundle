@@ -60,11 +60,11 @@ const TideChart = ({
   }
   const startOfDay = new Date(today);
   startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
+  const endOfRange = new Date(startOfDay);
+  endOfRange.setHours(endOfRange.getHours() + 30);
 
   const tickValues: number[] = [];
-  for (let h = 0; h <= 24; h += 6) {
+  for (let h = 0; h <= 30; h += 6) {
     const d = new Date(startOfDay);
     d.setHours(h, 0, 0, 0);
     tickValues.push(d.getTime());
@@ -74,10 +74,12 @@ const TideChart = ({
     .map((tp) => ({ ...tp, ts: parseIsoAsLocal(tp.time).getTime() }))
     .sort((a, b) => a.ts - b.ts);
 
-  const rawTodayData = allPoints.filter(p => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime());
+  const rawTodayData = allPoints.filter(
+    (p) => p.ts >= startOfDay.getTime() && p.ts < endOfRange.getTime()
+  );
 
   const prevPoint = allPoints.filter(p => p.ts < startOfDay.getTime()).slice(-1)[0];
-  const nextPoint = allPoints.find(p => p.ts >= endOfDay.getTime());
+  const nextPoint = allPoints.find((p) => p.ts >= endOfRange.getTime());
 
   const chartData = [...rawTodayData];
   if (prevPoint) chartData.unshift(prevPoint);
@@ -89,7 +91,7 @@ const TideChart = ({
     .sort((a, b) => a.ts - b.ts);
 
   const todayEvents = eventPoints.filter(
-    (p) => p.ts >= startOfDay.getTime() && p.ts < endOfDay.getTime()
+    (p) => p.ts >= startOfDay.getTime() && p.ts < endOfRange.getTime()
   );
 
   const dayCycles: TideCycle[] = [];
@@ -186,7 +188,12 @@ const TideChart = ({
             </p>
           </div>
         ) : (
-          <div className="h-64">
+          <div className="h-64 relative">
+            {currentTs != null && (
+              <div className="absolute -top-4 right-0 text-xs font-semibold text-moon-primary">
+                Now
+              </div>
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
                 <defs>
@@ -199,7 +206,7 @@ const TideChart = ({
                 <XAxis
                   dataKey="ts"
                   type="number"
-                  domain={[startOfDay.getTime(), endOfDay.getTime()]}
+                  domain={[startOfDay.getTime(), endOfRange.getTime()]}
                   tickFormatter={(t) =>
                     formatIsoToAmPm(formatDateTimeAsLocalIso(new Date(t)))
                   }
@@ -218,16 +225,23 @@ const TideChart = ({
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
+                <ReferenceLine
+                  x={startOfDay.getTime()}
+                  stroke="#f87171"
+                  strokeWidth={1}
+                />
+                <ReferenceLine
+                  x={new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000).getTime()}
+                  stroke="#f87171"
+                  strokeWidth={1}
+                />
                 {currentTs != null && (
                   <ReferenceLine
                     x={currentTs}
                     stroke="#9b87f5"
                     strokeWidth={2}
-                    label={{
-                      value: "Now",
-                      position: "top",
-                      fill: "#9b87f5"
-                    }}
+                    y1="5%"
+                    y2="100%"
                   />
                 )}
                 <Area
