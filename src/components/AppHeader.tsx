@@ -22,13 +22,11 @@ export default function AppHeader({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm shadow-md">
       <div className="flex flex-col w-full">
-        <div className="flex items-center justify-between py-2 px-4">
-          <div className="flex items-center">
-            <CloudMoon className="h-6 w-6 text-moon-primary mr-2" />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
-              MoonTide
-            </h1>
-          </div>
+        <div className="flex items-center justify-center py-2 px-4">
+          <CloudMoon className="h-6 w-6 text-moon-primary mr-2" />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
+            MoonTide
+          </h1>
         </div>
         <div className="flex items-center justify-evenly py-2 w-full">
           <Link to="/fishing-calendar">

@@ -160,27 +160,28 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       : filteredStations;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative p-4 overflow-y-auto">
+    <div className="min-h-screen flex flex-col relative p-4 overflow-y-auto">
       <StarsBackdrop />
       <AppBanner className="mb-4 relative z-10" />
-      <div className="space-y-4 w-full max-w-md relative z-10">
-        <h1 className="text-center text-xl font-bold">Choose a NOAA Station</h1>
+      <div className="flex flex-col space-y-4 w-full max-w-md relative z-10 flex-grow">
+        <h1 className="text-center text-lg font-bold">Choose a NOAA Station</h1>
 
-        <Select onValueChange={handleStateChange} value={selectedState}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a state" />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {stateOptions.map((st) => (
-              <SelectItem key={st.value} value={st.value}>
-                {st.label} ({st.value})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex-grow space-y-2 overflow-y-auto">
+          <Select onValueChange={handleStateChange} value={selectedState}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a state" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {stateOptions.map((st) => (
+                <SelectItem key={st.value} value={st.value}>
+                  {st.label} ({st.value})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        {selectedState && (
-          <div className="space-y-2">
+          {selectedState && (
+            <div className="space-y-2">
             <Input
               placeholder="Search stations"
               value={search}
@@ -260,13 +261,16 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
             </div>
           </div>
         )}
+        </div>
 
-        <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
-          Show Tides
-        </Button>
-        <Button variant="outline" onClick={goToTideScreen} className="w-full">
-          Go to Tides
-        </Button>
+        <div className="sticky bottom-0 bg-background pt-4 space-y-2">
+          <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
+            Show Tides
+          </Button>
+          <Button variant="outline" onClick={goToTideScreen} className="w-full">
+            Go to Tides
+          </Button>
+        </div>
       </div>
       <div className="relative z-10 mt-6">
         <MoonVisual phase="Full Moon" illumination={100} />
