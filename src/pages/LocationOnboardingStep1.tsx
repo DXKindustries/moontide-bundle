@@ -11,8 +11,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2, X } from 'lucide-react';
 import { useLocationState } from '@/hooks/useLocationState';
+import { lookupZipCode } from '@/utils/zipCodeLookup';
 import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
 import { Station } from '@/services/tide/stationService';
@@ -51,11 +53,12 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   const [favoriteStates, setFavoriteStates] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [selectedStation, setSelectedStation] = useState<RawStation | null>(null);
+  const [solarZip, setSolarZip] = useState('');
   const [radius, setRadius] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { setSelectedStation: saveStation } = useLocationState();
+  const { setSelectedStation: saveStation, setCurrentLocation } = useLocationState();
   const navigate = useNavigate();
 
   const goToTideScreen = () => {
@@ -113,7 +116,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
     fetchStations();
   }, [selectedState]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedStation) return;
     const station: Station = {
       id: selectedStation.id,
@@ -123,6 +126,31 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       state: selectedStation.state,
       city: selectedStation.city,
     };
+
+    if (solarZip.trim()) {
+      const geo = await lookupZipCode(solarZip.trim());
+      if (geo && geo.places && geo.places.length > 0) {
+        setCurrentLocation({
+          id: station.id,
+          name: station.name,
+          country: 'USA',
+          zipCode: solarZip.trim(),
+          cityState: `${geo.places[0]['place name']}, ${geo.places[0].state}`,
+          lat: parseFloat(geo.places[0].latitude),
+          lng: parseFloat(geo.places[0].longitude)
+        });
+      } else {
+        setCurrentLocation({
+          id: station.id,
+          name: station.name,
+          country: 'USA',
+          zipCode: solarZip.trim(),
+          cityState: '',
+          lat: null,
+          lng: null
+        });
+      }
+    }
 
     if (onStationSelect) {
       onStationSelect(station);
@@ -165,6 +193,15 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       <AppBanner className="mb-4 relative z-10" />
       <div className="flex flex-col space-y-4 w-full max-w-md relative z-10 flex-grow">
         <h1 className="text-center text-lg font-bold">Choose a NOAA Station</h1>
+        <div className="space-y-2">
+          <Label htmlFor="solar-zip">ZIP Code for Sunrise/Sunset</Label>
+          <Input
+            id="solar-zip"
+            placeholder="e.g. 02840"
+            value={solarZip}
+            onChange={(e) => setSolarZip(e.target.value)}
+          />
+        </div>
 
         <div className="flex-grow space-y-2 overflow-y-auto">
           <Select onValueChange={handleStateChange} value={selectedState}>

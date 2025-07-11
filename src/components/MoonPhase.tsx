@@ -2,11 +2,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon, calculateMoonPhase } from '@/utils/lunarUtils';
-import { calculateSolarTimes } from '@/utils/solarUtils';
+import { calculateSolarTimes, getSolarEvents } from '@/utils/solarUtils';
 import FullMoonBanner from './FullMoonBanner';
 import MoonVisual from './MoonVisual';
 import MoonData from './MoonData';
 import SolarInfo from './SolarInfo';
+import SolarEventInfo from './fishing/SolarEventInfo';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
 
@@ -72,6 +73,8 @@ const MoonPhase = ({
     [currentDate, lat, lng]
   );
 
+  const solarEvent = getSolarEvents(currentDate);
+
   return (
     <div className="w-full">
       <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
@@ -96,7 +99,8 @@ const MoonPhase = ({
           />
 
           <div className="border-t border-muted pt-4 w-full space-y-4">
-            <SolarInfo solarTimes={solarTimes} />
+            <SolarInfo solarTimes={solarTimes} zipCode={currentLocation?.zipCode} />
+            {solarEvent && <SolarEventInfo selectedDate={currentDate} />}
           </div>
         </CardContent>
       </Card>
