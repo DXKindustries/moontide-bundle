@@ -19,14 +19,14 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
   return (
     <header className="py-4 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-center sm:flex-row sm:justify-between gap-2">
           <div className="flex items-center">
             <CloudMoon className="h-8 w-8 text-moon-primary mr-2" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
               Calendar
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
             <span className="text-sm font-medium hidden md:inline">
               {currentLocation
                 ? <>
