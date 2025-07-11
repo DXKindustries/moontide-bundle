@@ -189,7 +189,7 @@ const Calendar = () => {
   const selectedDateInfo = selectedDate ? fishingInfo[format(selectedDate, 'yyyy-MM-dd')] : undefined;
 
   return (
-    <div className="min-h-screen pb-8 relative">
+    <div className="min-h-screen pb-8 pt-24 relative">
       <StarsBackdrop />
 
       <FishingCalendarHeader currentLocation={currentLocation} stationName={stationName} />
