@@ -112,8 +112,12 @@ const Calendar = () => {
       const highTides = allEvents.filter((e) => e.isHigh);
       const lowTides = allEvents.filter((e) => !e.isHigh);
 
-      // Calculate solar times
-      const solarTimes = calculateSolarTimes(date, currentLocation);
+      // Calculate solar times using the user's coordinates when available
+      const solarTimes = calculateSolarTimes(
+        date,
+        currentLocation?.lat ?? 41.4353,
+        currentLocation?.lng ?? -71.4616
+      );
 
       // Calculate optimal fishing windows (example logic)
       const optimalFishingWindows: {
