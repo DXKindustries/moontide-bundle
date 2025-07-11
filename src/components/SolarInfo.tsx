@@ -17,8 +17,8 @@ const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
   return (
     <div className="bg-muted/20 backdrop-blur-sm py-3 px-4 rounded-lg">
       {zipCode && (
-        <div className="text-center text-xs mb-2 text-muted-foreground">
-          ZIP {zipCode}
+        <div className="text-center text-xs font-medium mb-2 text-muted-foreground">
+          Sunrise/Sunset for ZIP {zipCode}
         </div>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-y-3 text-xs text-center">
