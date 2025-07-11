@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
 import { Station } from '@/services/tide/stationService';
 import { getDistanceKm } from '@/services/tide/geo';
+import { SavedLocation } from '@/components/LocationSelector';
 import {
   getFavoriteStates,
   addFavoriteState,
@@ -127,10 +128,13 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       city: selectedStation.city,
     };
 
+    // Precompute the location object so we can persist it after selecting the station
+    let newLocation: SavedLocation & { id: string; country: string } | null = null;
+
     if (solarZip.trim()) {
       const geo = await lookupZipCode(solarZip.trim());
       if (geo && geo.places && geo.places.length > 0) {
-        setCurrentLocation({
+        newLocation = {
           id: station.id,
           name: station.name,
           country: 'USA',
@@ -138,9 +142,9 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           cityState: `${geo.places[0]['place name']}, ${geo.places[0].state}`,
           lat: parseFloat(geo.places[0].latitude),
           lng: parseFloat(geo.places[0].longitude)
-        });
+        };
       } else {
-        setCurrentLocation({
+        newLocation = {
           id: station.id,
           name: station.name,
           country: 'USA',
@@ -148,14 +152,23 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           cityState: '',
           lat: null,
           lng: null
-        });
+        };
       }
     }
 
+    // First select the station so the zip-based location isn't overwritten
     if (onStationSelect) {
       onStationSelect(station);
     } else {
       saveStation(station);
+    }
+
+    if (newLocation) {
+      setCurrentLocation(newLocation);
+    }
+
+    // Navigate back to the main tide screen when not used as a standalone step
+    if (!onStationSelect) {
       goToTideScreen();
     }
   };
