@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { MapPin, Clock, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { MapPin, Clock, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -10,7 +10,6 @@ import { clearLocationHistory } from '@/utils/locationHistory';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
-import LocationEditModal from './LocationEditModal';
 import { toast } from 'sonner';
 
 interface SavedLocationsListProps {
@@ -20,7 +19,6 @@ interface SavedLocationsListProps {
 
 export default function SavedLocationsList({ onLocationSelect, showEmpty = false }: SavedLocationsListProps) {
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
-  const [editingLocation, setEditingLocation] = useState<LocationData | null>(null);
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
   const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
 
@@ -28,44 +26,9 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     onLocationSelect(location);
   };
 
-  const handleEditLocation = (location: LocationData, event: React.MouseEvent): void => {
-    event.stopPropagation();
-    setEditingLocation(location);
-  };
-
   const handleDeleteLocation = (location: LocationData, event: React.MouseEvent): void => {
     event.stopPropagation();
     setDeletingLocation(location);
-  };
-
-  const handleSaveEdit = (updatedLocation: LocationData): void => {
-    console.log('📝 Updating location:', updatedLocation);
-    locationStorage.updateLocation(updatedLocation);
-    setLocationHistory(locationStorage.getLocationHistory());
-
-    // If the edited location is also the current one in state,
-    // immediately update it so the new nickname shows in the UI
-    if (currentLocation) {
-      const normalize = (val?: string) => (val || '').trim().toLowerCase();
-      const [currCity, currState] = currentLocation.cityState
-        ? currentLocation.cityState.split(',').map((s) => s.trim())
-        : ['', ''];
-      const isCurrentMatch =
-        (updatedLocation.stationId && currentLocation.id === updatedLocation.stationId) ||
-        (updatedLocation.zipCode && currentLocation.zipCode &&
-          normalize(updatedLocation.zipCode) === normalize(currentLocation.zipCode)) ||
-        (normalize(currCity) === normalize(updatedLocation.city) &&
-          normalize(currState) === normalize(updatedLocation.state));
-
-      if (isCurrentMatch) {
-        setCurrentLocation({
-          ...currentLocation,
-          name: updatedLocation.nickname || currentLocation.name,
-        });
-      }
-    }
-
-    toast.success('Location updated successfully');
   };
 
   const handleConfirmDelete = (): void => {
@@ -179,11 +142,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => handleEditLocation(location, e)}>
-                            <Edit className="h-3 w-3 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={(e) => handleDeleteLocation(location, e)}
                             className="text-destructive"
                           >
@@ -210,14 +169,6 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
         })}
       </div>
 
-      {editingLocation && (
-        <LocationEditModal
-          location={editingLocation}
-          isOpen={!!editingLocation}
-          onClose={() => setEditingLocation(null)}
-          onSave={handleSaveEdit}
-        />
-      )}
 
       <AlertDialog open={!!deletingLocation} onOpenChange={() => setDeletingLocation(null)}>
         <AlertDialogContent>
