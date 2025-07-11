@@ -11,12 +11,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Star } from 'lucide-react';
 import { useLocationState } from '@/hooks/useLocationState';
 import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
 import { Station } from '@/services/tide/stationService';
 import { getDistanceKm } from '@/services/tide/geo';
+import {
+  getFavoritesByState,
+  isFavorite,
+  toggleFavorite,
+} from '@/utils/stationFavorites';
 
 interface RawStation {
   id: string;
@@ -27,8 +32,14 @@ interface RawStation {
   city?: string;
 }
 
+const ALLOWED_STATES = [
+  'AL', 'AK', 'CA', 'CT', 'DE', 'FL', 'GA', 'HI', 'LA', 'ME', 'MD', 'MA',
+  'MS', 'NH', 'NJ', 'NY', 'NC', 'OR', 'PA', 'RI', 'SC', 'TX', 'VA', 'WA',
+];
+
 const stateOptions = Object.entries(STATE_NAME_TO_ABBR)
   .map(([name, abbr]) => ({ value: abbr, label: name.replace(/\b\w/g, (l) => l.toUpperCase()) }))
+  .filter((opt) => ALLOWED_STATES.includes(opt.value))
   .sort((a, b) => a.label.localeCompare(b.label));
 
 interface LocationOnboardingStep1Props {
@@ -38,6 +49,7 @@ interface LocationOnboardingStep1Props {
 const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Props) => {
   const [selectedState, setSelectedState] = useState('');
   const [stations, setStations] = useState<RawStation[]>([]);
+  const [favoriteStations, setFavoriteStations] = useState<RawStation[]>([]);
   const [search, setSearch] = useState('');
   const [selectedStation, setSelectedStation] = useState<RawStation | null>(null);
   const [radius, setRadius] = useState<number | null>(null);
@@ -46,6 +58,10 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
 
   const { setSelectedStation: saveStation } = useLocationState();
   const navigate = useNavigate();
+
+  const goToTideScreen = () => {
+    navigate('/', { replace: true });
+  };
 
   // Reset radius filter when the selected station changes
   useEffect(() => {
@@ -56,6 +72,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
     if (!selectedState) {
       setStations([]);
       setSelectedStation(null);
+      setFavoriteStations([]);
       setError(null);
       return;
     }
@@ -86,6 +103,16 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
     };
 
     fetchStations();
+    setFavoriteStations(
+      getFavoritesByState(selectedState).map((s) => ({
+        id: s.id,
+        name: s.name,
+        lat: s.latitude,
+        lng: s.longitude,
+        state: s.state,
+        city: s.city,
+      }))
+    );
   }, [selectedState]);
 
   const handleContinue = () => {
@@ -103,7 +130,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       onStationSelect(station);
     } else {
       saveStation(station);
-      navigate('/', { replace: true });
+      goToTideScreen();
     }
   };
 
@@ -188,6 +215,27 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
                 {error}
               </div>
             )}
+
+            {favoriteStations.length > 0 && (
+              <div className="border rounded-md divide-y mb-2">
+                {favoriteStations.map((st) => (
+                  <div
+                    key={st.id}
+                    className="p-2 cursor-pointer hover:bg-accent flex items-center justify-between"
+                    onClick={() => setSelectedStation(st)}
+                  >
+                    <div>
+                      <div className="font-medium">{st.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {st.city ?? 'Unknown'}, {st.state} - {st.id}
+                      </div>
+                    </div>
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="max-h-64 overflow-y-auto border rounded-md divide-y">
               {loading && (
                 <div className="p-2 text-sm flex items-center gap-2">
@@ -199,13 +247,43 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
                 radiusFilteredStations.map((st) => (
                   <div
                     key={st.id}
-                    className={`p-2 cursor-pointer hover:bg-accent ${selectedStation?.id === st.id ? 'bg-accent' : ''}`}
+                    className={`p-2 cursor-pointer hover:bg-accent flex items-center justify-between ${selectedStation?.id === st.id ? 'bg-accent' : ''}`}
                     onClick={() => setSelectedStation(st)}
                   >
-                    <div className="font-medium">{st.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {st.city ?? 'Unknown'}, {st.state} - {st.id} ({st.lat}, {st.lng})
+                    <div>
+                      <div className="font-medium">{st.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {st.city ?? 'Unknown'}, {st.state} - {st.id} ({st.lat}, {st.lng})
+                      </div>
                     </div>
+                    <button
+                      className="ml-2 text-yellow-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite({
+                          id: st.id,
+                          name: st.name,
+                          latitude: parseFloat(String(st.lat)),
+                          longitude: parseFloat(String(st.lng)),
+                          state: st.state,
+                          city: st.city,
+                        });
+                        setFavoriteStations(
+                          getFavoritesByState(selectedState).map((s) => ({
+                            id: s.id,
+                            name: s.name,
+                            lat: s.latitude,
+                            lng: s.longitude,
+                            state: s.state,
+                            city: s.city,
+                          }))
+                        );
+                      }}
+                    >
+                      <Star
+                        className={`h-4 w-4 ${isFavorite(st.id) ? 'text-yellow-500 fill-yellow-500' : ''}`}
+                      />
+                    </button>
                   </div>
                 ))}
               {!loading && !error && radiusFilteredStations.length === 0 && (
@@ -217,6 +295,9 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
 
         <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
           Show Tides
+        </Button>
+        <Button variant="outline" onClick={goToTideScreen} className="w-full">
+          Go to Tides
         </Button>
       </div>
       <MoonAnimation className="relative z-10" />
