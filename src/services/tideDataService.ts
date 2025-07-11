@@ -1,6 +1,6 @@
 // src/services/tideDataService.ts
 //--------------------------------------------------------------
-//  Fetch 7-day tide data for the given NOAA station
+//  Fetch 8-day tide data for the given NOAA station
 //--------------------------------------------------------------
 
 const NOAA_DATA_BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
@@ -23,7 +23,8 @@ export async function getTideData(
 
   const start = new Date(dateIso);
   const end = new Date(start);
-  end.setDate(start.getDate() + 7);
+  // Fetch one extra day to ensure the last day's cycles are complete
+  end.setDate(start.getDate() + 8);
 
   const format = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, '');
 
