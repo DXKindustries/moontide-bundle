@@ -77,11 +77,12 @@ export const locationStorage = {
       
       // Find and update the location in history
       const updatedHistory = history.map(loc => {
-        // Match by zipCode or city/state combination
+        // Match by stationId or by zipCode/city/state
         const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
         const normState = (val: string | undefined) =>
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isMatch =
+          (updatedLocation.stationId && loc.stationId && loc.stationId === updatedLocation.stationId) ||
           (updatedLocation.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(updatedLocation.zipCode)) ||
           (normalize(loc.city) === normalize(updatedLocation.city) &&
             normState(loc.state) === normState(updatedLocation.state));
@@ -100,6 +101,7 @@ export const locationStorage = {
         const normState = (val: string | undefined) =>
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isCurrentMatch =
+          (updatedLocation.stationId && currentLocation.stationId && currentLocation.stationId === updatedLocation.stationId) ||
           (updatedLocation.zipCode && currentLocation.zipCode &&
             normalize(currentLocation.zipCode) === normalize(updatedLocation.zipCode)) ||
           (normalize(currentLocation.city) === normalize(updatedLocation.city) &&
@@ -128,6 +130,7 @@ export const locationStorage = {
         (normalizeStateName(val || '') || normalize(val)).toLowerCase();
       const updatedHistory = history.filter(loc => {
         const isMatch =
+          (locationToDelete.stationId && loc.stationId && loc.stationId === locationToDelete.stationId) ||
           (locationToDelete.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(locationToDelete.zipCode)) ||
           (normalize(loc.city) === normalize(locationToDelete.city) &&
             normState(loc.state) === normState(locationToDelete.state));
@@ -142,6 +145,7 @@ export const locationStorage = {
         const normState = (val: string | undefined) =>
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isCurrentMatch =
+          (locationToDelete.stationId && currentLocation.stationId && currentLocation.stationId === locationToDelete.stationId) ||
           (locationToDelete.zipCode && currentLocation.zipCode &&
             normalize(currentLocation.zipCode) === normalize(locationToDelete.zipCode)) ||
           (normalize(currentLocation.city) === normalize(locationToDelete.city) &&
