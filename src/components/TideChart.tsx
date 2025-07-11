@@ -189,11 +189,6 @@ const TideChart = ({
           </div>
         ) : (
           <div className="h-64 relative">
-            {currentTs != null && (
-              <div className="absolute -top-4 right-0 text-xs font-semibold text-moon-primary">
-                Now
-              </div>
-            )}
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
                 <defs>
@@ -224,7 +219,14 @@ const TideChart = ({
                     style: { fill: '#cbd5e1', fontSize: 12 }
                   }}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  wrapperStyle={{
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    top: 0,
+                  }}
+                />
                 <ReferenceLine
                   x={startOfDay.getTime()}
                   stroke="#f87171"
@@ -242,6 +244,7 @@ const TideChart = ({
                     strokeWidth={2}
                     y1="5%"
                     y2="100%"
+                    label={{ value: 'Now', position: 'top', fill: '#9b87f5' }}
                   />
                 )}
                 <Area
