@@ -137,9 +137,9 @@ const WeeklyForecast = ({
                   )}
                 >
                   {/* Day and Date */}
-                  <div className="w-20">
-                    <p className="font-medium">{day.day}</p>
-                    <p className="text-xs text-muted-foreground">{day.date}</p>
+                  <div className="min-w-[7rem]">
+                    <p className="font-medium whitespace-nowrap">{day.day}</p>
+                    <p className="text-xs text-muted-foreground whitespace-nowrap">{day.date}</p>
                   </div>
 
                   {/* Moon Phase */}
@@ -163,8 +163,8 @@ const WeeklyForecast = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                     {day.cycles.map((cycle, idx) => (
                       <div key={idx} className="text-sm">
-                        <p className="text-xs text-muted-foreground mb-1">Cycle {idx + 1}</p>
-                        <p>
+                        <p className="text-xs text-muted-foreground mb-1 whitespace-nowrap">Cycle {idx + 1}</p>
+                        <p className="whitespace-nowrap">
                           {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)} - {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
                         </p>
                       </div>

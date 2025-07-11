@@ -36,11 +36,16 @@ export default function LocationDisplay({ currentLocation, stationName, stationI
 
   return (
     <div className="flex flex-col bg-muted/70 backdrop-blur-sm py-2 px-3 rounded-lg gap-1 mr-2">
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-wrap">
         <MapPin size={16} className="text-moon-primary" />
         <span className="text-sm font-medium">
           {formatLocationDisplay()}
         </span>
+        {currentLocation.zipCode && (
+          <span className="text-xs text-muted-foreground ml-2">
+            ZIP {currentLocation.zipCode}
+          </span>
+        )}
       </div>
       {/* Station name under ZIP - show helpful message if there's an error even with a station */}
       <div className="text-xs text-muted-foreground pl-5">
