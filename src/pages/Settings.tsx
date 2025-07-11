@@ -16,7 +16,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen pb-8 relative">
+    <div className="min-h-screen pb-8 relative overflow-y-auto">
       <StarsBackdrop />
       
       <div className="relative z-10">
