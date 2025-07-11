@@ -261,17 +261,17 @@ const TideChart = ({
         {!isLoading && rawTodayData.length > 0 && (
           <div className="space-y-2 mt-4">
             {dayCycles.map((cycle, i) => (
-              <div key={i} className="grid grid-cols-2 text-sm text-muted-foreground">
-                <span>
+              <div key={i} className="grid grid-cols-2 text-xs sm:text-sm text-muted-foreground">
+                <span className="whitespace-nowrap">
                   {(cycle.first.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.first.time)}
                 </span>
-                <span className="font-semibold text-right">
+                <span className="font-semibold text-right whitespace-nowrap">
                   {cycle.first.height.toFixed(2)} ft
                 </span>
-                <span>
+                <span className="whitespace-nowrap">
                   {(cycle.second.isHigh ? 'High' : 'Low')} {formatTimeToAMPM(cycle.second.time)}
                 </span>
-                <span className="font-semibold text-right">
+                <span className="font-semibold text-right whitespace-nowrap">
                   {cycle.second.height.toFixed(2)} ft
                 </span>
               </div>
