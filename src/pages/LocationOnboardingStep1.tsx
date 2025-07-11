@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import AppBanner from '@/components/AppBanner';
-import MoonAnimation from '@/components/MoonAnimation';
+import MoonVisual from '@/components/MoonVisual';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -160,7 +160,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       : filteredStations;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center relative p-4 overflow-y-auto">
       <StarsBackdrop />
       <AppBanner className="mb-4 relative z-10" />
       <div className="space-y-4 w-full max-w-md relative z-10">
@@ -268,7 +268,9 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           Go to Tides
         </Button>
       </div>
-      <MoonAnimation className="relative z-10" />
+      <div className="relative z-10 mt-6">
+        <MoonVisual phase="Full Moon" illumination={100} />
+      </div>
     </div>
   );
 };
