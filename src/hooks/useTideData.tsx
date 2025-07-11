@@ -92,11 +92,10 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         startDate.setDate(startDate.getDate() - 1);
         const dateIso = formatDateAsLocalIso(startDate);
 
-        debugLog('Requesting 7 day predictions', { stationId: chosen.id, dateIso });
+        debugLog('Requesting 8 day predictions', { stationId: chosen.id, dateIso });
         const predictions: Prediction[] = await getTideData(
           chosen.id,
-          dateIso,
-          7
+          dateIso
         );
         debugLog('Predictions received', { count: predictions.length });
 
