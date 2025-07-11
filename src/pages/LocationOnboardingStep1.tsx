@@ -188,13 +188,13 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       : filteredStations;
 
   return (
-    <div className="min-h-screen flex flex-col relative p-4 overflow-y-auto">
+    <div className="min-h-screen flex flex-col relative p-2 overflow-y-auto">
       <StarsBackdrop />
-      <AppBanner className="mb-4 relative z-10" />
-      <div className="flex flex-col space-y-4 w-full max-w-md relative z-10 flex-grow">
-        <h1 className="text-center text-lg font-bold">Choose a NOAA Station</h1>
-        <div className="space-y-2">
-          <Label htmlFor="solar-zip">ZIP Code for Sunrise/Sunset</Label>
+      <AppBanner className="mb-2 relative z-10" />
+      <div className="flex flex-col space-y-2 w-full max-w-md relative z-10 flex-grow">
+        <h1 className="text-center text-base font-bold">Choose a NOAA Station</h1>
+        <div className="space-y-1">
+          <Label htmlFor="solar-zip" className="text-sm">ZIP Code for Sunrise/Sunset</Label>
           <Input
             id="solar-zip"
             placeholder="e.g. 02840"
@@ -252,7 +252,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
               </div>
             )}
 
-            <div className="max-h-32 overflow-y-auto border rounded-md divide-y">
+            <div className="max-h-40 overflow-y-auto border rounded-md divide-y">
               {loading && (
                 <div className="p-2 text-sm flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -300,7 +300,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
         )}
         </div>
 
-        <div className="sticky bottom-0 bg-background pt-4 space-y-2">
+        <div className="sticky bottom-0 bg-background pt-2 space-y-2">
           <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
             Show Tides
           </Button>
@@ -309,7 +309,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           </Button>
         </div>
       </div>
-      <div className="relative z-10 mt-6 flex justify-center">
+      <div className="relative z-10 mt-4 flex justify-center">
         <MoonVisual phase="Full Moon" illumination={100} />
       </div>
     </div>
