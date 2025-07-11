@@ -190,7 +190,7 @@ const TideChart = ({
         ) : (
           <div className="h-64 relative">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 40, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="tideGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
@@ -224,7 +224,7 @@ const TideChart = ({
                   wrapperStyle={{
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    top: 0,
+                    top: 10,
                   }}
                 />
                 <ReferenceLine
