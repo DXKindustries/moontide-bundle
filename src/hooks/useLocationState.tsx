@@ -66,8 +66,14 @@ const useLocationStateValue = () => {
         id: station.id,
         name: station.name,
         cityState: station.city ? `${station.city}, ${station.state}` : currentLocation?.cityState ?? '',
-        lat: station.latitude,
-        lng: station.longitude
+        lat:
+          currentLocation?.zipCode
+            ? currentLocation.lat ?? station.latitude
+            : station.latitude,
+        lng:
+          currentLocation?.zipCode
+            ? currentLocation.lng ?? station.longitude
+            : station.longitude
       } as SavedLocation & { id: string; country: string };
 
       console.log('🔀 Merged location with station:', mergedLocation);

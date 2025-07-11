@@ -5,6 +5,7 @@ export type SolarTimes = {
   sunset: string;
   daylight: string;
   daylightMinutes: number; // Total daylight in minutes for comparison
+  darkness: string;
   changeFromPrevious?: string; // Change from previous day
 };
 
@@ -79,6 +80,8 @@ export const calculateSolarTimes = (
 
   const daylight = `${Math.floor(current.daylightMinutes / 60)}h ${Math.round(current.daylightMinutes % 60)}m`;
   const daylightMinutes = Math.round(current.daylightMinutes);
+  const darknessMinutes = Math.round(24 * 60 - daylightMinutes);
+  const darkness = `${Math.floor(darknessMinutes / 60)}h ${Math.round(darknessMinutes % 60)}m`;
   const diff = daylightMinutes - Math.round(previous.daylightMinutes);
 
   let changeFromPrevious = '';
@@ -95,6 +98,7 @@ export const calculateSolarTimes = (
     sunset: format(current.sunsetDate),
     daylight,
     daylightMinutes,
+    darkness,
     changeFromPrevious,
   };
 };
