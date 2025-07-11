@@ -14,7 +14,7 @@ const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-gray-700">
+    <div className="sticky top-0 z-20 flex items-center justify-between p-4 border-b border-gray-700 bg-background">
       <Button
         variant="ghost"
         size="icon"
