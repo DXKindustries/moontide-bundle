@@ -13,22 +13,7 @@ interface LocationDisplayProps {
 export default function LocationDisplay({ currentLocation, stationName, stationId, hasError }: LocationDisplayProps) {
   const formatLocationDisplay = () => {
     if (!currentLocation) return 'Select a location';
-
-    // If the user provided a custom nickname, display it with the station name
-    if (
-      stationName &&
-      currentLocation.name &&
-      currentLocation.name !== stationName
-    ) {
-      return `${currentLocation.name} – ${stationName}`;
-    }
-
-    if (currentLocation.zipCode) {
-      return `${currentLocation.name} (${currentLocation.zipCode})`;
-    }
-    if (currentLocation.name && currentLocation.country) {
-      return `${currentLocation.name}, ${currentLocation.country}`;
-    }
+    if (stationName) return stationName;
     return currentLocation.name || 'Select a location';
   };
 
