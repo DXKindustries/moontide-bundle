@@ -14,9 +14,13 @@ export default function LocationDisplay({ currentLocation, stationName, stationI
   const formatLocationDisplay = () => {
     if (!currentLocation) return 'Select a location';
 
-    // If the user provided a custom nickname, just show it
-    if (stationName && currentLocation.name && currentLocation.name !== stationName) {
-      return currentLocation.name;
+    // If the user provided a custom nickname, display it with the station name
+    if (
+      stationName &&
+      currentLocation.name &&
+      currentLocation.name !== stationName
+    ) {
+      return `${currentLocation.name} – ${stationName}`;
     }
 
     if (currentLocation.zipCode) {
