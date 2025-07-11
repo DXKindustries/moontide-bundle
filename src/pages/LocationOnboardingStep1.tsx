@@ -215,7 +215,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
               </div>
             )}
 
-            <div className="max-h-64 overflow-y-auto border rounded-md divide-y">
+            <div className="max-h-32 overflow-y-auto border rounded-md divide-y">
               {loading && (
                 <div className="p-2 text-sm flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -272,7 +272,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           </Button>
         </div>
       </div>
-      <div className="relative z-10 mt-6">
+      <div className="relative z-10 mt-6 flex justify-center">
         <MoonVisual phase="Full Moon" illumination={100} />
       </div>
     </div>
