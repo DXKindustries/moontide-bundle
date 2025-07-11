@@ -132,7 +132,7 @@ const WeeklyForecast = ({
                 <div
                   key={index}
                   className={cn(
-                    "flex flex-col sm:flex-row sm:items-center gap-2 p-3 rounded-md",
+                    "grid gap-3 p-3 rounded-md sm:grid-cols-3 sm:items-center",
                     index === 0 ? "bg-muted" : "hover:bg-muted transition-colors"
                   )}
                 >
