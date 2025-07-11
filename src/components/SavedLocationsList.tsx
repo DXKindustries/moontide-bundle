@@ -42,6 +42,29 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     console.log('📝 Updating location:', updatedLocation);
     locationStorage.updateLocation(updatedLocation);
     setLocationHistory(locationStorage.getLocationHistory());
+
+    // If the edited location is also the current one in state,
+    // immediately update it so the new nickname shows in the UI
+    if (currentLocation) {
+      const normalize = (val?: string) => (val || '').trim().toLowerCase();
+      const [currCity, currState] = currentLocation.cityState
+        ? currentLocation.cityState.split(',').map((s) => s.trim())
+        : ['', ''];
+      const isCurrentMatch =
+        (updatedLocation.stationId && currentLocation.id === updatedLocation.stationId) ||
+        (updatedLocation.zipCode && currentLocation.zipCode &&
+          normalize(updatedLocation.zipCode) === normalize(currentLocation.zipCode)) ||
+        (normalize(currCity) === normalize(updatedLocation.city) &&
+          normalize(currState) === normalize(updatedLocation.state));
+
+      if (isCurrentMatch) {
+        setCurrentLocation({
+          ...currentLocation,
+          name: updatedLocation.nickname || currentLocation.name,
+        });
+      }
+    }
+
     toast.success('Location updated successfully');
   };
 
