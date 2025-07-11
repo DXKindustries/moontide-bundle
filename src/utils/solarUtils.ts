@@ -14,81 +14,89 @@ export type SolarEvent = {
   description: string;
 };
 
-// Calculate sunrise and sunset times using a fixed reference location
-// This ensures consistent time difference calculations regardless of ZIP code
-export const calculateSolarTimes = (date: Date, lat: number = 41.4353, lng: number = -71.4616): SolarTimes => {
-  // Use fixed coordinates (Narragansett, RI area) for consistent calculations
-  const fixedLat = 41.4353;
-  const fixedLng = -71.4616;
+// Calculate sunrise and sunset times for the given location
+// Algorithm adapted from the SunCalc library (https://github.com/mourner/suncalc)
+export const calculateSolarTimes = (
+  date: Date,
+  lat: number = 41.4353,
+  lng: number = -71.4616
+): SolarTimes => {
+  const rad = Math.PI / 180;
+  const dayMs = 1000 * 60 * 60 * 24;
+  const J1970 = 2440588;
+  const J2000 = 2451545;
 
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const toJulian = (d: Date) => d.getTime() / dayMs - 0.5 + J1970;
+  const fromJulian = (j: number) => new Date((j + 0.5 - J1970) * dayMs);
+  const toDays = (d: Date) => toJulian(d) - J2000;
 
-  // Approximate sunrise/sunset calculation based on day of year and fixed latitude
-  const solarDeclination = 23.45 * Math.sin((360 * (284 + dayOfYear) / 365) * Math.PI / 180);
-  const hourAngle = Math.acos(-Math.tan(fixedLat * Math.PI / 180) * Math.tan(solarDeclination * Math.PI / 180));
+  const solarMeanAnomaly = (d: number) =>
+    rad * (357.5291 + 0.98560028 * d);
+  const eclipticLongitude = (M: number) =>
+    M +
+    rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) +
+    Math.PI +
+    rad * 102.9372;
+  const declination = (L: number) =>
+    Math.asin(Math.sin(L) * Math.sin(rad * 23.4397));
+  const julianCycle = (d: number, lw: number) =>
+    Math.round(d - 0.0009 - lw / (2 * Math.PI));
+  const approxTransit = (Ht: number, lw: number, n: number) =>
+    0.0009 + (Ht + lw) / (2 * Math.PI) + n;
+  const solarTransit = (ds: number, M: number, L: number) =>
+    J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+  const hourAngle = (h: number, phi: number, d: number) =>
+    Math.acos((Math.sin(h) - Math.sin(phi) * Math.sin(d)) / (Math.cos(phi) * Math.cos(d)));
 
-  // Convert to hours
-  const sunriseHour = 12 - (hourAngle * 180 / Math.PI) / 15;
-  const sunsetHour = 12 + (hourAngle * 180 / Math.PI) / 15;
-
-  // Format times in 12-hour AM/PM format
-  const formatTime = (hour: number): string => {
-    const h = Math.floor(hour);
-    const m = Math.floor((hour - h) * 60);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${displayHour}:${m.toString().padStart(2, '0')} ${period}`;
+  const getTimes = (d: Date, latitude: number, longitude: number) => {
+    const lw = rad * -longitude;
+    const phi = rad * latitude;
+    const days = toDays(d);
+    const n = julianCycle(days, lw);
+    const ds = approxTransit(0, lw, n);
+    const M = solarMeanAnomaly(ds);
+    const L = eclipticLongitude(M);
+    const dec = declination(L);
+    const h0 = rad * -0.833; // Sun altitude for sunrise/sunset
+    const w0 = hourAngle(h0, phi, dec);
+    const a0 = approxTransit(w0, lw, n);
+    const a1 = approxTransit(-w0, lw, n);
+    const Jset = solarTransit(a0, M, L);
+    const Jrise = solarTransit(a1, M, L);
+    const sunriseDate = fromJulian(Jrise);
+    const sunsetDate = fromJulian(Jset);
+    const daylightMinutes = (sunsetDate.getTime() - sunriseDate.getTime()) / 60000;
+    return { sunriseDate, sunsetDate, daylightMinutes };
   };
 
-  const sunrise = formatTime(sunriseHour);
-  const sunset = formatTime(sunsetHour);
+  const current = getTimes(date, lat, lng);
+  const prevDate = new Date(date);
+  prevDate.setDate(prevDate.getDate() - 1);
+  const previous = getTimes(prevDate, lat, lng);
 
-  // Calculate daylight duration for current day
-  const daylightHours = sunsetHour - sunriseHour;
-  const hours = Math.floor(daylightHours);
-  const minutes = Math.floor((daylightHours - hours) * 60);
-  const daylight = `${hours}h ${minutes}m`;
-  const daylightMinutes = Math.floor(daylightHours * 60);
+  const format = (d: Date) =>
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-  // Calculate daylight duration for previous day using the same fixed coordinates
-  const previousDay = new Date(date);
-  previousDay.setDate(previousDay.getDate() - 1);
-  const previousDayOfYear = Math.floor((previousDay.getTime() - new Date(previousDay.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const daylight = `${Math.floor(current.daylightMinutes / 60)}h ${Math.round(current.daylightMinutes % 60)}m`;
+  const daylightMinutes = Math.round(current.daylightMinutes);
+  const diff = daylightMinutes - Math.round(previous.daylightMinutes);
 
-  const previousSolarDeclination = 23.45 * Math.sin((360 * (284 + previousDayOfYear) / 365) * Math.PI / 180);
-  const previousHourAngle = Math.acos(-Math.tan(fixedLat * Math.PI / 180) * Math.tan(previousSolarDeclination * Math.PI / 180));
-
-  const previousSunriseHour = 12 - (previousHourAngle * 180 / Math.PI) / 15;
-  const previousSunsetHour = 12 + (previousHourAngle * 180 / Math.PI) / 15;
-  const previousDaylightHours = previousSunsetHour - previousSunriseHour;
-  const previousDaylightMinutes = Math.floor(previousDaylightHours * 60);
-
-  // Calculate the difference in minutes
-  const changeInMinutes = daylightMinutes - previousDaylightMinutes;
-  let changeFromPrevious = "";
-
-  if (Math.abs(changeInMinutes) < 1) {
-    changeFromPrevious = "same as yesterday";
-  } else if (changeInMinutes > 0) {
-    if (changeInMinutes >= 60) {
-      const changeHours = Math.floor(changeInMinutes / 60);
-      const changeMin = changeInMinutes % 60;
-      changeFromPrevious = `+${changeHours}h ${changeMin}m longer`;
-    } else {
-      changeFromPrevious = `+${changeInMinutes}m longer`;
-    }
+  let changeFromPrevious = '';
+  if (Math.abs(diff) < 1) {
+    changeFromPrevious = 'same as yesterday';
+  } else if (diff > 0) {
+    changeFromPrevious = `+${diff}m longer`;
   } else {
-    const absChange = Math.abs(changeInMinutes);
-    if (absChange >= 60) {
-      const changeHours = Math.floor(absChange / 60);
-      const changeMin = absChange % 60;
-      changeFromPrevious = `-${changeHours}h ${changeMin}m shorter`;
-    } else {
-      changeFromPrevious = `-${absChange}m shorter`;
-    }
+    changeFromPrevious = `${diff}m shorter`;
   }
 
-  return { sunrise, sunset, daylight, daylightMinutes, changeFromPrevious };
+  return {
+    sunrise: format(current.sunriseDate),
+    sunset: format(current.sunsetDate),
+    daylight,
+    daylightMinutes,
+    changeFromPrevious,
+  };
 };
 
 // Solar events (solstices and equinoxes) with precise dates - only exact astronomical dates
