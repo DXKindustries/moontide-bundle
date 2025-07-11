@@ -67,8 +67,17 @@ export const locationStorage = {
   getLocationHistory: (): LocationData[] => {
     try {
       const history = safeLocalStorage.get(LOCATION_HISTORY_KEY) || [];
-      console.log('📚 Retrieved location history:', history);
-      return history;
+      const deduped: LocationData[] = [];
+      const seen = new Set<string>();
+      history.forEach((loc) => {
+        const key = loc.stationId || `${loc.city}-${loc.state}-${loc.zipCode}`;
+        if (!seen.has(key)) {
+          deduped.push(loc);
+          seen.add(key);
+        }
+      });
+      console.log('📚 Retrieved location history:', deduped);
+      return deduped;
     } catch (error) {
       console.error('❌ Error getting location history:', error);
       return [];
