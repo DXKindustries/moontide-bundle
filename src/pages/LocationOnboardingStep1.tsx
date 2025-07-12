@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { STATE_NAME_TO_ABBR } from '@/utils/stateNames';
 import { Station } from '@/services/tide/stationService';
 import { getDistanceKm } from '@/services/tide/geo';
+import { normalize } from '@/utils/normalize';
 import { SavedLocation } from '@/components/LocationSelector';
 import {
   getFavoriteStates,
@@ -179,11 +180,11 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   };
 
   const filteredStations = stations.filter((s) => {
-    const term = search.toLowerCase();
+    const term = normalize(search);
     return (
-      s.name.toLowerCase().includes(term) ||
+      normalize(s.name).includes(term) ||
       (s.city ?? '').toLowerCase().includes(term) ||
-      s.id.includes(term)
+      s.id.toLowerCase().includes(term)
     );
   });
 
