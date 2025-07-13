@@ -7,6 +7,7 @@
 import React from 'react';
 import { Station } from '@/services/tide/stationService';
 import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
+import { safeArray } from '@/utils/safeArray';
 
 export interface TideReading {
   time: string;   // ISO 8601
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
+  const data = safeArray(readings);
   const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   if (loading) {
@@ -38,7 +40,7 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
     );
   }
 
-  if (readings.length === 0) {
+  if (data.length === 0) {
     return (
       <div className="p-4 text-center text-muted-foreground">
         Tide data isn't available for the selected date.
@@ -55,7 +57,7 @@ const TideTable: React.FC<Props> = ({ loading, station, readings }) => {
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-200">
-        {readings.map(({ time, height }) => (
+        {data.map(({ time, height }) => (
           <tr key={time}>
             <td className="px-4 py-2">
               {formatTimeToAMPM(time)}

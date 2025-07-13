@@ -11,6 +11,7 @@ import LightConditions from './LightConditions';
 import FishingWindows from './FishingWindows';
 import FishingTips from './FishingTips';
 import { TideCycle } from '@/services/tide/types';
+import { safeArray } from '@/utils/safeArray';
 
 type MoonPhase = 'New Moon' | 'Waxing Crescent' | 'First Quarter' | 'Waxing Gibbous' | 
                  'Full Moon' | 'Waning Gibbous' | 'Last Quarter' | 'Waning Crescent';
@@ -39,6 +40,8 @@ const SelectedDateDetails: React.FC<SelectedDateDetailsProps> = ({
   selectedDate,
   selectedDateInfo
 }) => {
+  const windows = safeArray(selectedDateInfo.optimalFishingWindows);
+  const tides = safeArray(selectedDateInfo.tides);
   return (
     <Card className="bg-card/50 backdrop-blur-md md:col-span-2">
       <CardHeader>
@@ -52,8 +55,8 @@ const SelectedDateDetails: React.FC<SelectedDateDetailsProps> = ({
                 {getSolarEvents(selectedDate)!.emoji} {getSolarEvents(selectedDate)!.name}
               </Badge>
             )}
-            <Badge variant={selectedDateInfo.optimalFishingWindows.length > 0 ? "default" : "outline"}>
-              {selectedDateInfo.optimalFishingWindows.length > 0 ? "Fishing Recommended" : "Regular Day"}
+            <Badge variant={windows.length > 0 ? "default" : "outline"}>
+              {windows.length > 0 ? "Fishing Recommended" : "Regular Day"}
             </Badge>
           </div>
         </CardTitle>
@@ -69,14 +72,14 @@ const SelectedDateDetails: React.FC<SelectedDateDetailsProps> = ({
           selectedDate={selectedDate}
         />
         
-        <TideInfo cycles={selectedDateInfo.tides} />
+        <TideInfo cycles={tides} />
         
         <LightConditions 
           sunrise={selectedDateInfo.sunrise}
           sunset={selectedDateInfo.sunset}
         />
         
-        <FishingWindows windows={selectedDateInfo.optimalFishingWindows} />
+        <FishingWindows windows={windows} />
         
         <FishingTips moonPhase={selectedDateInfo.moonPhase} />
       </CardContent>

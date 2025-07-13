@@ -2,6 +2,7 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
+import { safeArray } from '@/utils/safeArray';
 
 type FishingWindow = {
   start: string;
@@ -15,14 +16,15 @@ type FishingWindowsProps = {
 };
 
 const FishingWindows: React.FC<FishingWindowsProps> = ({ windows }) => {
+  const list = safeArray(windows);
   const formatTimeToAMPM = (timeString: string) => formatIsoToAmPm(timeString);
 
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Optimal Fishing Windows</h3>
-      {windows.length > 0 ? (
+      {list.length > 0 ? (
         <div className="space-y-3">
-          {windows.map((window, idx) => (
+          {list.map((window, idx) => (
             <div key={idx} className="p-3 rounded-md bg-muted/30 backdrop-blur-sm">
               <div className="flex justify-between items-start">
                 <span className="font-medium">{formatTimeToAMPM(window.start)} - {formatTimeToAMPM(window.end)}</span>

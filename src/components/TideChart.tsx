@@ -1,5 +1,6 @@
 import EmptyState from './EmptyState';
 import type { TideDatum } from '@/hooks/useTideData';
+import { safeArray } from '@/utils/safeArray';
 
 interface Props {
   tideData: TideDatum[];          // always an array
@@ -7,7 +8,8 @@ interface Props {
   error: null | 'no-station' | 'fetch-fail';
 }
 export default function TideChart({ tideData, isLoading, error }: Props) {
-  if (!tideData.length) {
+  const data = safeArray(tideData);
+  if (!data.length) {
     return (
       <EmptyState
         text={
@@ -24,7 +26,7 @@ export default function TideChart({ tideData, isLoading, error }: Props) {
   }
   return (
     <div>
-      {/* TODO: render chart with tideData */}
+      {/* TODO: render chart with data */}
     </div>
   );
 }
