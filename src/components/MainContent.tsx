@@ -18,6 +18,7 @@ interface MainContentProps {
   currentLocation: (SavedLocation & { id: string; country: string }) | null;
   stationName: string | null;
   stationId: string | null;
+  banner?: string | null;
   onGetStarted?: (location?: LocationData) => void;
 }
 
@@ -32,6 +33,7 @@ export default function MainContent({
   currentLocation,
   stationName,
   stationId,
+  banner,
   onGetStarted
 }: MainContentProps) {
   const moonPhaseData = {
@@ -67,6 +69,7 @@ export default function MainContent({
           currentLocation={currentLocation}
           stationName={stationName}
           stationId={stationId}
+          banner={banner}
         />
       </div>
 
@@ -77,6 +80,7 @@ export default function MainContent({
           currentLocation={currentLocation}
           stationName={stationName}
           stationId={stationId}
+          banner={banner}
         />
       </div>
     </main>
