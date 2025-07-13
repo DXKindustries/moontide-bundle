@@ -37,7 +37,7 @@ export const locationStorage = {
         return !(sameStationId || sameZip || sameCityState);
       });
 
-      const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
+      const newHistory = [locationWithTimestamp, ...filtered];
       console.log('📝 Saving new history:', newHistory);
       safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
       
