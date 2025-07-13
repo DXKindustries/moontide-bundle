@@ -1,5 +1,7 @@
 
 
+import { safeLocalStorage } from '@/utils/localStorage';
+
 interface NoaaStationMetadata {
   id: string;
   name: string;
@@ -9,6 +11,7 @@ interface NoaaStationMetadata {
 }
 
 const NOAA_STATIONS_API = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?rows=10000';
+const STATION_METADATA_KEY = 'moontide-stations';
 
 let stationCache: NoaaStationMetadata[] | null = null;
 
@@ -16,6 +19,13 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   if (stationCache) {
     console.log('📊 Using cached station metadata');
     return stationCache;
+  }
+
+  const stored = safeLocalStorage.get<NoaaStationMetadata[]>(STATION_METADATA_KEY);
+  if (stored && stored.length > 0) {
+    console.log('📦 Loaded station metadata from local storage');
+    stationCache = stored;
+    return stored;
   }
   
   console.log('🌐 Fetching live NOAA station metadata...');
@@ -54,22 +64,27 @@ function processStationData(
 ): NoaaStationMetadata[] {
   if (data && Array.isArray(data.stations)) {
     // Filter for tide stations only and convert to our format
-    stationCache = data.stations
-      .filter(
-        (station) =>
-          station.type === 'tide' &&
-          station.lat != null &&
-          station.lng != null &&
-          station.id != null &&
-          station.name != null,
-      )
-      .map((station) => ({
-        id: station.id,
-        name: station.name,
-        lat: parseFloat(String(station.lat)),
-        lng: parseFloat(String(station.lng)),
-        state: station.state,
-      }));
+    const unique = new Map<string, NoaaStationMetadata>();
+    data.stations.forEach((station) => {
+      if (
+        station.type === 'tide' &&
+        station.lat != null &&
+        station.lng != null &&
+        station.id != null &&
+        station.name != null &&
+        !unique.has(station.id)
+      ) {
+        unique.set(station.id, {
+          id: station.id,
+          name: station.name,
+          lat: parseFloat(String(station.lat)),
+          lng: parseFloat(String(station.lng)),
+          state: station.state,
+        });
+      }
+    });
+    stationCache = Array.from(unique.values());
+    safeLocalStorage.set(STATION_METADATA_KEY, stationCache);
     
     console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via ${source}`);
     return stationCache;

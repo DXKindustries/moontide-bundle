@@ -37,13 +37,9 @@ export const locationStorage = {
         return !(sameStationId || sameZip || sameCityState);
       });
 
-      const hasMatch = filtered.length !== history.length;
-
-      if (!hasMatch) {
-        const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
-        console.log('📝 Saving new history:', newHistory);
-        safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
-      }
+      const newHistory = [locationWithTimestamp, ...filtered].slice(0, 10); // Keep last 10
+      console.log('📝 Saving new history:', newHistory);
+      safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
       
       console.log('✅ Location saved successfully');
     } catch (error) {
@@ -70,12 +66,15 @@ export const locationStorage = {
       const deduped: LocationData[] = [];
       const seen = new Set<string>();
       history.forEach((loc) => {
-        const key = loc.stationId || `${loc.city}-${loc.state}-${loc.zipCode}`;
+        const key = (loc.stationId || `${loc.city}-${loc.state}-${loc.zipCode}`).toLowerCase();
         if (!seen.has(key)) {
           deduped.push(loc);
           seen.add(key);
         }
       });
+      if (deduped.length !== history.length) {
+        safeLocalStorage.set(LOCATION_HISTORY_KEY, deduped);
+      }
       console.log('📚 Retrieved location history:', deduped);
       return deduped;
     } catch (error) {
