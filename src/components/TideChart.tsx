@@ -11,6 +11,7 @@ import {
   ReferenceLine
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TidePoint, TideCycle } from '@/services/tide/types';
@@ -29,6 +30,7 @@ type TideChartProps = {
   currentLocation?: (SavedLocation & { id: string; country: string }) | null;
   stationName?: string | null;
   stationId?: string | null;
+  banner?: string | null;
 };
 
 
@@ -50,7 +52,8 @@ const TideChart = ({
   className,
   currentLocation,
   stationName,
-  stationId
+  stationId,
+  banner
 }: TideChartProps) => {
   debugLog('TideChart render', { curvePoints: curve.length, eventCount: events.length, stationId });
   const today = new Date(date + 'T00:00:00');
@@ -159,6 +162,11 @@ const TideChart = ({
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
+        {banner && (
+          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-100 border-yellow-500/30 self-start">
+            {banner}
+          </Badge>
+        )}
         <CardTitle className="text-lg sm:text-2xl whitespace-nowrap">Tide Forecast</CardTitle>
         <p className="text-moon-blue text-sm whitespace-nowrap">{date}</p>
         <LocationDisplay
