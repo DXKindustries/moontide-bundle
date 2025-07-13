@@ -12,6 +12,7 @@ import {
 } from '@/utils/dateTimeUtils';
 import { TidePoint, TideForecast, TideCycle, TideEvent } from '@/services/tide/types';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
+import { tideCache, TideCacheEntry } from '@/utils/tideCache';
 
 function groupTideEventsByDay(events: TideEvent[], targetDate: Date): TideEvent[] {
   const filtered = events
@@ -43,6 +44,7 @@ type UseTideDataReturn = {
   stationName: string | null;
   stationId: string | null;
   isInland: boolean;
+  banner: string | null;
 };
 
 export const useTideData = ({ location, station }: UseTideDataParams): UseTideDataReturn => {
@@ -56,6 +58,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
   const [stationName, setStationName] = useState<string | null>(null);
   const [stationId, setStationId] = useState<string | null>(null);
   const [isInland, setIsInland] = useState<boolean>(false);
+  const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -71,10 +74,34 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     if (!location || !station) {
       setIsLoading(false);
       setError(null);
+      setBanner(null);
       return;
     }
 
-    const checkInlandAndFetch = async () => {
+    const startIso = getCurrentIsoDateString();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 6);
+    const endIso = formatDateAsLocalIso(endDate);
+
+    const cacheKey = tideCache.makeKey(station.id, startIso, endIso, 'english');
+    const cached = tideCache.get(cacheKey);
+
+    if (cached) {
+      setTideData(cached.tideData);
+      setTideEvents(cached.tideEvents);
+      setWeeklyForecast(cached.weeklyForecast);
+      setStationName(cached.stationName);
+      setStationId(cached.stationId);
+      if (cached.expiresAt < Date.now()) {
+        setBanner('Forecast expired');
+      } else if (!navigator.onLine) {
+        setBanner('Offline – showing saved forecast');
+      } else {
+        setBanner(null);
+      }
+    }
+
+    const fetchAndUpdate = async () => {
       setIsLoading(true);
       setError(null);
       setIsInland(false);
@@ -192,6 +219,21 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         setWeeklyForecast(forecast);
         setStationName(chosen.name || location.name || null);
         setStationId(chosen.id);
+
+        const expiry = parseIsoAsLocal(`${startIso}T00:00:00`);
+        expiry.setDate(expiry.getDate() + 7);
+
+        const cacheEntry: TideCacheEntry = {
+          fetchedAt: Date.now(),
+          expiresAt: expiry.getTime(),
+          tideData: curveData,
+          tideEvents: tidePoints,
+          weeklyForecast: forecast,
+          stationName: chosen.name || location.name || null,
+          stationId: chosen.id,
+        };
+        tideCache.set(cacheKey, cacheEntry);
+        setBanner(null);
         debugLog('Tide data state updated', {
           points: curveData.length,
           events: tidePoints.length,
@@ -201,16 +243,33 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       } catch (err) {
         debugLog('Tide data fetch failed', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');
+        if (cached) {
+          setBanner(cached.expiresAt < Date.now() ? 'Forecast expired' : 'Offline – showing saved forecast');
+        } else {
+          setTideData([]);
+          setTideEvents([]);
+          setWeeklyForecast([]);
+          setStationName(null);
+          setStationId(null);
+        }
         setIsLoading(false);
-        setTideData([]);
-        setTideEvents([]);
-        setWeeklyForecast([]);
-        setStationName(null);
-        setStationId(null);
       }
     };
 
-    checkInlandAndFetch();
+    if (navigator.onLine) {
+      fetchAndUpdate();
+    } else {
+      setIsLoading(false);
+      if (!cached) {
+        setBanner('Offline – no forecast data');
+      }
+    }
+
+    const handleOnline = () => fetchAndUpdate();
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
   }, [location, station]);
 
   return {
@@ -224,5 +283,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     stationName,
     stationId,
     isInland,
+    banner,
   };
 };
