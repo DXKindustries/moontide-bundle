@@ -24,8 +24,26 @@ function setEntry(key: string, entry: TideCacheEntry) {
   safeLocalStorage.set(key, entry);
 }
 
+function findLatestValid(stationId: string): TideCacheEntry | null {
+  const prefix = `${PREFIX}${stationId}:`;
+  const keys = safeLocalStorage.keys(prefix);
+  let latest: TideCacheEntry | null = null;
+
+  for (const key of keys) {
+    const entry = safeLocalStorage.get<TideCacheEntry>(key);
+    if (!entry) continue;
+    if (entry.expiresAt < Date.now()) continue;
+    if (!latest || entry.fetchedAt > latest.fetchedAt) {
+      latest = entry;
+    }
+  }
+
+  return latest;
+}
+
 export const tideCache = {
   makeKey,
   get: getEntry,
   set: setEntry,
+  findLatest: findLatestValid,
 };
