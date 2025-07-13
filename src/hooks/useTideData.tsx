@@ -97,8 +97,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       setStationId(cached.stationId);
       if (cached.expiresAt < Date.now()) {
         setBanner('Forecast expired');
-      } else if (!navigator.onLine) {
-        setBanner('Offline – showing saved forecast');
       } else {
         setBanner(null);
       }
@@ -259,14 +257,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
       }
     };
 
-    if (navigator.onLine) {
-      fetchAndUpdate();
-    } else {
-      setIsLoading(false);
-      if (!cached) {
-        setBanner('Offline – no forecast data');
-      }
-    }
+    fetchAndUpdate();
 
     const handleOnline = () => fetchAndUpdate();
     window.addEventListener('online', handleOnline);
