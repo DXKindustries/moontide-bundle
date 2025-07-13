@@ -1,117 +1,63 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useEffect, useState } from 'react';
-import { safeLocalStorage } from '@/utils/localStorage';
-import { fetchSixMinuteRange } from '@/services/tide/tideService';
-import type { TidePoint } from '@/services/tide/types';
+import { useState, useEffect } from 'react';
+import { get7DayRange, makeCacheKey, fetchTidePredictions } from '../utils/api';
+import { readForecast, writeForecast, isCacheValid } from '../utils/cache';
 
-/** Build a unique cache key for a tide data request */
-const makeCacheKey = (
-  stationId: string,
-  startDate: string,
-  endDate: string,
-  units: string,
-) => `tide:${stationId}:${startDate}:${endDate}:${units}`;
-
-const readCache = (key: string): TidePoint[] | null => {
-  return safeLocalStorage.get<TidePoint[]>(key) ?? null;
-};
-
-const writeCache = (key: string, data: TidePoint[]): void => {
-  safeLocalStorage.set(key, data);
-};
-
-async function fetchTidePredictions(
-  stationId: string,
-  startDate: string,
-  endDate: string,
-  units: 'english' | 'metric' = 'english',
-): Promise<TidePoint[]> {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const raw = await fetchSixMinuteRange(
-    { id: stationId, name: '', lat: 0, lng: 0 },
-    start,
-    end,
-    units,
-  );
-  return Array.isArray(raw?.predictions)
-    ? raw.predictions.map(p => ({
-        time: `${p.t.replace(' ', 'T')}:00`,
-        height: parseFloat(p.v),
-        isHighTide: null,
-      }))
-    : [];
+export interface TideDatum {
+  t: string;   // ISO datetime
+  v: string;   // height
+  type?: 'H' | 'L';
 }
-
-interface Params {
-  stationId: string;
-  startDate: string;
-  endDate: string;
-  units?: 'english' | 'metric';
-}
-
-interface Result {
-  data: TidePoint[];
+export interface TideState {
+  tideData: TideDatum[];                       // ← ALWAYS an array
   isLoading: boolean;
-  error: string | null;
+  error: null | 'no-station' | 'fetch-fail';
   cacheValid: boolean;
 }
 
-export function useTideData({
-  stationId,
-  startDate,
-  endDate,
-  units = 'english',
-}: Params): Result {
+/** 7-day stale-while-revalidate tide data */
+export function useTideData(stationId?: string): TideState {
+  /* ① Guard: no station selected */
   if (!stationId) {
-    return {
-      data: [],
-      isLoading: false,
-      error: 'no-station',
-      cacheValid: false,
-    };
+    return { tideData: [], isLoading: false, error: 'no-station', cacheValid: false };
   }
-  const key = makeCacheKey(stationId, startDate, endDate, units);
-  const [state, set] = useState<Result>(() => {
-    const cached = readCache(key);
-    return {
-      data: cached || [],
-      isLoading: false,
-      error: null,
-      cacheValid: Array.isArray(cached),
-    };
+
+  const range = get7DayRange();                        // { start:'YYYY-MM-DD', end:'YYYY-MM-DD' }
+  const key   = makeCacheKey(stationId, range.start, range.end, 'h');
+
+  /* ② Seed state from cache (never undefined) */
+  const cached = readForecast(key);
+  const [state, set] = useState<TideState>({
+    tideData: cached?.data ?? [],
+    isLoading: false,
+    error: null,
+    cacheValid: isCacheValid(cached),
   });
 
+  /* ③ Background refresh when cache stale & online */
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      if (!navigator.onLine) return;
+      if (state.cacheValid || !navigator.onLine) return;
 
       set(s => ({ ...s, isLoading: true, error: null }));
       try {
-        const fresh = await fetchTidePredictions(
-          stationId,
-          startDate,
-          endDate,
-          units,
-        );
+        const fresh = await fetchTidePredictions(stationId, range.start, range.end, 'h');
         if (cancelled) return;
 
-        writeCache(key, fresh);
-        set({ data: fresh, isLoading: false, error: null, cacheValid: true });
-      } catch (e) {
+        writeForecast(key, fresh, range.start);                // persist 7-day block
+        set({ tideData: fresh, isLoading: false, error: null, cacheValid: true });
+      } catch {
         if (cancelled) return;
-        set(s => ({ ...s, isLoading: false, error: 'fetch-fail', cacheValid: false }));
-        setTimeout(load, 30_000);
+        set(s => ({ ...s, isLoading: false, error: 'fetch-fail' }));
+        setTimeout(load, 30_000);                              // silent retry
       }
     }
 
     load();
-    return () => {
-      cancelled = true;
-    };
-  }, [stationId, key]);
+    return () => { cancelled = true; };
+  }, [stationId, key]);                                        // re-runs on station switch
 
-  return state;
+  return state;                                                // safe, complete object
 }
