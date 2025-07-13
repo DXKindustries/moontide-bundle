@@ -41,6 +41,23 @@ function safeSet<T>(key: string, value: T): void {
   }
 }
 
+function listKeys(prefix = ''): string[] {
+  const keys: string[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith(PREFIX + prefix)) {
+        keys.push(k.slice(PREFIX.length));
+      }
+    }
+  } catch {
+    for (const k of Object.keys(memoryStore)) {
+      if (k.startsWith(prefix)) keys.push(k);
+    }
+  }
+  return keys;
+}
+
 /*───────────────────────────────────────────────────────────*/
 /*  Public API                                               */
 /*───────────────────────────────────────────────────────────*/
@@ -48,9 +65,11 @@ function safeSet<T>(key: string, value: T): void {
 export const safeLocalStorage = {
   get: safeGet,
   set: safeSet,
+  keys: listKeys,
 } as {
   get: typeof safeGet;
   set: typeof safeSet;
+  keys: typeof listKeys;
   getItem?: typeof safeGet;
   setItem?: typeof safeSet;
 };

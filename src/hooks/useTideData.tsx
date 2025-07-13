@@ -84,7 +84,10 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     const endIso = formatDateAsLocalIso(endDate);
 
     const cacheKey = tideCache.makeKey(station.id, startIso, endIso, 'english');
-    const cached = tideCache.get(cacheKey);
+    let cached = tideCache.get(cacheKey);
+    if (!cached) {
+      cached = tideCache.findLatest(station.id);
+    }
 
     if (cached) {
       setTideData(cached.tideData);
