@@ -9,6 +9,7 @@ import { SavedLocation } from './LocationSelector';
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
 import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
 import { TideCycle } from '@/services/tide/types';
+import { Badge } from "@/components/ui/badge";
 
 type DayForecast = {
   date: string;
@@ -25,6 +26,7 @@ type WeeklyForecastProps = {
   currentLocation?: (SavedLocation & { id: string; country: string }) | null;
   stationName?: string | null;
   stationId?: string | null;
+  banner?: string | null;
 };
 
 const WeeklyForecast = ({
@@ -33,7 +35,8 @@ const WeeklyForecast = ({
   className,
   currentLocation,
   stationName,
-  stationId
+  stationId,
+  banner
 }: WeeklyForecastProps) => {
   // Get moon phase visual class
   const getMoonPhaseVisual = (phase: string) => {
@@ -103,6 +106,11 @@ const WeeklyForecast = ({
   return (
     <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
       <CardHeader>
+        {banner && (
+          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-100 border-yellow-500/30 self-start">
+            {banner}
+          </Badge>
+        )}
         <CardTitle>7-Day Forecast</CardTitle>
         <LocationDisplay
           currentLocation={currentLocation || null}

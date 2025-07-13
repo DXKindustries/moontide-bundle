@@ -146,7 +146,8 @@ const Index = () => {
     currentDate,
     currentTime,
     stationName,
-    stationId
+    stationId,
+    banner
   } = useTideData({ location: currentLocation, station: selectedStation });
 
   console.log('📊 useTideData results:', {
@@ -186,6 +187,7 @@ const Index = () => {
         currentLocation={currentLocation}
         stationName={stationName}
         stationId={stationId}
+        banner={banner}
         onGetStarted={handleGetStarted}
       />
 
