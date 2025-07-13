@@ -29,7 +29,7 @@ export function useTideData(stationId?: string): TideState {
   const cached = readForecast(key);
   const [state, set] = useState<TideState>({
     tideData: cached?.data ?? [],
-    isLoading: false,
+    isLoading: !cached,
     error: null,
     cacheValid: isCacheValid(cached),
   });

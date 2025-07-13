@@ -1,25 +1,24 @@
 import EmptyState from './EmptyState';
 import type { TideDatum } from '@/hooks/useTideData';
+import LoadingSpinner from './LoadingSpinner';
 import { safeArray } from '@/utils/safeArray';
 
 interface Props {
-  tideData: TideDatum[];          // always an array
+  data?: TideDatum[];
   isLoading: boolean;
   error: null | 'no-station' | 'fetch-fail';
 }
-export default function TideChart({ tideData, isLoading, error }: Props) {
-  const data = safeArray(tideData);
-  if (!data.length) {
+export default function TideChart({ data, isLoading, error }: Props) {
+  const rows = safeArray(data);
+
+  if (!rows.length) {
+    if (isLoading) return <LoadingSpinner />;
     return (
       <EmptyState
         text={
-          error === 'no-station'
-            ? 'Pick a location to see tides'
-            : error === 'fetch-fail'
-              ? 'Last fetch failed – retrying…'
-              : isLoading
-                ? 'Loading…'
-                : 'No data cached'
+          error === 'fetch-fail'
+            ? 'Last update failed – retrying…'
+            : 'Pick a location to see tides'
         }
       />
     );

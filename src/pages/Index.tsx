@@ -9,7 +9,7 @@ export default function Index() {
 
   return currentLocation ? (
     <>
-      <TideChart tideData={tideData} isLoading={isLoading} error={error} />
+      <TideChart data={tideData} isLoading={isLoading} error={error} />
     </>
   ) : (
     <LocationOnboardingStep1 />

@@ -1,3 +1,2 @@
-export function safeArray<T>(val: T[] | null | undefined): T[] {
-  return Array.isArray(val) ? val : [];
-}
+export const safeArray = <T,>(val?: T[] | null): T[] =>
+  Array.isArray(val) ? val : [];
