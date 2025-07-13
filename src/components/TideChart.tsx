@@ -53,6 +53,18 @@ const TideChart = ({
   stationId
 }: TideChartProps) => {
   debugLog('TideChart render', { curvePoints: curve.length, eventCount: events.length, stationId });
+
+  if (!Array.isArray(curve) || curve.length === 0) {
+    return (
+      <div className="h-64 flex flex-col items-center justify-center text-center px-4">
+        <MapPin className="h-12 w-12 text-muted-foreground/50 mb-3" />
+        <p className="text-muted-foreground font-medium mb-2">Pick a location</p>
+        <p className="text-xs text-muted-foreground opacity-75">
+          Select a coastal location to see tide predictions
+        </p>
+      </div>
+    );
+  }
   const today = new Date(date + 'T00:00:00');
   if (isNaN(today.getTime())) {
     const fallback = new Date(date);

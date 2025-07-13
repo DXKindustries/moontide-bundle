@@ -42,7 +42,9 @@ export default function MainContent({
     date: formatApiDate(currentDate)
   };
 
-  const hasData = tideData.length > 0 || weeklyForecast.length > 0;
+  const hasData =
+    (Array.isArray(tideData) && tideData.length > 0) ||
+    (Array.isArray(weeklyForecast) && weeklyForecast.length > 0);
 
   return (
     <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4">

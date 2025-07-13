@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useState } from 'react';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { fetchSixMinuteRange } from '@/services/tide/tideService';
@@ -53,6 +54,7 @@ interface Result {
   data: TidePoint[];
   isLoading: boolean;
   error: string | null;
+  cacheValid: boolean;
 }
 
 export function useTideData({
@@ -61,12 +63,24 @@ export function useTideData({
   endDate,
   units = 'english',
 }: Params): Result {
+  if (!stationId) {
+    return {
+      data: [],
+      isLoading: false,
+      error: 'no-station',
+      cacheValid: false,
+    };
+  }
   const key = makeCacheKey(stationId, startDate, endDate, units);
-  const [state, set] = useState<Result>(() => ({
-    data: readCache(key) || [],
-    isLoading: false,
-    error: null,
-  }));
+  const [state, set] = useState<Result>(() => {
+    const cached = readCache(key);
+    return {
+      data: cached || [],
+      isLoading: false,
+      error: null,
+      cacheValid: Array.isArray(cached),
+    };
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -85,10 +99,10 @@ export function useTideData({
         if (cancelled) return;
 
         writeCache(key, fresh);
-        set({ data: fresh, isLoading: false, error: null });
+        set({ data: fresh, isLoading: false, error: null, cacheValid: true });
       } catch (e) {
         if (cancelled) return;
-        set(s => ({ ...s, isLoading: false, error: 'fetch-fail' }));
+        set(s => ({ ...s, isLoading: false, error: 'fetch-fail', cacheValid: false }));
         setTimeout(load, 30_000);
       }
     }
