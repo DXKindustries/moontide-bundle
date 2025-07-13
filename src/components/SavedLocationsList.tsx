@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Clock, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -21,6 +21,12 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
   const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
+
+  useEffect(() => {
+    // Refresh list when the current location changes, ensuring newly added
+    // stations appear immediately in the menu.
+    setLocationHistory(locationStorage.getLocationHistory());
+  }, [currentLocation]);
 
   const handleLocationClick = (location: LocationData): void => {
     onLocationSelect(location);
