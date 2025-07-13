@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Station } from '@/services/tide/stationService';
+import { safeArray } from '@/utils/safeArray';
 
 interface StationPickerProps {
   isOpen: boolean;
@@ -15,20 +16,21 @@ interface StationPickerProps {
 }
 
 export default function StationPicker({ isOpen, stations, onSelect, onClose, currentStationId }: StationPickerProps) {
+  const list = safeArray(stations);
   const [selectedId, setSelectedId] = useState('');
   const [manualId, setManualId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (currentStationId && stations.some(s => s.id === currentStationId)) {
+    if (currentStationId && list.some(s => s.id === currentStationId)) {
       setSelectedId(currentStationId);
-    } else if (stations.length > 0) {
-      setSelectedId(stations[0].id);
+    } else if (list.length > 0) {
+      setSelectedId(list[0].id);
     }
   }, [stations, currentStationId]);
 
   const handleConfirm = () => {
-    const station = stations.find((s) => s.id === selectedId);
+    const station = list.find((s) => s.id === selectedId);
     if (station) {
       onSelect(station);
       onClose();
@@ -99,14 +101,14 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
             </Button>
           </div>
 
-          {stations.length > 0 && (
+          {list.length > 0 && (
             <>
               <Select value={selectedId} onValueChange={setSelectedId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select from list" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
-                  {stations.map((station) => (
+                  {list.map((station) => (
                     <SelectItem key={station.id} value={station.id}>
                       {station.name} ({station.id}) {station.city && `- ${station.city}, ${station.state}`}
                     </SelectItem>

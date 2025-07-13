@@ -8,6 +8,7 @@ import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
 import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
 import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
+import { safeArray } from '@/utils/safeArray';
 import { TideCycle } from '@/services/tide/types';
 
 type DayForecast = {
@@ -35,6 +36,7 @@ const WeeklyForecast = ({
   stationName,
   stationId
 }: WeeklyForecastProps) => {
+  const data = safeArray(forecast);
   // Get moon phase visual class
   const getMoonPhaseVisual = (phase: string) => {
     switch (phase) {
@@ -114,7 +116,7 @@ const WeeklyForecast = ({
         <div className="space-y-4">
           {isLoading ? (
             renderSkeletonForecast()
-          ) : forecast.length === 0 ? (
+          ) : data.length === 0 ? (
             <div className="text-center py-8">
               <Info className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
               <p className="text-muted-foreground font-medium">No forecast data available</p>
@@ -123,7 +125,7 @@ const WeeklyForecast = ({
               </p>
             </div>
           ) : (
-            forecast.map((day, index) => {
+            data.map((day, index) => {
               // Parse the date to get full moon name if applicable
               const dayDate = new Date(formatApiDate(day.date));
               const fullMoonName = isFullMoon(day.moonPhase) ? getFullMoonName(dayDate) : null;
@@ -164,7 +166,7 @@ const WeeklyForecast = ({
                   
                   {/* Tide Info - display two tide cycles per day */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full sm:w-auto mt-2 sm:mt-0">
-                    {day.cycles.map((cycle, idx) => (
+                    {safeArray(day.cycles).map((cycle, idx) => (
                       <div key={idx} className="text-xs sm:text-sm">
                         <p className="text-xs text-muted-foreground mb-1 whitespace-nowrap">Cycle {idx + 1}</p>
                         <p className="whitespace-nowrap">
