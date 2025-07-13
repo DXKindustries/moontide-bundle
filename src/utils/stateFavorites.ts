@@ -18,7 +18,7 @@ export function addFavoriteState(state: string): void {
   const abbr = state.toUpperCase();
   const favs = loadFavorites();
   if (!favs.includes(abbr)) {
-    saveFavorites([abbr, ...favs].slice(0, 10));
+    saveFavorites([abbr, ...favs]);
   }
 }
 
