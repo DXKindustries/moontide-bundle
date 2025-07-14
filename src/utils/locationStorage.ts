@@ -28,7 +28,8 @@ export const locationStorage = {
       const isSame = (a: LocationData, b: LocationData) =>
         (a.stationId && b.stationId && a.stationId === b.stationId) ||
         (a.zipCode && b.zipCode && normalize(a.zipCode) === normalize(b.zipCode)) ||
-        (normalize(a.city) === normalize(b.city) &&
+        (a.city && b.city &&
+          normalize(a.city) === normalize(b.city) &&
           normState(a.state) === normState(b.state));
 
       const filteredHistory = history.filter((h) => !isSame(h, locationWithTimestamp));
