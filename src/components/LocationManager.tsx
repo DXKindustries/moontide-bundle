@@ -2,8 +2,10 @@
 import { toast } from 'sonner';
 import { SavedLocation } from '@/components/LocationSelector';
 import { LocationData } from '@/types/locationTypes';
-import { persistCurrentLocation, clearCurrentLocation } from '@/utils/currentLocation';
+import { persistCurrentLocation, clearCurrentLocation, persistStationCurrentLocation } from '@/utils/currentLocation';
 
+import { normalizeStation, saveStationHistory } from "@/services/storage/locationHistory";
+import type { Station } from "@/services/tide/stationService";
 interface LocationManagerProps {
   setCurrentLocation: (location: SavedLocation & { id: string; country: string } | null) => void;
   setShowLocationSelector: (show: boolean) => void;
@@ -33,6 +35,20 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
     
     setShowLocationSelector(false);
     toast.success(`Loading tide data for ${updatedLocation.name}`);
+  };
+
+  const onSelectStation = (station: Station) => {
+    console.log('🔄 LocationManager: Station selected:', station);
+    const normalized = normalizeStation(station);
+    try {
+      persistStationCurrentLocation(normalized);
+      saveStationHistory(normalized);
+      console.log('💾 LocationManager: Station saved successfully');
+    } catch (error) {
+      console.error('❌ LocationManager: Error saving station:', error);
+    }
+    setShowLocationSelector(false);
+    toast.success(`Loading tide data for ${normalized.name}`);
   };
 
   const handleLocationClear = () => {
@@ -73,6 +89,7 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
   };
 
   return {
+    onSelectStation,
     handleLocationChange,
     handleLocationClear,
     handleGetStarted,
