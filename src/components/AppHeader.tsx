@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Settings, MapPin } from "lucide-react";
-import MoonTideIcon from "@/assets/MoonTideIcon.svg";
+import MoonTideIcon from "./MoonTideIcon";
 import { Button } from "@/components/ui/button";
 import LocationSelector, { SavedLocation } from './LocationSelector';
 import { Station } from '@/services/tide/stationService';
