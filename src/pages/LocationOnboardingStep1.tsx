@@ -294,7 +294,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
                     <div>
                       <div className="font-medium">{st.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {st.city ?? 'Unknown'}, {st.state} - {st.id} ({st.lat}, {st.lng})
+                        {st.state} - {st.id} ({st.lat}, {st.lng})
                       </div>
                     </div>
                   </div>
