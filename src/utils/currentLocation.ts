@@ -60,29 +60,18 @@ export function persistStationCurrentLocation(station?: Station | null) {
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
   const [city, state] = location.cityState.split(', ');
-  const storageObj = location.zipCode
-    ? {
-        zipCode: location.zipCode,
-        city: city || location.name,
-        state: state || '',
-        lat: location.lat,
-        lng: location.lng,
-        stationId: undefined,
-        stationName: undefined,
-        nickname: location.name !== city ? location.name : undefined,
-        isManual: false,
-      }
-    : {
-        stationId: location.id,
-        stationName: location.name,
-        state: state || '',
-        lat: location.lat,
-        lng: location.lng,
-        zipCode: location.zipCode || '',
-        city: city || '',
-        nickname: location.name !== city ? location.name : undefined,
-        isManual: false,
-      };
+  const isStationId = /^\d{7}$/.test(location.id);
+  const storageObj = {
+    zipCode: location.zipCode || '',
+    city: city || location.name,
+    state: state || '',
+    lat: location.lat,
+    lng: location.lng,
+    stationId: isStationId ? location.id : undefined,
+    stationName: isStationId ? location.name : undefined,
+    nickname: location.name !== city ? location.name : undefined,
+    isManual: false,
+  };
 
   console.log('Saving current location to storage:', storageObj);
   safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
