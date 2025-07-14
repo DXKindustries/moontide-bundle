@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, ArrowLeft } from 'lucide-react';
 import { useLocationState } from '@/hooks/useLocationState';
 import { lookupZipCode } from '@/utils/zipCodeLookup';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,7 @@ import { SavedLocation } from '@/components/LocationSelector';
 import {
   getFavoriteStates,
   addFavoriteState,
+  removeFavoriteState,
 } from '@/utils/stateFavorites';
 
 interface RawStation {
@@ -74,6 +75,11 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   const handleStateChange = (val: string) => {
     setSelectedState(val);
     addFavoriteState(val);
+    setFavoriteStates(getFavoriteStates());
+  };
+
+  const handleRemoveFavorite = (state: string) => {
+    removeFavoriteState(state);
     setFavoriteStates(getFavoriteStates());
   };
 
@@ -204,6 +210,11 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   return (
     <div className="min-h-screen flex flex-col relative p-2 overflow-y-auto">
       <StarsBackdrop />
+      <div className="absolute top-2 left-2 z-20">
+        <Button variant="ghost" size="icon" onClick={goToTideScreen}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      </div>
       <AppBanner className="mb-2 relative z-10" />
       <div className="flex flex-col space-y-2 w-full max-w-md relative z-10 flex-grow">
         <h1 className="text-center text-base font-bold">Choose a NOAA Station</h1>
@@ -300,14 +311,25 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
             <div className="text-sm font-medium">Favorite States</div>
             <div className="flex flex-wrap gap-2">
               {favoriteStates.map((st) => (
-                <Button
-                  key={st}
-                  size="sm"
-                  variant={selectedState === st ? 'default' : 'outline'}
-                  onClick={() => handleStateChange(st)}
-                >
-                  {st}
-                </Button>
+                <div key={st} className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant={selectedState === st ? 'default' : 'outline'}
+                    onClick={() => handleStateChange(st)}
+                  >
+                    {st}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFavorite(st);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
               ))}
             </div>
           </div>
@@ -319,7 +341,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
             Show Tides
           </Button>
           <Button variant="outline" onClick={goToTideScreen} className="w-full">
-            Go to Tides
+            Back to Tides
           </Button>
         </div>
       </div>
