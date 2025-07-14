@@ -1,24 +1,25 @@
 /* ──────────────────────────────────────────────────────────────
    src/services/storage/locationHistory.ts
-   Consolidates all station / location history logic.
-   Guarantees one entry per NOAA station by normalising IDs and
-   applying “move-to-front” de-duplication on each save.
+   Eliminates duplicate / malformed history rows.
+   Keys: 'station-history'  and  'location-history'
+   safeLocalStorage itself prefixes them with "moon:", so DO NOT
+   include "moon:" here.
    ────────────────────────────────────────────────────────────── */
 
 import { safeLocalStorage } from '../../utils/localStorage';
 import { LocationHistoryEntry } from '@/types/locationHistory';
 import type { Station } from '@/services/tide/stationService';
 
-/* Consistent storage keys used across the entire app */
-const LOCATION_HISTORY_KEY = 'moon:location-history';
-const STATION_HISTORY_KEY  = 'moon:station-history';
+/* Consistent keys (without leading "moon:") */
+const LOCATION_HISTORY_KEY = 'location-history';
+const STATION_HISTORY_KEY  = 'station-history';
 
-/* ─────────────────────────────── Types */
+/* ───────── Types & helpers */
 
 const NUMERIC_ID_RE = /^\d+$/;
 
 export interface SavedLocation {
-  stationId  : string;          // canonical, always numeric
+  stationId  : string;   // numeric NOAA id – canonical
   stationName: string;
   nickname   : string;
   lat        : number;
@@ -30,13 +31,7 @@ export interface SavedLocation {
   timestamp  : number;
 }
 
-/* ─────────────────────────────── Normaliser */
-
-/**
- * Normalise any Station, LocationHistoryEntry, or hybrid object
- * into a strict SavedLocation shape. Ensures `stationId` is always
- * the numeric NOAA ID so de-duplication works reliably.
- */
+/** Normalise incoming data so stationId is always numeric. */
 export function normalizeStation(
   record: Partial<Station & LocationHistoryEntry>,
 ): SavedLocation {
@@ -44,13 +39,15 @@ export function normalizeStation(
   const id    = NUMERIC_ID_RE.test(rawId) ? rawId : '';
 
   if (!id) {
-    throw new Error(`[storage] normalizeStation → invalid NOAA id "${rawId || '<empty>'}"`);
+    throw new Error(
+      `[storage] normalizeStation → invalid NOAA id "${rawId || '<empty>'}"`,
+    );
   }
 
   return {
     stationId  : id,
     stationName: (record.stationName ?? record.name ?? '').trim(),
-    nickname   : (record.nickname ?? record.name ?? record.stationName ?? '').trim(),
+    nickname   : (record.nickname   ?? record.name ?? record.stationName ?? '').trim(),
     lat        : Number(record.lat ?? record.latitude),
     lng        : Number(record.lng ?? record.longitude),
     city       : record.city  ?? '',
@@ -61,10 +58,10 @@ export function normalizeStation(
   };
 }
 
-/* Also export a UK-spelling alias for any new code */
+/* UK-spelling alias in case any new code imports it */
 export { normalizeStation as normaliseStation };
 
-/* ─────────────────────────────── Location history (UI dropdown) */
+/* ───────── Location-history (UI dropdown) */
 
 export function getLocationHistory(): SavedLocation[] {
   return safeLocalStorage.get<SavedLocation[]>(LOCATION_HISTORY_KEY) ?? [];
@@ -81,7 +78,7 @@ export function clearLocationHistory(): void {
   safeLocalStorage.remove(LOCATION_HISTORY_KEY);
 }
 
-/* ─────────────────────────────── Station history (recent stations) */
+/* ───────── Station-history (recent stations) */
 
 export type StationHistoryItem = SavedLocation;
 
@@ -100,23 +97,33 @@ export function clearStationHistory(): void {
   safeLocalStorage.remove(STATION_HISTORY_KEY);
 }
 
-/* ─────────────────────────────── One-time cleanup helper
-   Run `scrubHistoryKeys()` once in DevTools to purge legacy
-   duplicate rows that were stored before this fix.            */
+/* ───────── One-time scrub (executes on first import)
+   1. Removes the legacy double-prefixed keys (moon:moon:*).
+   2. Deduplicates & normalises any existing rows.
+   3. Drops rows that still lack a numeric NOAA id.              */
 
-export function scrubHistoryKeys(): void {
-  [LOCATION_HISTORY_KEY, STATION_HISTORY_KEY].forEach(key => {
-    const arr = safeLocalStorage.get<SavedLocation[]>(key);
-    if (!Array.isArray(arr)) return;
+(function scrubOnLoad() {
+  // purge obsolete keys written by the previous mis-prefix
+  ['moon:moon:location-history', 'moon:moon:station-history'].forEach(
+    oldKey => localStorage.removeItem(oldKey),
+  );
 
+  const scrub = (key: string) => {
+    const arr = safeLocalStorage.get<SavedLocation[]>(key) ?? [];
     const map = new Map<string, SavedLocation>();
+
     arr.forEach(item => {
       try {
         const norm = normalizeStation(item);
-        map.set(norm.stationId, norm);          // keep newest per key
-      } catch { /* ignore rows lacking a numeric id */ }
+        map.set(norm.stationId, norm);   // keeps newest per id
+      } catch {
+        /* ignore rows with invalid id */
+      }
     });
 
     safeLocalStorage.set(key, Array.from(map.values()).slice(0, 10));
-  });
-}
+  };
+
+  scrub(LOCATION_HISTORY_KEY);
+  scrub(STATION_HISTORY_KEY);
+})();
