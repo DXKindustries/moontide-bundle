@@ -1,5 +1,5 @@
 import React from 'react';
-import MoonTideIcon from '@/assets/MoonTideIcon.svg';
+import MoonTideIcon from './MoonTideIcon';
 
 interface AppBannerProps {
   className?: string;
