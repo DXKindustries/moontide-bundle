@@ -28,7 +28,11 @@ export const locationStorage = {
 
       const isSame = (a: LocationData, b: LocationData) => {
         if (a.stationId || b.stationId) {
-          return Boolean(a.stationId && b.stationId && a.stationId === b.stationId);
+          return Boolean(
+            a.stationId &&
+            b.stationId &&
+            String(a.stationId).trim() === String(b.stationId).trim()
+          );
         }
         if (a.zipCode && b.zipCode) {
           return normalize(a.zipCode) === normalize(b.zipCode);
@@ -89,7 +93,11 @@ export const locationStorage = {
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isMatch = (() => {
           if (updatedLocation.stationId || loc.stationId) {
-            return Boolean(updatedLocation.stationId && loc.stationId && loc.stationId === updatedLocation.stationId);
+            return Boolean(
+              updatedLocation.stationId &&
+              loc.stationId &&
+              String(loc.stationId).trim() === String(updatedLocation.stationId).trim()
+            );
           }
           if (updatedLocation.zipCode && loc.zipCode) {
             return normalize(loc.zipCode) === normalize(updatedLocation.zipCode);
@@ -116,7 +124,12 @@ export const locationStorage = {
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isCurrentMatch = (() => {
           if (updatedLocation.stationId || currentLocation.stationId) {
-            return Boolean(updatedLocation.stationId && currentLocation.stationId && currentLocation.stationId === updatedLocation.stationId);
+            return Boolean(
+              updatedLocation.stationId &&
+              currentLocation.stationId &&
+              String(currentLocation.stationId).trim() ===
+                String(updatedLocation.stationId).trim()
+            );
           }
           if (updatedLocation.zipCode && currentLocation.zipCode) {
             return normalize(currentLocation.zipCode) === normalize(updatedLocation.zipCode);
@@ -152,7 +165,12 @@ export const locationStorage = {
       const updatedHistory = history.filter(loc => {
         const isMatch = (() => {
           if (locationToDelete.stationId || loc.stationId) {
-            return Boolean(locationToDelete.stationId && loc.stationId && loc.stationId === locationToDelete.stationId);
+            return Boolean(
+              locationToDelete.stationId &&
+              loc.stationId &&
+              String(loc.stationId).trim() ===
+                String(locationToDelete.stationId).trim()
+            );
           }
           if (locationToDelete.zipCode && loc.zipCode) {
             return normalize(loc.zipCode) === normalize(locationToDelete.zipCode);
@@ -175,7 +193,12 @@ export const locationStorage = {
           (normalizeStateName(val || '') || normalize(val)).toLowerCase();
         const isCurrentMatch = (() => {
           if (locationToDelete.stationId || currentLocation.stationId) {
-            return Boolean(locationToDelete.stationId && currentLocation.stationId && currentLocation.stationId === locationToDelete.stationId);
+            return Boolean(
+              locationToDelete.stationId &&
+              currentLocation.stationId &&
+              String(currentLocation.stationId).trim() ===
+                String(locationToDelete.stationId).trim()
+            );
           }
           if (locationToDelete.zipCode && currentLocation.zipCode) {
             return normalize(currentLocation.zipCode) === normalize(locationToDelete.zipCode);
