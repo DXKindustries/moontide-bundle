@@ -21,8 +21,24 @@ export const locationStorage = {
       const history = locationStorage.getLocationHistory();
       console.log('📚 Current history:', history);
       
-      // Always append new entries to history instead of overwriting
-      const newHistory = [locationWithTimestamp, ...history];
+      // Remove any existing entry that matches this location to avoid duplicates
+      const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
+      const normState = (val: string | undefined) =>
+        (normalizeStateName(val || '') || normalize(val)).toLowerCase();
+
+      const filteredHistory = history.filter((loc) => {
+        const matchByStation =
+          location.stationId && loc.stationId && loc.stationId === location.stationId;
+        const matchByZip =
+          location.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(location.zipCode);
+        const matchByCityState =
+          location.city && loc.city &&
+          normalize(loc.city) === normalize(location.city) &&
+          normState(loc.state) === normState(location.state);
+        return !(matchByStation || matchByZip || matchByCityState);
+      });
+
+      const newHistory = [locationWithTimestamp, ...filteredHistory];
       console.log('📝 Saving new history:', newHistory);
       safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
       
