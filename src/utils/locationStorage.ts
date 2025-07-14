@@ -21,24 +21,8 @@ export const locationStorage = {
       const history = locationStorage.getLocationHistory();
       console.log('📚 Current history:', history);
       
-      // Remove existing entries that match this location (case-insensitive)
-      const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
-      const normState = (val: string | undefined) =>
-        (normalizeStateName(val || '') || normalize(val)).toLowerCase();
-      const filtered = history.filter(loc => {
-        const sameStationId =
-          location.stationId && loc.stationId && loc.stationId === location.stationId;
-        const sameZip =
-          location.zipCode && loc.zipCode && normalize(loc.zipCode) === normalize(location.zipCode);
-        const sameCityState =
-          location.city && loc.city &&
-          normalize(loc.city) === normalize(location.city) &&
-          normState(loc.state) === normState(location.state);
-
-        return !(sameStationId || sameZip || sameCityState);
-      });
-
-      const newHistory = [locationWithTimestamp, ...filtered];
+      // Always append new entries to history instead of overwriting
+      const newHistory = [locationWithTimestamp, ...history];
       console.log('📝 Saving new history:', newHistory);
       safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
       
@@ -64,20 +48,8 @@ export const locationStorage = {
   getLocationHistory: (): LocationData[] => {
     try {
       const history = safeLocalStorage.get(LOCATION_HISTORY_KEY) || [];
-      const deduped: LocationData[] = [];
-      const seen = new Set<string>();
-      history.forEach((loc) => {
-        const key = (loc.stationId || `${loc.city}-${loc.state}-${loc.zipCode}`).toLowerCase();
-        if (!seen.has(key)) {
-          deduped.push(loc);
-          seen.add(key);
-        }
-      });
-      if (deduped.length !== history.length) {
-        safeLocalStorage.set(LOCATION_HISTORY_KEY, deduped);
-      }
-      console.log('📚 Retrieved location history:', deduped);
-      return deduped;
+      console.log('📚 Retrieved location history:', history);
+      return history;
     } catch (error) {
       console.error('❌ Error getting location history:', error);
       return [];
