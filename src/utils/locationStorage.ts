@@ -17,13 +17,22 @@ export const locationStorage = {
       console.log('💾 Saving current location:', locationWithTimestamp);
       safeLocalStorage.set(CURRENT_LOCATION_KEY, locationWithTimestamp);
       
-      // Also add to history
+      // Also add to history with de-duping so selecting the same location
+      // multiple times doesn't create duplicate entries.
       const history = locationStorage.getLocationHistory();
       console.log('📚 Current history:', history);
-      
-      // Always append new entries instead of overwriting existing ones so we
-      // retain a complete history of selected locations.
-      const newHistory = [locationWithTimestamp, ...history];
+
+      const normalize = (val?: string) => (val || '').trim().toLowerCase();
+      const normState = (val?: string) =>
+        (normalizeStateName(val || '') || normalize(val));
+      const isSame = (a: LocationData, b: LocationData) =>
+        (a.stationId && b.stationId && a.stationId === b.stationId) ||
+        (a.zipCode && b.zipCode && normalize(a.zipCode) === normalize(b.zipCode)) ||
+        (normalize(a.city) === normalize(b.city) &&
+          normState(a.state) === normState(b.state));
+
+      const filteredHistory = history.filter((h) => !isSame(h, locationWithTimestamp));
+      const newHistory = [locationWithTimestamp, ...filteredHistory];
       console.log('📝 Saving new history:', newHistory);
       safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
       
