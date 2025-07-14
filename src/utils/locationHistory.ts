@@ -12,10 +12,13 @@ export function addLocationHistory(entry: LocationHistoryEntry): void {
 
   // Remove any previous entry for this station so selecting the same
   // station again updates its timestamp rather than creating a duplicate.
-  const filtered = history.filter((h) => h.stationId !== entry.stationId);
+  const id = String(entry.stationId).trim();
+  const filtered = history.filter((h) => String(h.stationId).trim() !== id);
+
+  const normalizedEntry = { ...entry, stationId: id } as LocationHistoryEntry;
 
   // Prepend the new entry, keeping the rest of the history intact.
-  safeLocalStorage.set(HISTORY_KEY, [entry, ...filtered]);
+  safeLocalStorage.set(HISTORY_KEY, [normalizedEntry, ...filtered]);
 }
 
 export function clearLocationHistory(): void {
