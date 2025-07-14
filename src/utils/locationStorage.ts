@@ -27,11 +27,21 @@ export const locationStorage = {
         (normalizeStateName(val || '') || normalize(val));
 
       const isSame = (a: LocationData, b: LocationData) => {
+        if (a.stationId && b.stationId) {
+          return String(a.stationId).trim() === String(b.stationId).trim();
+        }
         if (a.stationId || b.stationId) {
-          return Boolean(
-            a.stationId &&
-            b.stationId &&
-            String(a.stationId).trim() === String(b.stationId).trim()
+          // When only one has a stationId, fall back to comparing
+          // ZIP or city/state so reselecting a station with saved
+          // ZIP code doesn't create duplicates.
+          if (a.zipCode && b.zipCode) {
+            return normalize(a.zipCode) === normalize(b.zipCode);
+          }
+          return (
+            a.city &&
+            b.city &&
+            normalize(a.city) === normalize(b.city) &&
+            normState(a.state) === normState(b.state)
           );
         }
         if (a.zipCode && b.zipCode) {
