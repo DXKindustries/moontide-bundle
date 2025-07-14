@@ -2,7 +2,7 @@ import { SavedLocation } from '@/components/LocationSelector';
 import { LocationData } from '@/types/locationTypes';
 import { safeLocalStorage } from './localStorage';
 import { locationStorage } from './locationStorage';
-import { addLocationHistory } from './locationHistory';
+import { saveLocationHistory, saveStationHistory } from '../services/storage/locationHistory';
 import type { Station } from '@/services/tide/stationService';
 import type { LocationHistoryEntry } from '@/types/locationHistory';
 
@@ -55,7 +55,8 @@ export function persistStationCurrentLocation(station?: Station | null) {
     sourceType: 'station',
     timestamp: Date.now(),
   };
-  addLocationHistory(entry);
+  saveLocationHistory(entry);
+  saveStationHistory(station);
 }
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
@@ -102,7 +103,8 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     sourceType: location.zipCode ? 'zip' : 'station',
     timestamp: Date.now(),
   };
-  addLocationHistory(entry);
+  saveLocationHistory(entry);
+  saveStationHistory({ id: storageObj.stationId ?? location.id, name: storageObj.stationName ?? location.name, latitude: location.lat ?? 0, longitude: location.lng ?? 0, state: state || "", city: city || "" });
 }
 
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
