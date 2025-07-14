@@ -108,7 +108,7 @@ export default function StationPicker({ isOpen, stations, onSelect, onClose, cur
                 <SelectContent className="max-h-[200px]">
                   {stations.map((station) => (
                     <SelectItem key={station.id} value={station.id}>
-                      {station.name} ({station.id}) {station.city && `- ${station.city}, ${station.state}`}
+                      {station.name} ({station.id}){station.state ? ` - ${station.state}` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
