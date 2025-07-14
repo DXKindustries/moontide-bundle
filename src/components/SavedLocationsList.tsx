@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { locationStorage } from '@/utils/locationStorage';
 import { clearCurrentLocation } from '@/utils/currentLocation';
-import { clearLocationHistory } from '@/utils/locationHistory';
+import { clearLocationHistory } from '@/services/storage/locationHistory';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
