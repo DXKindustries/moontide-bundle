@@ -10,13 +10,11 @@ export function getLocationHistory(): LocationHistoryEntry[] {
 export function addLocationHistory(entry: LocationHistoryEntry): void {
   const history = getLocationHistory();
 
-  // Filter out any identical entry (same station and timestamp) so
-  // repeated calls don't create duplicates or overwrite earlier records.
-  const filtered = history.filter(
-    (h) => !(h.stationId === entry.stationId && h.timestamp === entry.timestamp)
-  );
+  // Remove any previous entry for this station so selecting the same
+  // station again updates its timestamp rather than creating a duplicate.
+  const filtered = history.filter((h) => h.stationId !== entry.stationId);
 
-  // Append the new entry while keeping prior unique ones intact.
+  // Prepend the new entry, keeping the rest of the history intact.
   safeLocalStorage.set(HISTORY_KEY, [entry, ...filtered]);
 }
 
