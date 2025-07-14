@@ -30,25 +30,25 @@ export const locationStorage = {
         if (a.stationId && b.stationId) {
           return String(a.stationId).trim() === String(b.stationId).trim();
         }
+
         if (a.stationId || b.stationId) {
-          // When only one has a stationId, fall back to comparing
-          // ZIP or city/state so reselecting a station with saved
-          // ZIP code doesn't create duplicates.
+          // When only one entry has a stationId, only treat them as the same
+          // location if they explicitly share a ZIP code. This prevents
+          // different stations within the same city from overwriting each
+          // other in the history.
           if (a.zipCode && b.zipCode) {
             return normalize(a.zipCode) === normalize(b.zipCode);
           }
-          return (
-            a.city &&
-            b.city &&
-            normalize(a.city) === normalize(b.city) &&
-            normState(a.state) === normState(b.state)
-          );
+          return false;
         }
+
         if (a.zipCode && b.zipCode) {
           return normalize(a.zipCode) === normalize(b.zipCode);
         }
+
         return (
-          a.city && b.city &&
+          a.city &&
+          b.city &&
           normalize(a.city) === normalize(b.city) &&
           normState(a.state) === normState(b.state)
         );
