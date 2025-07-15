@@ -7,6 +7,7 @@ import { LocationData } from '@/types/locationTypes';
 import SavedLocationsList from './SavedLocationsList';
 import { Station } from '@/services/tide/stationService';
 import { useNavigate } from 'react-router-dom';
+const NUMERIC_ID_RE = /^\d+$/;
 
 // Keep the SavedLocation interface for backward compatibility
 export interface SavedLocation {
@@ -54,10 +55,16 @@ export default function LocationSelector({
 
   const handleSavedLocationSelect = (location: LocationData): void => {
     console.log('📍 Saved location selected:', location);
-    
+
+    if (!location.stationId || !NUMERIC_ID_RE.test(location.stationId)) {
+      console.error('Invalid station ID');
+      onClose?.();
+      return;
+    }
+
     // Convert LocationData to SavedLocation format for compatibility
     const savedLocation: SavedLocation = {
-      id: location.zipCode || location.city,
+      id: location.stationId,
       name: location.nickname || location.city,
       country: 'USA',
       zipCode: location.zipCode,
@@ -68,7 +75,7 @@ export default function LocationSelector({
 
     onSelect(savedLocation);
 
-    if (location.stationId && onStationSelect) {
+    if (onStationSelect) {
       const station: Station = {
         id: location.stationId,
         name: location.stationName || location.city,

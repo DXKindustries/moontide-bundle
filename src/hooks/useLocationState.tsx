@@ -6,6 +6,7 @@ import { persistCurrentLocation, loadCurrentLocation, clearCurrentLocation } fro
 import { Station } from '@/services/tide/stationService';
 
 const CURRENT_STATION_KEY = 'moontide-current-station';
+const NUMERIC_ID_RE = /^\d+$/;
 
 function getInitialLocation(): (SavedLocation & { id: string; country: string }) | null {
   try {
@@ -19,7 +20,7 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
 function getInitialStation(): Station | null {
   try {
     const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
-    return saved?.id ? saved as Station : null;
+    return saved?.id && NUMERIC_ID_RE.test(String(saved.id)) ? (saved as Station) : null;
   } catch {
     return null;
   }
@@ -36,6 +37,10 @@ const useLocationStateValue = () => {
     setCurrentLocation(location);
     try {
       if (location) {
+        if (!NUMERIC_ID_RE.test(location.id)) {
+          console.error('Invalid station ID');
+          return;
+        }
         persistCurrentLocation(location);
         setShowLocationSelector(false);
       } else {
@@ -49,6 +54,10 @@ const useLocationStateValue = () => {
   const setSelectedStationWithPersist = useCallback((station: Station | null) => {
     setSelectedStation(station);
     if (station) {
+      if (!NUMERIC_ID_RE.test(String(station.id))) {
+        console.error('Invalid station ID');
+        return;
+      }
       console.log('Station selected:', station.id, station.name);
     }
     if (station) {

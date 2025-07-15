@@ -5,6 +5,8 @@ import { LocationData } from '@/types/locationTypes';
 import { persistCurrentLocation, clearCurrentLocation, persistStationCurrentLocation } from '@/utils/currentLocation';
 
 import { normalizeStation, saveStationHistory } from "@/services/storage/locationHistory";
+
+const NUMERIC_ID_RE = /^\d+$/;
 import type { Station } from "@/services/tide/stationService";
 interface LocationManagerProps {
   setCurrentLocation: (location: SavedLocation & { id: string; country: string } | null) => void;
@@ -14,6 +16,11 @@ interface LocationManagerProps {
 const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
   const handleLocationChange = (location: SavedLocation) => {
     console.log('🔄 LocationManager: Location change requested:', location);
+    if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
+      console.error('Invalid station ID');
+      toast.error('Invalid station ID');
+      return;
+    }
     try {
       const normalized = normalizeStation({ stationId: location.id });
       const updatedLocation = {
@@ -36,6 +43,11 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
 
   const onSelectStation = (station: Station) => {
     console.log('🔄 LocationManager: Station selected:', station);
+    if (!station.id || !NUMERIC_ID_RE.test(String(station.id))) {
+      console.error('Invalid station ID');
+      toast.error('Invalid station ID');
+      return;
+    }
     const normalized = normalizeStation(station);
     try {
       persistStationCurrentLocation(normalized);
@@ -67,8 +79,13 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
     console.log('🔄 LocationManager: handleGetStarted called with:', location);
 
     if (location) {
+      if (!location.stationId || !NUMERIC_ID_RE.test(location.stationId)) {
+        console.error('Invalid station ID');
+        toast.error('Invalid station ID');
+        return;
+      }
       const savedLocation: SavedLocation = {
-        id: location.stationId || '',
+        id: location.stationId,
         name: location.nickname || location.city,
         country: 'USA',
         zipCode: location.zipCode || '',

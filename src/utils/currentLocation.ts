@@ -6,11 +6,17 @@ import { saveLocationHistory, saveStationHistory } from '../services/storage/loc
 import type { Station } from '@/services/tide/stationService';
 import type { LocationHistoryEntry } from '@/types/locationHistory';
 
+const NUMERIC_ID_RE = /^\d+$/;
+
 const CURRENT_LOCATION_KEY = 'currentLocation';
 
 export function persistStationCurrentLocation(station?: Station | null) {
   if (!station) {
     console.error('Station object is undefined, not saving.');
+    return;
+  }
+  if (!station.id || !NUMERIC_ID_RE.test(String(station.id))) {
+    console.error('Invalid station ID');
     return;
   }
   const stationObject = station;
@@ -60,8 +66,12 @@ export function persistStationCurrentLocation(station?: Station | null) {
 }
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
+  if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
+    console.error('Invalid station ID');
+    return;
+  }
   const [city, state] = location.cityState.split(', ');
-  const isStationId = /^\d{7}$/.test(location.id);
+  const isStationId = NUMERIC_ID_RE.test(location.id);
   const storageObj = {
     zipCode: location.zipCode || '',
     city: city || location.name,
@@ -110,7 +120,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
   const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
   console.log('Loaded currentLocation from storage:', saved);
-  if (saved) {
+  if (saved && saved.stationId && NUMERIC_ID_RE.test(String(saved.stationId))) {
     return {
       id: saved.stationId || saved.zipCode || `${saved.city}-${saved.state}`,
       name: saved.nickname || saved.stationName || saved.city,
@@ -120,10 +130,13 @@ export function loadCurrentLocation(): (SavedLocation & { id: string; country: s
       lat: saved.lat ?? null,
       lng: saved.lng ?? null,
     };
+  } else if (saved) {
+    // remove invalid legacy entry
+    safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
   }
 
   const stored = locationStorage.getCurrentLocation();
-  if (stored) {
+  if (stored && stored.stationId && NUMERIC_ID_RE.test(String(stored.stationId))) {
     return {
       id: stored.id || stored.zipCode || `${stored.city}-${stored.state}`,
       name: stored.nickname || stored.city,
