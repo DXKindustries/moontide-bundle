@@ -132,6 +132,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       longitude: parseFloat(String(selectedStation.lng)),
       state: selectedState,
       city: selectedStation.city,
+      userSelectedState: selectedState,
     };
 
     // Precompute the location object so we can persist it after selecting the station
@@ -147,7 +148,8 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           zipCode: solarZip.trim(),
           cityState: `${geo.places[0]['place name']}, ${selectedState}`,
           lat: parseFloat(geo.places[0].latitude),
-          lng: parseFloat(geo.places[0].longitude)
+          lng: parseFloat(geo.places[0].longitude),
+          userSelectedState: selectedState,
         };
       } else {
         newLocation = {
@@ -157,7 +159,8 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           zipCode: solarZip.trim(),
           cityState: `, ${selectedState}`,
           lat: null,
-          lng: null
+          lng: null,
+          userSelectedState: selectedState,
         };
       }
     }

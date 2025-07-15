@@ -16,6 +16,7 @@ export interface Station {
   zip?: string;
   city?: string;
   state?: string;
+  userSelectedState?: string;
   distance?: number;
 }
 

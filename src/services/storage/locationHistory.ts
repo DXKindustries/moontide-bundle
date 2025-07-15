@@ -31,6 +31,7 @@ export interface SavedLocation {
   lng        : number;
   city?      : string;
   state?     : string;
+  userSelectedState?: string;
   zipCode?   : string;
   sourceType : 'station';
   timestamp  : number;
@@ -57,6 +58,7 @@ export function normalizeStation(
     lng        : Number(record.lng ?? record.longitude),
     city       : record.city  ?? '',
     state      : record.state ?? '',
+    userSelectedState: (record as any).userSelectedState ?? '',
     zipCode    : record.zipCode ?? '',
     sourceType : 'station',
     timestamp  : Date.now(),

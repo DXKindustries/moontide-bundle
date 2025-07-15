@@ -20,7 +20,9 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
 function getInitialStation(): Station | null {
   try {
     const saved = safeLocalStorage.get(CURRENT_STATION_KEY);
-    return saved?.id && NUMERIC_ID_RE.test(String(saved.id)) ? (saved as Station) : null;
+    return saved?.id && NUMERIC_ID_RE.test(String(saved.id))
+      ? (saved as Station)
+      : null;
   } catch {
     return null;
   }
@@ -76,6 +78,7 @@ const useLocationStateValue = () => {
         id: station.id,
         name: station.name,
         cityState: station.city ? `${station.city}, ${selectedState || station.state || ''}` : currentLocation?.cityState ?? '',
+        userSelectedState: selectedState || station.userSelectedState,
         lat:
           currentLocation?.zipCode
             ? currentLocation.lat ?? station.latitude
@@ -91,7 +94,12 @@ const useLocationStateValue = () => {
       setShowLocationSelector(false);
     }
     try {
-      safeLocalStorage.set(CURRENT_STATION_KEY, station ? { ...station, state: selectedState || station.state } : null);
+      safeLocalStorage.set(
+        CURRENT_STATION_KEY,
+        station
+          ? { ...station, state: selectedState || station.state, userSelectedState: selectedState || station.userSelectedState }
+          : null,
+      );
     } catch (err) {
       console.warn('Error saving station:', err);
     }

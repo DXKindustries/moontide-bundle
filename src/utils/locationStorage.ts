@@ -31,7 +31,12 @@ export const locationStorage = {
       console.error('[locationStorage] invalid stationId, aborting save');
       return;
     }
-    const entry = { ...location, stationId: id, timestamp: Date.now() };
+    const entry = {
+      ...location,
+      stationId: id,
+      timestamp: Date.now(),
+      userSelectedState: location.userSelectedState,
+    };
     safeLocalStorage.set(CURRENT_LOCATION_KEY, entry);
     const history = locationStorage
       .getLocationHistory()
@@ -68,12 +73,20 @@ export const locationStorage = {
     const history = locationStorage.getLocationHistory();
     const idx = history.findIndex(h => h.stationId === id);
     if (idx === -1) return;
-    history[idx] = { ...updated, stationId: id, timestamp: history[idx].timestamp ?? Date.now() };
+    history[idx] = {
+      ...updated,
+      stationId: id,
+      timestamp: history[idx].timestamp ?? Date.now(),
+    };
     safeLocalStorage.set(LOCATION_HISTORY_KEY, history);
 
     const current = locationStorage.getCurrentLocation();
     if (current && current.stationId === id) {
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...updated, stationId: id, timestamp: current.timestamp });
+      safeLocalStorage.set(CURRENT_LOCATION_KEY, {
+        ...updated,
+        stationId: id,
+        timestamp: current.timestamp,
+      });
     }
   },
 
