@@ -110,7 +110,8 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
 
       try {
         const chosen = station;
-        if (!chosen?.id) {
+        if (!chosen?.id || !/^\d+$/.test(chosen.id)) {
+          setError('Invalid station selected');
           setStationId(null);
           setIsLoading(false);
           return;
