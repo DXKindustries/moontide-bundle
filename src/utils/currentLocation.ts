@@ -10,7 +10,7 @@ const NUMERIC_ID_RE = /^\d+$/;
 
 const CURRENT_LOCATION_KEY = 'currentLocation';
 
-export function persistStationCurrentLocation(station?: Station | null) {
+export function persistStationCurrentLocation(station?: Station | null, userState?: string | null) {
   if (!station) {
     console.error('Station object is undefined, not saving.');
     return;
@@ -22,10 +22,11 @@ export function persistStationCurrentLocation(station?: Station | null) {
   const stationObject = station;
   console.log('💾 Saving fetched station object:', stationObject);
   console.log('Saving station currentLocation to storage:', station);
+  const finalState = userState ?? station.state ?? '';
   const storageObj = {
     stationId: station.id,
     stationName: station.name,
-    state: station.state ?? '',
+    state: finalState,
     lat: station.latitude,
     lng: station.longitude,
     zipCode: station.zip ?? '',
@@ -39,7 +40,7 @@ export function persistStationCurrentLocation(station?: Station | null) {
   const locationData: LocationData = {
     zipCode: station.zip ?? '',
     city: station.city ?? station.name,
-    state: station.state ?? '',
+    state: finalState,
     lat: station.latitude,
     lng: station.longitude,
     stationId: station.id,
@@ -56,13 +57,13 @@ export function persistStationCurrentLocation(station?: Station | null) {
     lat: station.latitude,
     lng: station.longitude,
     city: station.city ?? '',
-    state: station.state ?? '',
+    state: finalState,
     zipCode: station.zip ?? '',
     sourceType: 'station',
     timestamp: Date.now(),
   };
   saveLocationHistory(entry);
-  saveStationHistory(station);
+  saveStationHistory({ ...station, state: finalState });
 }
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
