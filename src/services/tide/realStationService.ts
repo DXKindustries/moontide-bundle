@@ -27,9 +27,9 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
     stationCache = stored;
     return stored;
   }
-  
+
   console.log('🌐 Fetching live NOAA station metadata...');
-  
+
   // Try direct API call first
   try {
     console.log('🎯 Trying direct NOAA stations API...');
@@ -42,11 +42,26 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
       }
     }
   } catch (error) {
-    console.log('⚠️ Direct API call failed:', error.message);
+    console.log('⚠️ Direct API call failed:', (error as Error).message);
   }
-  // Phase 1: No more mock data fallbacks - throw error if no live data available
-  console.error('❌ All attempts to fetch live NOAA station data failed');
-  throw new Error('Unable to fetch live station data from NOAA. Please check your internet connection.');
+
+  // Fallback to local backup file
+  try {
+    console.log('📁 Loading local backup stations...');
+    const response = await fetch('/stations.json');
+    if (response.ok) {
+      const data = await response.json();
+      const processedData = processStationData(data, 'local backup');
+      if (processedData.length > 0) {
+        return processedData;
+      }
+    }
+  } catch (error) {
+    console.log('⚠️ Local backup load failed:', (error as Error).message);
+  }
+
+  console.error('❌ All attempts to load station data failed');
+  throw new Error('Unable to load station data from any source');
 }
 
 interface RawStation {
