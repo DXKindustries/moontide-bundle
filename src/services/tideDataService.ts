@@ -6,6 +6,15 @@
 const NOAA_DATA_BASE = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 import { debugLog } from '@/utils/debugLogger';
 
+/* ---------- validation helpers ---------- */
+
+const isValidStationId = (id: string | null | undefined) =>
+  typeof id === 'string' && /^\d+$/.test(id.trim());
+
+const isValidIsoDate = (iso: string | null | undefined) =>
+  typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso) &&
+  !Number.isNaN(new Date(iso).getTime());
+
 export interface Prediction {
   timeIso: string;
   valueFt: number;
@@ -15,9 +24,12 @@ export interface Prediction {
 export async function getTideData(
   stationId: string,
   dateIso: string
-): Promise<Prediction[]> {
-  const yyyymmdd = dateIso.replace(/-/g, '');
-  if (!stationId || yyyymmdd.length !== 8) {
+  ): Promise<Prediction[]> {
+  if (!isValidStationId(stationId) || !isValidIsoDate(dateIso)) {
+    console.error('❌ Invalid parameters for tide data request', {
+      stationId,
+      dateIso,
+    });
     throw new Error('Invalid parameters for tide data request');
   }
 
