@@ -18,6 +18,7 @@ export interface SavedLocation {
   cityState: string;
   lat: number | null;
   lng: number | null;
+  userSelectedState?: string;
 }
 
 export default function LocationSelector({
@@ -70,7 +71,8 @@ export default function LocationSelector({
       zipCode: location.zipCode,
       cityState: `${location.city}, ${location.state}`,
       lat: location.lat ?? null,
-      lng: location.lng ?? null
+      lng: location.lng ?? null,
+      userSelectedState: location.userSelectedState
     };
 
     onSelect(savedLocation);
@@ -82,7 +84,8 @@ export default function LocationSelector({
         latitude: location.lat ?? 0,
         longitude: location.lng ?? 0,
         state: location.state,
-        city: location.city
+        city: location.city,
+        userSelectedState: location.userSelectedState
       };
       onStationSelect(station);
     }

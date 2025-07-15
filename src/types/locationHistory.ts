@@ -6,6 +6,7 @@ export interface LocationHistoryEntry {
   lng: number;
   city?: string;
   state?: string;
+  userSelectedState?: string;
   zipCode?: string;
   sourceType: 'zip' | 'text' | 'gps' | 'station';
   searchQuery?: string;

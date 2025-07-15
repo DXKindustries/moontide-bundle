@@ -3,6 +3,7 @@ export interface LocationData {
   zipCode: string;
   city: string;
   state: string;
+  userSelectedState?: string;
   lat: number | null;
   lng: number | null;
   stationId?: string;
