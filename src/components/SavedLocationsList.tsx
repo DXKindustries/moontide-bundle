@@ -115,23 +115,21 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   const getLocationDisplayName = (location: LocationData | null): string => {
     if (!location) return 'Unknown Location';
-    if (location.nickname) return location.nickname;
-    return `${location.city}, ${location.state}`;
+    return (
+      location.stationName ||
+      location.nickname ||
+      (location.city || location.state ? `${location.city}, ${location.state}` : '') ||
+      location.stationId ||
+      'Unknown'
+    );
   };
 
   const getLocationSubtext = (location: LocationData): string => {
-    let subtext = '';
-    if (location.zipCode) {
-      subtext = `ZIP: ${location.zipCode}`;
-    } else {
-      subtext = `${location.city}, ${location.state}`;
-    }
-    
-    if (location.isManual) {
-      subtext += ' • Manual';
-    }
-    
-    return subtext;
+    const state = location.state || 'Unknown';
+    const id = location.stationId || 'Unknown';
+    const lat = location.lat != null ? location.lat : 'Unknown';
+    const lng = location.lng != null ? location.lng : 'Unknown';
+    return `${state} - ${id} (${lat}, ${lng})`;
   };
 
   if (!currentLocData && filteredHistory.length === 0 && showEmpty) {
