@@ -114,12 +114,11 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     <>
       <div className="space-y-2 max-h-40 overflow-y-auto">
         {locationHistory.map((location, index) => {
-          const isCurrent = currentLocation?.zipCode === location.zipCode || 
-                           (currentLocation?.city === location.city && currentLocation?.state === location.state);
+          const isCurrent = currentLocation?.id === location.stationId;
           
           return (
             <div
-              key={`${location.zipCode || location.city}-${index}`}
+              key={`${location.stationId}-${index}`}
               className={`w-full justify-start h-auto p-3 text-left border rounded-lg cursor-pointer transition-colors ${
                 isCurrent ? 'bg-secondary border-primary/20' : 'border-border hover:bg-accent'
               }`}
