@@ -107,6 +107,10 @@ export function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: nu
 }
 
 export async function findNearestRealStation(lat: number, lng: number): Promise<NoaaStationMetadata | null> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    console.error('Invalid coordinates for nearest station lookup', { lat, lng });
+    return null;
+  }
   try {
     const stations = await fetchRealStationMetadata();
     
