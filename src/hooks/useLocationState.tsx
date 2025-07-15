@@ -29,6 +29,7 @@ function getInitialStation(): Station | null {
 const useLocationStateValue = () => {
   const [currentLocation, setCurrentLocation] = useState(() => getInitialLocation());
   const [selectedStation, setSelectedStation] = useState<Station | null>(() => getInitialStation());
+  const [selectedState, setSelectedState] = useState<string>('');
   const [showLocationSelector, setShowLocationSelector] = useState(!getInitialLocation() && !getInitialStation());
 
   const routerLocation = useRouterLocation();
@@ -68,13 +69,13 @@ const useLocationStateValue = () => {
           name: station.name,
           country: 'USA',
           zipCode: '',
-          cityState: station.city ? `${station.city}, ${station.state}` : '',
+          cityState: station.city ? `${station.city}, ${selectedState || station.state || ''}` : '',
           lat: station.latitude,
           lng: station.longitude
         }),
         id: station.id,
         name: station.name,
-        cityState: station.city ? `${station.city}, ${station.state}` : currentLocation?.cityState ?? '',
+        cityState: station.city ? `${station.city}, ${selectedState || station.state || ''}` : currentLocation?.cityState ?? '',
         lat:
           currentLocation?.zipCode
             ? currentLocation.lat ?? station.latitude
@@ -90,7 +91,7 @@ const useLocationStateValue = () => {
       setShowLocationSelector(false);
     }
     try {
-      safeLocalStorage.set(CURRENT_STATION_KEY, station);
+      safeLocalStorage.set(CURRENT_STATION_KEY, station ? { ...station, state: selectedState || station.state } : null);
     } catch (err) {
       console.warn('Error saving station:', err);
     }
@@ -115,6 +116,8 @@ const useLocationStateValue = () => {
     setCurrentLocation: setCurrentLocationWithPersist,
     showLocationSelector,
     setShowLocationSelector,
+    selectedState,
+    setSelectedState,
     selectedStation,
     setSelectedStation: setSelectedStationWithPersist,
   };

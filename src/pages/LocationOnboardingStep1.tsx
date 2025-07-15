@@ -51,7 +51,6 @@ interface LocationOnboardingStep1Props {
 }
 
 const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Props) => {
-  const [selectedState, setSelectedState] = useState('');
   const [stations, setStations] = useState<RawStation[]>([]);
   const [favoriteStates, setFavoriteStates] = useState<string[]>([]);
   const [search, setSearch] = useState('');
@@ -61,7 +60,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { setSelectedStation: saveStation, setCurrentLocation } = useLocationState();
+  const { setSelectedStation: saveStation, setCurrentLocation, selectedState, setSelectedState } = useLocationState();
   const navigate = useNavigate();
 
   const goToTideScreen = () => {
@@ -131,7 +130,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
       name: selectedStation.name,
       latitude: parseFloat(String(selectedStation.lat)),
       longitude: parseFloat(String(selectedStation.lng)),
-      state: selectedStation.state,
+      state: selectedState,
       city: selectedStation.city,
     };
 
@@ -146,7 +145,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           name: station.name,
           country: 'USA',
           zipCode: solarZip.trim(),
-          cityState: `${geo.places[0]['place name']}, ${geo.places[0].state}`,
+          cityState: `${geo.places[0]['place name']}, ${selectedState}`,
           lat: parseFloat(geo.places[0].latitude),
           lng: parseFloat(geo.places[0].longitude)
         };
@@ -156,7 +155,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
           name: station.name,
           country: 'USA',
           zipCode: solarZip.trim(),
-          cityState: '',
+          cityState: `, ${selectedState}`,
           lat: null,
           lng: null
         };

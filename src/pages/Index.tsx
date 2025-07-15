@@ -22,6 +22,7 @@ const Index = () => {
     setCurrentLocation,
     showLocationSelector,
     setShowLocationSelector,
+    selectedState,
     selectedStation,
     setSelectedStation
   } = useLocationState();
@@ -35,7 +36,7 @@ const Index = () => {
     handleLocationChange,
     handleLocationClear,
     handleGetStarted,
-  } = LocationManager({ setCurrentLocation, setShowLocationSelector });
+  } = LocationManager({ setCurrentLocation, setShowLocationSelector, selectedState });
 
   const [availableStations, setAvailableStations] = useState<Station[]>([]);
   const [showStationPicker, setShowStationPicker] = useState(false);
