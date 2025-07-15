@@ -12,15 +12,8 @@ import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
 import type { SavedLocation } from './LocationSelector';
 import { toast } from 'sonner';
-import { fetchRealStationMetadata } from '@/services/tide/realStationService';
-
-interface StationMetadata {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  state?: string;
-}
+import { metadataManager } from '@/services/tide/metadataManager';
+import { normalizeState } from '@/utils/stateNames';
 
 interface SavedLocationsListProps {
   onLocationSelect: (location: LocationData) => void;
@@ -31,23 +24,28 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
   const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
-  const [stationMetadata, setStationMetadata] = useState<Map<string, StationMetadata>>(new Map());
+  const [stationStates, setStationStates] = useState<Record<string, string>>({});
+  const [metadataReady, setMetadataReady] = useState(false);
 
   useEffect(() => {
-    const loadStationMetadata = async () => {
+    const loadMetadata = async () => {
       try {
-        const metadata = await fetchRealStationMetadata();
-        const metadataMap = new Map<string, StationMetadata>();
-        metadata.forEach((station) => {
-          metadataMap.set(station.id, station);
+        const stations = await metadataManager.ensureLoaded();
+        const map: Record<string, string> = {};
+        stations.forEach((s) => {
+          if (s.id && s.state) {
+            map[s.id] = s.state;
+          }
         });
-        setStationMetadata(metadataMap);
-      } catch (error) {
-        console.warn('Failed to load station metadata:', error);
+        setStationStates(map);
+        setMetadataReady(true);
+      } catch (err) {
+        console.error('Failed to load station metadata', err);
+        setMetadataReady(true); // Still set ready to prevent infinite loading
       }
     };
 
-    loadStationMetadata();
+    loadMetadata();
   }, []);
 
   useEffect(() => {
@@ -143,37 +141,26 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const getLocationDisplayName = (location: LocationData | null): string => {
     if (!location) return 'Unknown Location';
 
-    const metadata = location.stationId ? stationMetadata.get(location.stationId) : null;
-
     if (location.nickname) return location.nickname;
-    if (metadata?.name) return metadata.name;
+    if (location.stationName) return location.stationName;
     return `${location.city}, ${location.state}`;
   };
 
   const getLocationSubtext = (location: LocationData): string => {
-    const metadata = location.stationId ? stationMetadata.get(location.stationId) : null;
+    const id = location.stationId || 'Unknown';
+    const lat = location.lat != null ? location.lat : 'Unknown';
+    const lng = location.lng != null ? location.lng : 'Unknown';
 
-    let subtext = '';
-    if (location.zipCode) {
-      subtext = `ZIP: ${location.zipCode}`;
-    } else {
-      const displayState = metadata?.state || location.state || 'Unknown';
-      subtext = `${location.city}, ${displayState}`;
+    let displayState = 'Loading...';
+    if (metadataReady) {
+      let state = location.state?.trim();
+      if (!state && id !== 'Unknown') {
+        state = stationStates[id];
+      }
+      displayState = state ? (normalizeState(state) || state) : 'Unknown';
     }
 
-    if (location.stationId) {
-      subtext += ` \u2022 Station: ${location.stationId}`;
-    }
-
-    if (location.lat && location.lng) {
-      subtext += ` \u2022 ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}`;
-    }
-
-    if (location.isManual) {
-      subtext += ' \u2022 Manual';
-    }
-
-    return subtext;
+    return `${displayState} - ${id} (${lat}, ${lng})`;
   };
 
   if (!currentLocData && filteredHistory.length === 0 && showEmpty) {

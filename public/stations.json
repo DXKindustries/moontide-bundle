@@ -1,0 +1,7 @@
+{
+  "stations": [
+    {"id": "8452660", "name": "Newport, RI", "lat": 41.5043, "lng": -71.3264, "state": "RI"},
+    {"id": "8443970", "name": "Boston, MA", "lat": 42.3601, "lng": -71.0589, "state": "MA"},
+    {"id": "8518750", "name": "The Battery, NY", "lat": 40.7002, "lng": -74.0142, "state": "NY"}
+  ]
+}
