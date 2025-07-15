@@ -27,7 +27,7 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     stationId: station.id,
     stationName: station.name,
     state: finalState,
-    userSelectedState: userState ?? station.userSelectedState ?? '',
+    userSelectedState: (userState ?? station.userSelectedState) || '',
     lat: station.latitude,
     lng: station.longitude,
     zipCode: station.zip ?? '',
@@ -42,7 +42,7 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     zipCode: station.zip ?? '',
     city: station.city ?? station.name,
     state: finalState,
-    userSelectedState: userState ?? station.userSelectedState ?? '',
+    userSelectedState: (userState ?? station.userSelectedState) || '',
     lat: station.latitude,
     lng: station.longitude,
     stationId: station.id,
@@ -60,7 +60,7 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     lng: station.longitude,
     city: station.city ?? '',
     state: finalState,
-    userSelectedState: userState ?? station.userSelectedState ?? '',
+    userSelectedState: (userState ?? station.userSelectedState) || '',
     zipCode: station.zip ?? '',
     sourceType: 'station',
     timestamp: Date.now(),
@@ -80,7 +80,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     zipCode: location.zipCode || '',
     city: city || location.name,
     state: state || '',
-    userSelectedState: location.userSelectedState ?? state || '',
+    userSelectedState: (location.userSelectedState ?? state) || '',
     lat: location.lat,
     lng: location.lng,
     stationId: isStationId ? location.id : undefined,
@@ -97,7 +97,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     zipCode: location.zipCode,
     city: city || location.name,
     state: state || '',
-    userSelectedState: location.userSelectedState ?? state || '',
+    userSelectedState: (location.userSelectedState ?? state) || '',
     lat: location.lat,
     lng: location.lng,
     stationId: storageObj.stationId,
@@ -115,13 +115,20 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     lng: location.lng,
     city: city || undefined,
     state: state || undefined,
-    userSelectedState: location.userSelectedState ?? state || undefined,
+    userSelectedState: (location.userSelectedState ?? state) || undefined,
     zipCode: location.zipCode || undefined,
     sourceType: location.zipCode ? 'zip' : 'station',
     timestamp: Date.now(),
   };
   saveLocationHistory(entry);
-  saveStationHistory({ id: storageObj.stationId ?? location.id, name: storageObj.stationName ?? location.name, latitude: location.lat ?? 0, longitude: location.lng ?? 0, state: state || "", city: city || "" });
+  saveStationHistory({
+    id: storageObj.stationId ?? location.id,
+    name: storageObj.stationName ?? location.name,
+    latitude: location.lat ?? 0,
+    longitude: location.lng ?? 0,
+    state: state || '',
+    city: city || '',
+  });
 }
 
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
