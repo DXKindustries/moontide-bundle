@@ -1,16 +1,16 @@
 import { safeLocalStorage } from './localStorage';
 import { LocationData } from '@/types/locationTypes';
-import { normalizeStation, type SavedLocation as StoredLocation } from '@/services/storage/locationHistory';
+import type { SavedLocation as StoredLocation } from '@/services/storage/locationHistory';
 
 const CURRENT_LOCATION_KEY = 'current-location-data';
 const LOCATION_HISTORY_KEY = 'location-history';
 
+const NUMERIC_ID_RE = /^\d+$/;
+
 function validId(record: Partial<LocationData>): string | null {
-  try {
-    return normalizeStation(record as Partial<StoredLocation>).stationId;
-  } catch {
-    return null;
-  }
+  const raw = String(record.stationId ?? '').trim();
+  if (!NUMERIC_ID_RE.test(raw)) return null;
+  return raw;
 }
 
 function sanitizeList(list: LocationData[]): LocationData[] {
