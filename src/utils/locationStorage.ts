@@ -1,244 +1,116 @@
 import { safeLocalStorage } from './localStorage';
 import { LocationData } from '@/types/locationTypes';
-import { normalizeState as normalizeStateName } from './stateNames';
+import { normalizeStation, type SavedLocation as StoredLocation } from '@/services/storage/locationHistory';
 
 const CURRENT_LOCATION_KEY = 'current-location-data';
 const LOCATION_HISTORY_KEY = 'location-history';
 
-export const locationStorage = {
-  // Save current location
-  saveCurrentLocation: (location: LocationData): void => {
-    try {
-      const locationWithTimestamp = {
-        ...location,
-        timestamp: Date.now()
-      };
-      
-      console.log('💾 Saving current location:', locationWithTimestamp);
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, locationWithTimestamp);
-      
-      // Also add to history with de-duping so selecting the same location
-      // multiple times doesn't create duplicate entries.
-      const history = locationStorage.getLocationHistory();
-      console.log('📚 Current history:', history);
+function validId(record: Partial<LocationData>): string | null {
+  try {
+    return normalizeStation(record as Partial<StoredLocation>).stationId;
+  } catch {
+    return null;
+  }
+}
 
-      const normalize = (val?: string) => (val || '').trim().toLowerCase();
-      const normState = (val?: string) =>
-        (normalizeStateName(val || '') || normalize(val));
-
-      const isSame = (a: LocationData, b: LocationData) => {
-        if (a.stationId && b.stationId) {
-          return String(a.stationId).trim() === String(b.stationId).trim();
-        }
-
-        if (a.stationId || b.stationId) {
-          // When only one entry has a stationId, only treat them as the same
-          // location if they explicitly share a ZIP code. This prevents
-          // different stations within the same city from overwriting each
-          // other in the history.
-          if (a.zipCode && b.zipCode) {
-            return normalize(a.zipCode) === normalize(b.zipCode);
-          }
-          return false;
-        }
-
-        if (a.zipCode && b.zipCode) {
-          return normalize(a.zipCode) === normalize(b.zipCode);
-        }
-
-        return (
-          a.city &&
-          b.city &&
-          normalize(a.city) === normalize(b.city) &&
-          normState(a.state) === normState(b.state)
-        );
-      };
-
-      const filteredHistory = history.filter((h) => !isSame(h, locationWithTimestamp));
-      const newHistory = [locationWithTimestamp, ...filteredHistory];
-      console.log('📝 Saving new history:', newHistory);
-      safeLocalStorage.set(LOCATION_HISTORY_KEY, newHistory);
-      
-      console.log('✅ Location saved successfully');
-    } catch (error) {
-      console.error('❌ Error saving location:', error);
+function sanitizeList(list: LocationData[]): LocationData[] {
+  const map = new Map<string, LocationData>();
+  list.forEach(item => {
+    const id = validId(item);
+    if (id) {
+      map.set(id, { ...item, stationId: id });
     }
+  });
+  return Array.from(map.values());
+}
+
+export const locationStorage = {
+  saveCurrentLocation(location: LocationData): void {
+    const id = validId(location);
+    if (!id) {
+      console.error('[locationStorage] invalid stationId, aborting save');
+      return;
+    }
+    const entry = { ...location, stationId: id, timestamp: Date.now() };
+    safeLocalStorage.set(CURRENT_LOCATION_KEY, entry);
+    const history = locationStorage
+      .getLocationHistory()
+      .filter(h => h.stationId !== id);
+    safeLocalStorage.set(LOCATION_HISTORY_KEY, [entry, ...history]);
   },
 
-  // Get current location
-  getCurrentLocation: (): LocationData | null => {
-    try {
-      const location = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-      console.log('📍 Retrieved current location:', location);
-      return location;
-    } catch (error) {
-      console.error('❌ Error getting current location:', error);
+  getCurrentLocation(): LocationData | null {
+    const stored = safeLocalStorage.get<LocationData>(CURRENT_LOCATION_KEY);
+    if (!stored) return null;
+    const id = validId(stored);
+    if (!id) {
+      safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
       return null;
     }
+    return { ...stored, stationId: id };
   },
 
-  // Get location history
-  getLocationHistory: (): LocationData[] => {
-    try {
-      const history = safeLocalStorage.get(LOCATION_HISTORY_KEY) || [];
-      console.log('📚 Retrieved location history:', history);
-      return history;
-    } catch (error) {
-      console.error('❌ Error getting location history:', error);
-      return [];
+  getLocationHistory(): LocationData[] {
+    const stored = safeLocalStorage.get<LocationData[]>(LOCATION_HISTORY_KEY) || [];
+    const sanitized = sanitizeList(stored);
+    if (sanitized.length !== stored.length) {
+      safeLocalStorage.set(LOCATION_HISTORY_KEY, sanitized);
+    }
+    return sanitized;
+  },
+
+  updateLocation(updated: LocationData): void {
+    const id = validId(updated);
+    if (!id) {
+      console.error('[locationStorage] invalid stationId, aborting update');
+      return;
+    }
+    const history = locationStorage.getLocationHistory();
+    const idx = history.findIndex(h => h.stationId === id);
+    if (idx === -1) return;
+    history[idx] = { ...updated, stationId: id, timestamp: history[idx].timestamp ?? Date.now() };
+    safeLocalStorage.set(LOCATION_HISTORY_KEY, history);
+
+    const current = locationStorage.getCurrentLocation();
+    if (current && current.stationId === id) {
+      safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...updated, stationId: id, timestamp: current.timestamp });
     }
   },
 
-  // Update a specific location
-  updateLocation: (updatedLocation: LocationData): void => {
-    try {
-      const history = locationStorage.getLocationHistory();
-      const currentLocation = locationStorage.getCurrentLocation();
-      
-      // Find and update the location in history
-      const updatedHistory = history.map(loc => {
-        // Match by stationId or by zipCode/city/state
-        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
-        const normState = (val: string | undefined) =>
-          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
-        const isMatch = (() => {
-          if (updatedLocation.stationId || loc.stationId) {
-            return Boolean(
-              updatedLocation.stationId &&
-              loc.stationId &&
-              String(loc.stationId).trim() === String(updatedLocation.stationId).trim()
-            );
-          }
-          if (updatedLocation.zipCode && loc.zipCode) {
-            return normalize(loc.zipCode) === normalize(updatedLocation.zipCode);
-          }
-          return (
-            updatedLocation.city && loc.city &&
-            normalize(loc.city) === normalize(updatedLocation.city) &&
-            normState(loc.state) === normState(updatedLocation.state)
-          );
-        })();
-        
-        if (isMatch) {
-          return { ...updatedLocation, timestamp: loc.timestamp || Date.now() };
-        }
-        return loc;
-      });
-      
-      safeLocalStorage.set(LOCATION_HISTORY_KEY, updatedHistory);
-      
-      // If this is the current location, update it too
-      if (currentLocation) {
-        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
-        const normState = (val: string | undefined) =>
-          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
-        const isCurrentMatch = (() => {
-          if (updatedLocation.stationId || currentLocation.stationId) {
-            return Boolean(
-              updatedLocation.stationId &&
-              currentLocation.stationId &&
-              String(currentLocation.stationId).trim() ===
-                String(updatedLocation.stationId).trim()
-            );
-          }
-          if (updatedLocation.zipCode && currentLocation.zipCode) {
-            return normalize(currentLocation.zipCode) === normalize(updatedLocation.zipCode);
-          }
-          return (
-            updatedLocation.city && currentLocation.city &&
-            normalize(currentLocation.city) === normalize(updatedLocation.city) &&
-            normState(currentLocation.state) === normState(updatedLocation.state)
-          );
-        })();
-        
-        if (isCurrentMatch) {
-          safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...updatedLocation, timestamp: currentLocation.timestamp });
-        }
-      }
-      
-      console.log('✅ Location updated successfully');
-    } catch (error) {
-      console.error('❌ Error updating location:', error);
+  deleteLocation(toDelete: LocationData): void {
+    const id = validId(toDelete);
+    if (!id) {
+      console.error('[locationStorage] invalid stationId, aborting delete');
+      return;
+    }
+    const history = locationStorage
+      .getLocationHistory()
+      .filter(loc => loc.stationId !== id);
+    safeLocalStorage.set(LOCATION_HISTORY_KEY, history);
+    const current = locationStorage.getCurrentLocation();
+    if (current && current.stationId === id) {
+      locationStorage.clearCurrentLocation();
     }
   },
 
-  // Delete a location from history
-  deleteLocation: (locationToDelete: LocationData): void => {
-    try {
-      const history = locationStorage.getLocationHistory();
-      const currentLocation = locationStorage.getCurrentLocation();
-      
-      // Filter out the location to delete
-      const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
-      const normState = (val: string | undefined) =>
-        (normalizeStateName(val || '') || normalize(val)).toLowerCase();
-      const updatedHistory = history.filter(loc => {
-        const isMatch = (() => {
-          if (locationToDelete.stationId || loc.stationId) {
-            return Boolean(
-              locationToDelete.stationId &&
-              loc.stationId &&
-              String(loc.stationId).trim() ===
-                String(locationToDelete.stationId).trim()
-            );
-          }
-          if (locationToDelete.zipCode && loc.zipCode) {
-            return normalize(loc.zipCode) === normalize(locationToDelete.zipCode);
-          }
-          return (
-            locationToDelete.city && loc.city &&
-            normalize(loc.city) === normalize(locationToDelete.city) &&
-            normState(loc.state) === normState(locationToDelete.state)
-          );
-        })();
-        return !isMatch;
-      });
-      
-      safeLocalStorage.set(LOCATION_HISTORY_KEY, updatedHistory);
-      
-      // Check if the deleted location is the current location and clear it if so
-      if (currentLocation) {
-        const normalize = (val: string | undefined) => (val || '').trim().toLowerCase();
-        const normState = (val: string | undefined) =>
-          (normalizeStateName(val || '') || normalize(val)).toLowerCase();
-        const isCurrentMatch = (() => {
-          if (locationToDelete.stationId || currentLocation.stationId) {
-            return Boolean(
-              locationToDelete.stationId &&
-              currentLocation.stationId &&
-              String(currentLocation.stationId).trim() ===
-                String(locationToDelete.stationId).trim()
-            );
-          }
-          if (locationToDelete.zipCode && currentLocation.zipCode) {
-            return normalize(currentLocation.zipCode) === normalize(locationToDelete.zipCode);
-          }
-          return (
-            locationToDelete.city && currentLocation.city &&
-            normalize(currentLocation.city) === normalize(locationToDelete.city) &&
-            normState(currentLocation.state) === normState(locationToDelete.state)
-          );
-        })();
-        
-        if (isCurrentMatch) {
-          console.log('🗑️ Deleted location matches current location, clearing current location');
-          locationStorage.clearCurrentLocation();
-        }
-      }
-      
-      console.log('✅ Location deleted successfully');
-    } catch (error) {
-      console.error('❌ Error deleting location:', error);
-    }
+  clearCurrentLocation(): void {
+    safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
   },
-
-  // Clear current location
-  clearCurrentLocation: (): void => {
-    try {
-      safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
-      console.log('🗑️ Current location cleared');
-    } catch (error) {
-      console.error('❌ Error clearing current location:', error);
-    }
-  }
 };
+
+function scrubOnLoad() {
+  const current = safeLocalStorage.get<LocationData>(CURRENT_LOCATION_KEY);
+  if (current && !validId(current)) {
+    safeLocalStorage.set(CURRENT_LOCATION_KEY, null);
+  } else if (current) {
+    const id = validId(current)!;
+    safeLocalStorage.set(CURRENT_LOCATION_KEY, { ...current, stationId: id });
+  }
+  const history = safeLocalStorage.get<LocationData[]>(LOCATION_HISTORY_KEY) || [];
+  const sanitized = sanitizeList(history);
+  if (sanitized.length !== history.length) {
+    safeLocalStorage.set(LOCATION_HISTORY_KEY, sanitized);
+  }
+}
+
+scrubOnLoad();

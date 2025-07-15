@@ -14,27 +14,24 @@ interface LocationManagerProps {
 const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
   const handleLocationChange = (location: SavedLocation) => {
     console.log('🔄 LocationManager: Location change requested:', location);
-    
-    const updatedLocation = {
-      ...location,
-      id: location.id || location.zipCode || "temp",
-      country: location.country || "USA",
-      name: location.name || `${location.zipCode || "Unknown Location"}`
-    };
-    
-    console.log('🔄 LocationManager: Calling setCurrentLocation');
-    setCurrentLocation(updatedLocation);
-    
-    // Save to storage
     try {
+      const normalized = normalizeStation({ stationId: location.id });
+      const updatedLocation = {
+        ...location,
+        id: normalized.stationId,
+        country: location.country || 'USA',
+        name: location.name || normalized.stationName,
+      };
+      console.log('🔄 LocationManager: Calling setCurrentLocation');
+      setCurrentLocation(updatedLocation);
       persistCurrentLocation(updatedLocation);
       console.log('💾 LocationManager: Location saved successfully');
+      setShowLocationSelector(false);
+      toast.success(`Loading tide data for ${updatedLocation.name}`);
     } catch (error) {
-      console.error('❌ LocationManager: Error saving location:', error);
+      console.error('❌ LocationManager: Invalid station:', error);
+      toast.error('Invalid station ID');
     }
-    
-    setShowLocationSelector(false);
-    toast.success(`Loading tide data for ${updatedLocation.name}`);
   };
 
   const onSelectStation = (station: Station) => {
@@ -68,19 +65,18 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
 
   const handleGetStarted = (location?: LocationData) => {
     console.log('🔄 LocationManager: handleGetStarted called with:', location);
-    
+
     if (location) {
       const savedLocation: SavedLocation = {
-        id: location.zipCode || location.city,
+        id: location.stationId || '',
         name: location.nickname || location.city,
-        country: "USA",
+        country: 'USA',
         zipCode: location.zipCode || '',
         cityState: `${location.city}, ${location.state}`,
         lat: location.lat ?? null,
-        lng: location.lng ?? null
+        lng: location.lng ?? null,
       };
-      
-      console.log('🔄 LocationManager: Converting and setting location');
+
       handleLocationChange(savedLocation);
     } else {
       console.log('🔄 LocationManager: No location provided, showing selector');
