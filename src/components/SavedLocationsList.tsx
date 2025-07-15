@@ -12,6 +12,8 @@ import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
 import type { SavedLocation } from './LocationSelector';
 import { toast } from 'sonner';
+import { fetchRealStationMetadata } from '@/services/tide/realStationService';
+import { normalizeState } from '@/utils/stateNames';
 
 interface SavedLocationsListProps {
   onLocationSelect: (location: LocationData) => void;
@@ -22,6 +24,23 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
   const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
+  const [stationStates, setStationStates] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchRealStationMetadata()
+      .then((list) => {
+        const map: Record<string, string> = {};
+        list.forEach((s) => {
+          if (s.id && s.state) {
+            map[s.id] = s.state;
+          }
+        });
+        setStationStates(map);
+      })
+      .catch((err) => {
+        console.error('Failed to load station metadata', err);
+      });
+  }, []);
 
   useEffect(() => {
     // Refresh list when the current location changes, ensuring newly added
@@ -125,11 +144,21 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   };
 
   const getLocationSubtext = (location: LocationData): string => {
-    const state = location.state || 'Unknown';
     const id = location.stationId || 'Unknown';
     const lat = location.lat != null ? location.lat : 'Unknown';
     const lng = location.lng != null ? location.lng : 'Unknown';
-    return `${state} - ${id} (${lat}, ${lng})`;
+
+    let state = location.state?.trim();
+    if (!state && id !== 'Unknown') {
+      state = stationStates[id];
+    }
+
+    let displayState = 'Unknown';
+    if (state) {
+      displayState = normalizeState(state) || state;
+    }
+
+    return `${displayState} - ${id} (${lat}, ${lng})`;
   };
 
   if (!currentLocData && filteredHistory.length === 0 && showEmpty) {
