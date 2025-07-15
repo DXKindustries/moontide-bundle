@@ -18,6 +18,11 @@ const STATION_HISTORY_KEY  = 'station-history';
 
 const NUMERIC_ID_RE = /^\d+$/;
 
+function validId(record: Partial<Station & LocationHistoryEntry>): string | null {
+  const raw = String(record.stationId ?? record.id ?? '').trim();
+  return NUMERIC_ID_RE.test(raw) ? raw : null;
+}
+
 export interface SavedLocation {
   stationId  : string;   // numeric NOAA id – canonical
   stationName: string;
@@ -68,6 +73,11 @@ export function getLocationHistory(): SavedLocation[] {
 }
 
 export function saveLocationHistory(item: Station | LocationHistoryEntry): void {
+  const id = validId(item);
+  if (!id) {
+    console.error('[storage] saveLocationHistory → invalid station ID');
+    return;
+  }
   const entry = normalizeStation(item);
   const next  = [entry, ...getLocationHistory().filter(h => h.stationId !== entry.stationId)]
                   .slice(0, 10);
@@ -87,6 +97,11 @@ export function getStationHistory(): StationHistoryItem[] {
 }
 
 export function saveStationHistory(item: Station | LocationHistoryEntry): void {
+  const id = validId(item);
+  if (!id) {
+    console.error('[storage] saveStationHistory → invalid station ID');
+    return;
+  }
   const entry = normalizeStation(item);
   const next  = [entry, ...getStationHistory().filter(s => s.stationId !== entry.stationId)]
                   .slice(0, 10);
@@ -113,6 +128,7 @@ export function clearStationHistory(): void {
     const map = new Map<string, SavedLocation>();
 
     arr.forEach(item => {
+      if (!validId(item)) return; // skip invalid entries
       try {
         const norm = normalizeStation(item);
         map.set(norm.stationId, norm);   // keeps newest per id
