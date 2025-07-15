@@ -11,9 +11,10 @@ import type { Station } from "@/services/tide/stationService";
 interface LocationManagerProps {
   setCurrentLocation: (location: SavedLocation & { id: string; country: string } | null) => void;
   setShowLocationSelector: (show: boolean) => void;
+  selectedState?: string;
 }
 
-const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: LocationManagerProps) => {
+const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selectedState }: LocationManagerProps) => {
   const handleLocationChange = (location: SavedLocation) => {
     console.log('🔄 LocationManager: Location change requested:', location);
     if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
@@ -48,9 +49,9 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector }: Locati
       toast.error('Invalid station ID');
       return;
     }
-    const normalized = normalizeStation(station);
+    const normalized = normalizeStation({ ...station, state: selectedState ?? station.state });
     try {
-      persistStationCurrentLocation(normalized);
+      persistStationCurrentLocation(normalized, selectedState);
       saveStationHistory(normalized);
       console.log('💾 LocationManager: Station saved successfully');
     } catch (error) {
