@@ -54,6 +54,7 @@ const useLocationStateValue = () => {
     }
   }, []);
 
+  // CORRECTED LOGIC: always prefer userSelectedState for the station, else station.state, and sync selectedState accordingly
   const setSelectedStationWithPersist = useCallback((station: Station | null) => {
     setSelectedStation(station);
     if (station) {
@@ -61,24 +62,24 @@ const useLocationStateValue = () => {
         console.error('Invalid station ID');
         return;
       }
-      console.log('Station selected:', station.id, station.name);
-    }
-    if (station) {
-      // Merge the selected station into the previous location so we retain ZIP/city info.
+      // Pick the state from userSelectedState (if set for this station), else NOAA's station.state
+      const effectiveState = station.userSelectedState || station.state || '';
+      setSelectedState(effectiveState);
+
       const mergedLocation = {
         ...(currentLocation ?? {
           id: station.id,
           name: station.name,
           country: 'USA',
           zipCode: '',
-          cityState: station.city ? `${station.city}, ${selectedState || station.state || ''}` : '',
+          cityState: station.city ? `${station.city}, ${effectiveState}` : '',
           lat: station.latitude,
           lng: station.longitude
         }),
         id: station.id,
         name: station.name,
-        cityState: station.city ? `${station.city}, ${selectedState || station.state || ''}` : currentLocation?.cityState ?? '',
-        userSelectedState: selectedState || station.userSelectedState,
+        cityState: station.city ? `${station.city}, ${effectiveState}` : currentLocation?.cityState ?? '',
+        userSelectedState: station.userSelectedState,
         lat:
           currentLocation?.zipCode
             ? currentLocation.lat ?? station.latitude
@@ -89,19 +90,19 @@ const useLocationStateValue = () => {
             : station.longitude
       } as SavedLocation & { id: string; country: string };
 
-      console.log('🔀 Merged location with station:', mergedLocation);
       setCurrentLocationWithPersist(mergedLocation);
       setShowLocationSelector(false);
-    }
-    try {
-      safeLocalStorage.set(
-        CURRENT_STATION_KEY,
-        station
-          ? { ...station, state: selectedState || station.state, userSelectedState: selectedState || station.userSelectedState }
-          : null,
-      );
-    } catch (err) {
-      console.warn('Error saving station:', err);
+
+      try {
+        safeLocalStorage.set(
+          CURRENT_STATION_KEY,
+          station
+            ? { ...station, state: effectiveState, userSelectedState: station.userSelectedState }
+            : null,
+        );
+      } catch (err) {
+        console.warn('Error saving station:', err);
+      }
     }
   }, [currentLocation, setCurrentLocationWithPersist]);
 
