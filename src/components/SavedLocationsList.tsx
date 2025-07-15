@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MapPin, Clock, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -10,6 +10,7 @@ import { clearLocationHistory } from '@/services/storage/locationHistory';
 import { safeLocalStorage } from '@/utils/localStorage';
 import { useLocationState } from '@/hooks/useLocationState';
 import { LocationData } from '@/types/locationTypes';
+import type { SavedLocation } from './LocationSelector';
 import { toast } from 'sonner';
 
 interface SavedLocationsListProps {
@@ -64,6 +65,39 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     }
   };
 
+  const toLocationData = (
+    loc: SavedLocation & { id: string; country: string },
+  ): LocationData => {
+    const [city, state] = loc.cityState.split(',').map((p) => p.trim());
+    return {
+      zipCode: loc.zipCode,
+      city: city || '',
+      state: state || '',
+      lat: loc.lat,
+      lng: loc.lng,
+      stationId: loc.id,
+      stationName: loc.name,
+      isManual: false,
+      nickname: loc.name !== city ? loc.name : undefined,
+    };
+  };
+
+  const filteredHistory = useMemo(() => {
+    const seen = new Set<string>();
+    return locationHistory.filter((h) => {
+      if (!h.stationId) return false;
+      if (currentLocation?.id === h.stationId) return false;
+      if (seen.has(h.stationId)) return false;
+      seen.add(h.stationId);
+      return true;
+    });
+  }, [locationHistory, currentLocation]);
+
+  const currentLocData = useMemo(
+    () => (currentLocation ? toLocationData(currentLocation) : null),
+    [currentLocation],
+  );
+
   const formatTimeAgo = (timestamp?: number): string => {
     if (!timestamp) return '';
     
@@ -100,7 +134,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     return subtext;
   };
 
-  if (locationHistory.length === 0 && showEmpty) {
+  if (!currentLocData && filteredHistory.length === 0 && showEmpty) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -112,67 +146,92 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   return (
     <>
-      <div className="space-y-2 max-h-40 overflow-y-auto">
-        {locationHistory.map((location, index) => {
-          const isCurrent = currentLocation?.id === location.stationId;
-          
-          return (
-            <div
-              key={`${location.stationId}-${index}`}
-              className={`w-full justify-start h-auto p-3 text-left border rounded-lg cursor-pointer transition-colors ${
-                isCurrent ? 'bg-secondary border-primary/20' : 'border-border hover:bg-accent'
-              }`}
-              onClick={() => handleLocationClick(location)}
-            >
-              <div className="flex items-start gap-3 w-full">
-                <MapPin className={`h-4 w-4 mt-0.5 ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="font-medium text-sm truncate">
-                      {getLocationDisplayName(location)}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {isCurrent && (
-                        <span className="text-xs text-primary font-medium">Current</span>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => handleDeleteLocation(location, e)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+      {currentLocData && (
+        <div className="mb-3">
+          <div className="text-xs font-medium text-muted-foreground mb-1">Current Location</div>
+          <div
+            className="w-full justify-start h-auto p-3 text-left border rounded-lg cursor-pointer transition-colors bg-secondary border-primary/20"
+            onClick={() => handleLocationClick(currentLocData)}
+          >
+            <div className="flex items-start gap-3 w-full">
+              <MapPin className="h-4 w-4 mt-0.5 text-primary" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium text-sm truncate">
+                    {getLocationDisplayName(currentLocData)}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {getLocationSubtext(location)}
-                  </div>
-                  {location.timestamp && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                      <Clock className="h-3 w-3" />
-                      {formatTimeAgo(location.timestamp)}
-                    </div>
-                  )}
                 </div>
+                <div className="text-xs text-muted-foreground">
+                  {getLocationSubtext(currentLocData)}
+                </div>
+                {currentLocData.timestamp && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                    <Clock className="h-3 w-3" />
+                    {formatTimeAgo(currentLocData.timestamp)}
+                  </div>
+                )}
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+      )}
+      {filteredHistory.length > 0 && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground mb-1">Location History</div>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {filteredHistory.map((location, index) => (
+              <div
+                key={`${location.stationId}-${index}`}
+                className="w-full justify-start h-auto p-3 text-left border rounded-lg cursor-pointer transition-colors border-border hover:bg-accent"
+                onClick={() => handleLocationClick(location)}
+              >
+                <div className="flex items-start gap-3 w-full">
+                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-sm truncate">
+                        {getLocationDisplayName(location)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="h-3 w-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => handleDeleteLocation(location, e)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-3 w-3 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {getLocationSubtext(location)}
+                    </div>
+                    {location.timestamp && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <Clock className="h-3 w-3" />
+                        {formatTimeAgo(location.timestamp)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
 
       <AlertDialog open={!!deletingLocation} onOpenChange={() => setDeletingLocation(null)}>
