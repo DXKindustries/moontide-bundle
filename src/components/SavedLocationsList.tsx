@@ -13,7 +13,7 @@ import { LocationData } from '@/types/locationTypes';
 import type { SavedLocation } from './LocationSelector';
 import { toast } from 'sonner';
 import { metadataManager } from '@/services/tide/metadataManager';
-import { normalizeState } from '@/utils/stateNames';
+import { formatLocationSubtext } from '@/utils/locationFormatting';
 
 interface SavedLocationsListProps {
   onLocationSelect: (location: LocationData) => void;
@@ -98,6 +98,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
       zipCode: loc.zipCode,
       city: city || '',
       state: state || '',
+      userSelectedState: loc.userSelectedState,
       lat: loc.lat,
       lng: loc.lng,
       stationId: loc.id,
@@ -147,21 +148,13 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   };
 
   const getLocationSubtext = (location: LocationData): string => {
-    const id = location.stationId || 'Unknown';
-    const lat = location.lat != null ? location.lat : 'Unknown';
-    const lng = location.lng != null ? location.lng : 'Unknown';
-
     if (!metadataReady) {
+      const id = location.stationId || 'Unknown';
+      const lat = location.lat != null ? location.lat : 'Unknown';
+      const lng = location.lng != null ? location.lng : 'Unknown';
       return `Loading... - ${id} (${lat}, ${lng})`;
     }
-
-    let state = location.state?.trim();
-    if (!state && id !== 'Unknown') {
-      state = stationStates[id];
-    }
-    const displayState = state ? (normalizeState(state) || state) : 'Unknown';
-
-    return `${displayState} - ${id} (${lat}, ${lng})`;
+    return formatLocationSubtext(location, stationStates);
   };
 
   if (!currentLocData && filteredHistory.length === 0 && showEmpty) {
