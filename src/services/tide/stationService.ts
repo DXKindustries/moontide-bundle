@@ -19,11 +19,21 @@ export interface Station {
   distance?: number;
 }
 
+/* ---------- validation helpers ---------- */
+
+const isValidStationId = (id: string | null | undefined) =>
+  typeof id === 'string' && /^\d+$/.test(id.trim());
+
 // Always fetch from backend API (dynamic, live, no mock data)
 export async function getStationsForLocation(
   userInput: string
 ): Promise<Station[]> {
   const key = `stations:${userInput.toLowerCase()}`;
+
+  if (!userInput || !userInput.trim()) {
+    debugLog('Invalid station search term', { userInput });
+    return [];
+  }
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
@@ -50,6 +60,9 @@ export async function getStationsNearCoordinates(
   lon: number,
   radiusKm = 100,
 ): Promise<Station[]> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    throw new Error('Invalid coordinates for station search');
+  }
   const key = `stations:${lat.toFixed(3)},${lon.toFixed(3)},${radiusKm}`;
 
   const cached = cacheService.get<Station[]>(key);
@@ -71,6 +84,10 @@ export async function getStationsNearCoordinates(
 }
 
 export async function getStationById(id: string): Promise<Station | null> {
+  if (!isValidStationId(id)) {
+    debugLog('Invalid station ID lookup', { id });
+    return null;
+  }
   const key = `station:${id}`;
   const cached = cacheService.get<Station>(key);
   if (cached) {

@@ -24,6 +24,32 @@ interface QueryParams {
   units: Units;
 }
 
+/* ---------- validation helpers ---------- */
+
+const isValidStationId = (id: string | null | undefined) =>
+  typeof id === 'string' && /^\d+$/.test(id.trim());
+
+const isValidYyyymmdd = (s: string | null | undefined) =>
+  typeof s === 'string' && /^\d{8}$/.test(s);
+
+const parseYyyymmdd = (s: string) =>
+  new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`);
+
+function validateParams(p: Omit<QueryParams, 'product' | 'interval'>): string | null {
+  if (!isValidStationId(p.station)) return 'Invalid station ID';
+  if (!isValidYyyymmdd(p.beginDate) || !isValidYyyymmdd(p.endDate)) {
+    return 'Invalid date format';
+  }
+  const start = parseYyyymmdd(p.beginDate);
+  const end = parseYyyymmdd(p.endDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return 'Invalid date';
+  }
+  if (start > end) return 'Begin date is after end date';
+  if (!p.units) return 'Missing units';
+  return null;
+}
+
 /* ---------- helpers ---------- */
 
 const yyyymmdd = (d: Date) =>
@@ -69,6 +95,11 @@ async function fetchTier(
   base: Omit<QueryParams, 'product' | 'interval'>,
   station: NoaaStation,
 ): Promise<NoaaTideResponse> {
+  const validationError = validateParams(base);
+  if (validationError) {
+    console.error('❌ NOAA request aborted:', validationError, base);
+    return { predictions: [] };
+  }
   const tiers: Array<Pick<QueryParams, 'product' | 'interval'>> = [
     { product: 'water_level', interval: '6' },
     { product: 'predictions', interval: 'h' },
