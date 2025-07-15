@@ -34,8 +34,16 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   try {
     console.log('🎯 Trying direct NOAA stations API...');
     const response = await fetch(NOAA_STATIONS_API);
+    console.log('🔵 Direct API response status:', response.status);
     if (response.ok) {
-      const data = await response.json();
+      let data: { stations?: RawStation[] } | null = null;
+      try {
+        data = (await response.json()) as { stations?: RawStation[] } | null;
+        const count = Array.isArray(data?.stations) ? data!.stations!.length : 'unknown';
+        console.log(`🟢 Parsed direct API JSON (${count} stations)`);
+      } catch (err) {
+        console.error('❌ Failed to parse direct API JSON:', err);
+      }
       const processedData = processStationData(data, 'direct API');
       if (processedData.length > 0) {
         return processedData;
@@ -49,8 +57,16 @@ export async function fetchRealStationMetadata(): Promise<NoaaStationMetadata[]>
   try {
     console.log('📁 Loading local backup stations...');
     const response = await fetch('/stations.json');
+    console.log('🔵 Local backup response status:', response.status);
     if (response.ok) {
-      const data = await response.json();
+      let data: { stations?: RawStation[] } | null = null;
+      try {
+        data = (await response.json()) as { stations?: RawStation[] } | null;
+        const count = Array.isArray(data?.stations) ? data!.stations!.length : 'unknown';
+        console.log(`🟢 Parsed local backup JSON (${count} stations)`);
+      } catch (err) {
+        console.error('❌ Failed to parse local backup JSON:', err);
+      }
       const processedData = processStationData(data, 'local backup');
       if (processedData.length > 0) {
         return processedData;
@@ -78,11 +94,12 @@ function processStationData(
   source: string,
 ): NoaaStationMetadata[] {
   if (data && Array.isArray(data.stations)) {
+    console.log(`🔧 Processing station data from ${source}...`);
     // Filter for tide stations only and convert to our format
     const unique = new Map<string, NoaaStationMetadata>();
     data.stations.forEach((station) => {
       if (
-        station.type === 'tide' &&
+        (station.type == null || station.type === 'tide') &&
         station.lat != null &&
         station.lng != null &&
         station.id != null &&
@@ -100,12 +117,15 @@ function processStationData(
     });
     stationCache = Array.from(unique.values());
     safeLocalStorage.set(STATION_METADATA_KEY, stationCache);
-    
-    console.log(`✅ Loaded ${stationCache.length} real NOAA tide stations via ${source}`);
+
+    console.log(
+      `✅ Loaded ${stationCache.length} tide stations after processing ${source}`,
+    );
     return stationCache;
   }
-  
+
   // Return empty array if data format is invalid
+  console.error(`❌ Invalid station data shape from ${source}`, data);
   return [];
 }
 
