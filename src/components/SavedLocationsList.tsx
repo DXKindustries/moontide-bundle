@@ -151,14 +151,15 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     const lat = location.lat != null ? location.lat : 'Unknown';
     const lng = location.lng != null ? location.lng : 'Unknown';
 
-    let displayState = 'Loading...';
-    if (metadataReady) {
-      let state = location.state?.trim();
-      if (!state && id !== 'Unknown') {
-        state = stationStates[id];
-      }
-      displayState = state ? (normalizeState(state) || state) : 'Unknown';
+    if (!metadataReady) {
+      return `Loading... - ${id} (${lat}, ${lng})`;
     }
+
+    let state = location.state?.trim();
+    if (!state && id !== 'Unknown') {
+      state = stationStates[id];
+    }
+    const displayState = state ? (normalizeState(state) || state) : 'Unknown';
 
     return `${displayState} - ${id} (${lat}, ${lng})`;
   };
