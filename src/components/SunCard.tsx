@@ -1,6 +1,6 @@
 import React from 'react';
 import { calculateSolarTimes } from '@/utils/solarUtils';
-import { formatSignedDuration, getSolsticeDate } from '@/utils/time';
+import { formatSignedDuration } from '@/utils/time';
 
 interface SunCardProps {
   lat: number;
@@ -13,12 +13,24 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
   const todayDaylightMins = sunTimes.daylightMinutes;
 
   const year = date.getFullYear();
-  const solsticeSummer = getSolsticeDate('summer', year);
-  const solsticeWinter = getSolsticeDate('winter', year);
-  const daylightSummerMins = calculateSolarTimes(solsticeSummer, lat, lng).daylightMinutes;
-  const daylightWinterMins = calculateSolarTimes(solsticeWinter, lat, lng).daylightMinutes;
-  const deltaFromSummer = todayDaylightMins - daylightSummerMins;
-  const deltaFromWinter = todayDaylightMins - daylightWinterMins;
+  const summerSolstice = new Date(`${year}-06-21T12:00:00`);
+  const winterSolstice =
+    date < summerSolstice
+      ? new Date(`${year - 1}-12-21T12:00:00`)
+      : new Date(`${year}-12-21T12:00:00`);
+
+  const isSummerWindow = date >= summerSolstice && date < winterSolstice;
+  const refSolsticeDate = isSummerWindow ? summerSolstice : winterSolstice;
+  const refLabel = isSummerWindow
+    ? 'Summer Solstice (Jun 21)'
+    : 'Winter Solstice (Dec 21)';
+
+  const solsticeDaylightMins = calculateSolarTimes(
+    refSolsticeDate,
+    lat,
+    lng
+  ).daylightMinutes;
+  const deltaMins = todayDaylightMins - solsticeDaylightMins;
 
   const gettingLonger = sunTimes.changeFromPrevious?.includes('+');
   const gettingShorter = sunTimes.changeFromPrevious?.includes('-');
@@ -46,15 +58,9 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
         <span className={`font-semibold ${gettingLonger ? 'text-lime-400' : gettingShorter ? 'text-red-400' : 'text-gray-300'}`}>{sunTimes.changeFromPrevious}</span>
       </div>
       <div className="flex justify-between text-sm mt-1">
-        <span className="text-gray-400">Summer&nbsp;Solstice&nbsp;(Jun&nbsp;21)</span>
-        <span className={deltaFromSummer < 0 ? 'text-red-400' : 'text-lime-400'}>
-          🕒 {formatSignedDuration(deltaFromSummer)}
-        </span>
-      </div>
-      <div className="flex justify-between text-sm">
-        <span className="text-gray-400">Winter&nbsp;Solstice&nbsp;(Dec&nbsp;21)</span>
-        <span className={deltaFromWinter > 0 ? 'text-lime-400' : 'text-red-400'}>
-          🕒 {formatSignedDuration(deltaFromWinter)}
+        <span className="text-gray-400">{refLabel}</span>
+        <span className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
+          🕒 {formatSignedDuration(deltaMins)}
         </span>
       </div>
     </div>
