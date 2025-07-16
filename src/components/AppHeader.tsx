@@ -29,61 +29,38 @@ export default function AppHeader({
             MoonTide
           </h1>
         </div>
-        <nav className="flex flex-col w-full">
-          <div className="flex items-center h-7">
-            <Link
-              to="/fishing-calendar"
-              className="flex flex-1 items-center justify-center"
-            >
+        <nav className="flex items-end justify-evenly px-4 py-0">
+          <Link to="/fishing-calendar" className="flex flex-1 justify-center">
+            <div className="navItem">
               <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                <Calendar className="w-[18px] h-[18px]" />
+                <Calendar className="w-[18px] h-[18px] leading-none" />
               </Button>
-            </Link>
-            <Link
-              to="/settings"
-              className="flex flex-1 items-center justify-center"
-            >
+              <span className="text-[11px] leading-[13px] text-gray-400">Moon Calendar</span>
+            </div>
+          </Link>
+          <Link to="/settings" className="flex flex-1 justify-center">
+            <div className="navItem">
               <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                <Settings className="w-[18px] h-[18px]" />
+                <Settings className="w-[18px] h-[18px] leading-none" />
               </Button>
-            </Link>
-            <LocationSelector
-              onSelect={onLocationChange}
-              onStationSelect={onStationSelect}
-              forceOpen={forceShowLocationSelector}
-              onClose={onLocationSelectorClose}
-              buttonClassName="flex flex-1 items-center justify-center p-0"
-              triggerContent={
+              <span className="text-[11px] leading-[13px] text-gray-400">Settings</span>
+            </div>
+          </Link>
+          <LocationSelector
+            onSelect={onLocationChange}
+            onStationSelect={onStationSelect}
+            forceOpen={forceShowLocationSelector}
+            onClose={onLocationSelectorClose}
+            buttonClassName="flex flex-1 justify-center p-0"
+            triggerContent={
+              <div className="navItem">
                 <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                  <MapPin className="w-[18px] h-[18px]" />
+                  <MapPin className="w-[18px] h-[18px] leading-none" />
                 </Button>
-              }
-            />
-          </div>
-          <div className="flex h-4 text-[11px] leading-[13px] text-center text-gray-400">
-            <Link
-              to="/fishing-calendar"
-              className="flex flex-1 items-center justify-center"
-            >
-              Moon Calendar
-            </Link>
-            <Link
-              to="/settings"
-              className="flex flex-1 items-center justify-center"
-            >
-              Settings
-            </Link>
-            <LocationSelector
-              onSelect={onLocationChange}
-              onStationSelect={onStationSelect}
-              forceOpen={forceShowLocationSelector}
-              onClose={onLocationSelectorClose}
-              buttonClassName="flex flex-1 items-center justify-center p-0"
-              triggerContent={
-                <span className="w-full">Change Tides</span>
-              }
-            />
-          </div>
+                <span className="text-[11px] leading-[13px] text-gray-400">Change Tides</span>
+              </div>
+            }
+          />
         </nav>
       </div>
     </header>
