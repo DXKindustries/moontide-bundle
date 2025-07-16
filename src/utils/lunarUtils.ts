@@ -54,19 +54,32 @@ export const getMoonEmoji = (phase: string): string => {
   }
 };
 
+// Find the most recent new moon date on or before the given date
+export const findMostRecentNewMoon = (date: Date): Date => {
+  const target = date.getTime();
+  for (let i = NEW_MOON_DATES_UTC.length - 1; i >= 0; i--) {
+    const nm = new Date(`${NEW_MOON_DATES_UTC[i]}T00:00:00Z`);
+    if (nm.getTime() <= target) {
+      return nm;
+    }
+  }
+  // Fallback to earliest known new moon if none found
+  return new Date(`${NEW_MOON_DATES_UTC[0]}T00:00:00Z`);
+};
+
 // More accurate moon phase calculation using a known lunar cycle reference
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
-  // Use a more recent and accurate new moon reference
-  // June 6, 2024 was a new moon at 12:38 UTC
-  const knownNewMoon = new Date('2024-06-06T12:38:00.000Z');
-  const lunarCycleLength = 29.530588853; // More precise lunar cycle length in days
-  
-  // Calculate milliseconds since the known new moon
-  const msSinceNewMoon = date.getTime() - knownNewMoon.getTime();
-  const daysSinceNewMoon = msSinceNewMoon / (1000 * 60 * 60 * 24);
-  
-  // Get position in current lunar cycle (0 to 29.53...)
-  const cyclePosition = ((daysSinceNewMoon % lunarCycleLength) + lunarCycleLength) % lunarCycleLength;
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  const lastNewMoon = findMostRecentNewMoon(date);
+  const lastIndex = NEW_MOON_DATES_UTC.indexOf(lastNewMoon.toISOString().slice(0, 10));
+  const nextIndex = Math.min(lastIndex + 1, NEW_MOON_DATES_UTC.length - 1);
+  const nextNewMoon = new Date(`${NEW_MOON_DATES_UTC[nextIndex]}T00:00:00Z`);
+
+  const daysSinceNewMoon = (date.getTime() - lastNewMoon.getTime()) / MS_PER_DAY;
+  const cycleLength = (nextNewMoon.getTime() - lastNewMoon.getTime()) / MS_PER_DAY || 29.530588853;
+
+  const cyclePosition = daysSinceNewMoon;
+  const lunarCycleLength = cycleLength;
   
   // Calculate illumination percentage (0-100)
   const illuminationDecimal = (1 - Math.cos((cyclePosition / lunarCycleLength) * 2 * Math.PI)) / 2;
@@ -98,7 +111,7 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
   return { phase, illumination };
 };
 
-import { FULL_MOON_SET, NEW_MOON_SET } from "./moonEphemeris";
+import { FULL_MOON_SET, NEW_MOON_SET, NEW_MOON_DATES_UTC } from "./moonEphemeris";
 
 // Replace isDateFullMoon and isDateNewMoon with accurate table lookups
 /**
