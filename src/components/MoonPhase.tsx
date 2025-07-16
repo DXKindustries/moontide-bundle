@@ -34,6 +34,7 @@ const MoonPhase = ({
   onGetStarted,
   hasData
 }: MoonPhaseProps) => {
+  console.log('Moon phase function used in UI:', calculateMoonPhase.name);
   // Simplified location detection - just check if location exists and has basic data
   const hasLocation = Boolean(
     currentLocation &&
