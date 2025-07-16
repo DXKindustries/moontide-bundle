@@ -1,6 +1,6 @@
 import React from 'react';
 import { calculateSolarTimes } from '@/utils/solarUtils';
-import { formatSignedDuration } from '@/utils/time';
+import { formatSignedDuration } from '../utils/time';
 
 interface SunCardProps {
   lat: number;
@@ -20,13 +20,11 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
       : new Date(`${year}-12-21T12:00:00`);
 
   const isSummerWindow = date >= summerSolstice && date < winterSolstice;
-  const refSolsticeDate = isSummerWindow ? summerSolstice : winterSolstice;
-  const refLabel = isSummerWindow
-    ? 'Summer Solstice (Jun 21)'
-    : 'Winter Solstice (Dec 21)';
+  const refLabelDate = isSummerWindow ? 'Jun 21' : 'Dec 21';
+  const refSeason = isSummerWindow ? 'Summer' : 'Winter';
 
   const solsticeDaylightMins = calculateSolarTimes(
-    refSolsticeDate,
+    isSummerWindow ? summerSolstice : winterSolstice,
     lat,
     lng
   ).daylightMinutes;
@@ -57,11 +55,13 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
         <span className="text-gray-400">Change</span>
         <span className={`font-semibold ${gettingLonger ? 'text-lime-400' : gettingShorter ? 'text-red-400' : 'text-gray-300'}`}>{sunTimes.changeFromPrevious}</span>
       </div>
-      <div className="flex justify-between text-sm mt-1">
-        <span className="text-gray-400">{refLabel}</span>
-        <span className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
-          🕒 {formatSignedDuration(deltaMins)}
-        </span>
+      <div className="mt-1 text-sm leading-tight">
+        <div className="text-gray-400">
+          Since {refLabelDate} ({refSeason} Solstice)
+        </div>
+        <div className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
+          Daylight {formatSignedDuration(deltaMins)}
+        </div>
       </div>
     </div>
   );
