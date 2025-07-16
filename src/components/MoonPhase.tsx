@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon, calculateMoonPhase } from '@/utils/lunarUtils';
-import { calculateSolarTimes, getSolarEvents } from '@/utils/solarUtils';
+import { getSolarEvents } from '@/utils/solarUtils';
 import FullMoonBanner from './FullMoonBanner';
 import MoonVisual from './MoonVisual';
 import MoonData from './MoonData';
-import SolarInfo from './SolarInfo';
+import SunCard from './SunCard';
 import SolarEventInfo from './fishing/SolarEventInfo';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
@@ -68,11 +68,6 @@ const MoonPhase = ({
   const lat = currentLocation?.lat ?? 41.4353; // Default to Newport, RI
   const lng = currentLocation?.lng ?? -71.4616;
 
-  const solarTimes = React.useMemo(
-    () => calculateSolarTimes(currentDate, lat, lng),
-    [currentDate, lat, lng]
-  );
-
   const solarEvent = getSolarEvents(currentDate);
 
   return (
@@ -95,7 +90,7 @@ const MoonPhase = ({
           />
 
           <div className="border-t border-muted pt-4 w-full space-y-4">
-            <SolarInfo solarTimes={solarTimes} zipCode={currentLocation?.zipCode} />
+            <SunCard lat={lat} lng={lng} date={currentDate} />
             {solarEvent && <SolarEventInfo selectedDate={currentDate} />}
           </div>
         </CardContent>
