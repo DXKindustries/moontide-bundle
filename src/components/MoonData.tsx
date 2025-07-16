@@ -52,22 +52,22 @@ const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4 w-full">
-      <div className="text-center">
-        <p className="text-muted-foreground text-sm">Illumination</p>
-        <p className="text-lg font-semibold text-moon-primary">{illumination}%</p>
+    <div className="w-full text-sm divide-y divide-muted/30">
+      <div className="flex items-center justify-between py-1">
+        <span className="text-muted-foreground">Illumination</span>
+        <span className="font-semibold text-moon-primary">{illumination}%</span>
       </div>
-      <div className="text-center">
-        <p className="text-muted-foreground text-sm">Moonrise</p>
-        <p className="text-lg font-semibold">{formatTimeToAmPm(moonrise)}</p>
+      <div className="flex items-center justify-between py-1">
+        <span className="text-muted-foreground">Moonrise</span>
+        <span className="font-semibold">{formatTimeToAmPm(moonrise)}</span>
       </div>
-      <div className="text-center">
-        <p className="text-muted-foreground text-sm">Moonset</p>
-        <p className="text-lg font-semibold">{formatTimeToAmPm(moonset)}</p>
+      <div className="flex items-center justify-between py-1">
+        <span className="text-muted-foreground">Moonset</span>
+        <span className="font-semibold">{formatTimeToAmPm(moonset)}</span>
       </div>
-      <div className="text-center">
-        <p className="text-muted-foreground text-sm">Next Phase</p>
-        <p className="text-lg font-semibold">{nextPhaseInfo}</p>
+      <div className="flex items-center justify-between py-1">
+        <span className="text-muted-foreground">Next Phase</span>
+        <span className="font-semibold">{nextPhaseInfo}</span>
       </div>
     </div>
   );

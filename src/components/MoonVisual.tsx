@@ -32,7 +32,9 @@ const MoonVisual = ({ phase, illumination }: MoonVisualProps) => {
 
   return (
     <div className="relative">
-      <div className={`w-36 h-36 rounded-full animate-pulse shadow-lg ${getMoonPhaseVisual()}`}></div>
+      <div
+        className={`w-36 h-36 rounded-full animate-pulse shadow-lg shadow-moon-primary/40 ${getMoonPhaseVisual()}`}
+      ></div>
       <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-8 bg-gradient-to-t from-moon-primary/20 to-transparent w-24 h-12 blur-md rounded-full"></div>
     </div>
   );
