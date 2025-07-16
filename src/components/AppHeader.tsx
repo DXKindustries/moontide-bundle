@@ -31,14 +31,14 @@ export default function AppHeader({
         </div>
         <div className="flex items-center justify-evenly py-1 w-full">
           <Link to="/fishing-calendar" className="flex flex-col items-center w-20 gap-1">
-            <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-              <Calendar className="h-6 w-6" />
+            <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+              <Calendar className="h-5 w-5" />
             </Button>
             <div className="text-xs text-gray-400 text-center">Moon Calendar</div>
           </Link>
           <Link to="/settings" className="flex flex-col items-center w-20 gap-1">
-            <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-              <Settings className="h-6 w-6" />
+            <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+              <Settings className="h-5 w-5" />
             </Button>
             <div className="text-xs text-gray-400 text-center">Settings</div>
           </Link>
@@ -47,10 +47,11 @@ export default function AppHeader({
             onStationSelect={onStationSelect}
             forceOpen={forceShowLocationSelector}
             onClose={onLocationSelectorClose}
+            buttonClassName="p-0"
             triggerContent={
               <div className="flex flex-col items-center w-20 gap-1">
-                <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
-                  <MapPin className="h-6 w-6" />
+                <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                  <MapPin className="h-5 w-5" />
                 </Button>
                 <div className="text-xs text-gray-400 text-center">Change Tides</div>
               </div>
