@@ -69,6 +69,8 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 
 // More accurate moon phase calculation using a known lunar cycle reference
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
+  console.log("USING DYNAMIC EPHEMERIS ANCHOR — version 2024-07-16");
+
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
   // Ephemeris anchor: most recent known new moon before or on the date
   const lastNewMoon = findMostRecentNewMoon(date);
@@ -108,14 +110,25 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
     phase = "Waning Crescent";
   }
   
-  console.log(
-    `calculateMoonPhase: anchor=${lastNewMoon.toISOString().slice(0, 10)}, ` +
-    `cycleLength=${cycleLength.toFixed(5)}, ` +
-    `daysSinceNewMoon=${daysSinceNewMoon.toFixed(5)}, ` +
-    `cyclePosition=${cyclePosition.toFixed(5)}, ` +
-    `phase=${phase}, ` +
-    `illumination=${illumination}`
-  );
+  console.log('Input date:', date.toISOString());
+  console.log('lastNewMoon:', lastNewMoon.toISOString());
+  console.log('nextNewMoon:', nextNewMoon.toISOString());
+  console.log('daysSinceNewMoon:', daysSinceNewMoon);
+  console.log('cycleLength:', cycleLength);
+  console.log('cyclePosition:', cyclePosition);
+  console.log('phase:', phase);
+  console.log('illumination:', illumination);
+
+  console.log('Phase boundaries used:', {
+    newMoon: '<0.0625',
+    waxingCrescent: '<0.1875',
+    firstQuarter: '<0.3125',
+    waxingGibbous: '<0.4375',
+    fullMoon: '<0.5625',
+    waningGibbous: '<0.6875',
+    lastQuarter: '<0.8125',
+    waningCrescent: '>=0.8125'
+  });
   
   return { phase, illumination };
 };
