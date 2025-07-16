@@ -58,7 +58,7 @@ export function normalizeStation(
     lng        : Number(record.lng ?? record.longitude),
     city       : record.city  ?? '',
     state      : record.state ?? '',
-    userSelectedState: (record as any).userSelectedState ?? '',
+    userSelectedState: record.userSelectedState ?? '',
     zipCode    : record.zipCode ?? '',
     sourceType : 'station',
     timestamp  : Date.now(),
