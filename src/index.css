@@ -147,7 +147,7 @@
   }
 
   .navItem {
-    @apply flex flex-col items-center gap-[2px] h-[42px];
+    @apply flex flex-col items-center gap-[2px] h-[42px] w-[64px] text-center;
   }
 
   /* Responsive calendar layout */
