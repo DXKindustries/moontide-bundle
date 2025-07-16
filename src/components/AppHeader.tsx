@@ -32,18 +32,18 @@ export default function AppHeader({
         <nav className="flex items-end justify-evenly px-4 py-0">
           <Link to="/fishing-calendar" className="flex flex-1 justify-center">
             <div className="navItem">
-              <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                <Calendar className="w-[18px] h-[18px] leading-none" />
+              <Button variant="ghost" size="icon" className="p-0 text-[16px] leading-none">
+                <Calendar className="w-[16px] h-[16px] leading-none" />
               </Button>
-              <span className="text-[11px] leading-[13px] text-gray-400">Moon Calendar</span>
+              <span className="text-[10px] leading-[12px] text-gray-400 whitespace-normal">Moon Calendar</span>
             </div>
           </Link>
           <Link to="/settings" className="flex flex-1 justify-center">
             <div className="navItem">
-              <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                <Settings className="w-[18px] h-[18px] leading-none" />
+              <Button variant="ghost" size="icon" className="p-0 text-[16px] leading-none">
+                <Settings className="w-[16px] h-[16px] leading-none" />
               </Button>
-              <span className="text-[11px] leading-[13px] text-gray-400">Settings</span>
+              <span className="text-[10px] leading-[12px] text-gray-400 whitespace-normal">Settings</span>
             </div>
           </Link>
           <LocationSelector
@@ -54,10 +54,10 @@ export default function AppHeader({
             buttonClassName="flex flex-1 justify-center p-0"
             triggerContent={
               <div className="navItem">
-                <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
-                  <MapPin className="w-[18px] h-[18px] leading-none" />
+                <Button variant="ghost" size="icon" className="p-0 text-[16px] leading-none">
+                  <MapPin className="w-[16px] h-[16px] leading-none" />
                 </Button>
-                <span className="text-[11px] leading-[13px] text-gray-400">Change Tides</span>
+                <span className="text-[10px] leading-[12px] text-gray-400 whitespace-normal">Change Tides</span>
               </div>
             }
           />
