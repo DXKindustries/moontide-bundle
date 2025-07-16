@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, Plus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { LocationData } from '@/types/locationTypes';
 import SavedLocationsList from './SavedLocationsList';
 import { Station } from '@/services/tide/stationService';
@@ -27,7 +28,8 @@ export default function LocationSelector({
   forceOpen,
   onClose,
   onStationSelect,
-  triggerContent
+  triggerContent,
+  buttonClassName
 }: {
   onSelect: (loc: SavedLocation) => void;
   onLocationClear?: () => void;
@@ -35,6 +37,7 @@ export default function LocationSelector({
   onClose?: () => void;
   onStationSelect?: (station: Station) => void;
   triggerContent?: React.ReactNode;
+  buttonClassName?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -100,7 +103,12 @@ export default function LocationSelector({
   return (
     <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1 px-3 py-2 text-sm font-medium">
+        <button
+          className={cn(
+            "flex items-center gap-1",
+            buttonClassName ? buttonClassName : "px-3 py-2 text-sm font-medium"
+          )}
+        >
           {triggerContent ?? (
             <>
               <MapPin size={16} />
