@@ -70,43 +70,52 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 // More accurate moon phase calculation using a known lunar cycle reference
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  // Ephemeris anchor: most recent known new moon before or on the date
   const lastNewMoon = findMostRecentNewMoon(date);
   const lastIndex = NEW_MOON_DATES_UTC.indexOf(lastNewMoon.toISOString().slice(0, 10));
   const nextIndex = Math.min(lastIndex + 1, NEW_MOON_DATES_UTC.length - 1);
   const nextNewMoon = new Date(`${NEW_MOON_DATES_UTC[nextIndex]}T00:00:00Z`);
 
+  // Dynamic cycle parameters
   const daysSinceNewMoon = (date.getTime() - lastNewMoon.getTime()) / MS_PER_DAY;
-  const cycleLength = (nextNewMoon.getTime() - lastNewMoon.getTime()) / MS_PER_DAY || 29.530588853;
+  const cycleLength = (nextNewMoon.getTime() - lastNewMoon.getTime()) / MS_PER_DAY;
 
-  const cyclePosition = daysSinceNewMoon;
-  const lunarCycleLength = cycleLength;
+  // Position in cycle as a fraction (0-1)
+  const cyclePosition = daysSinceNewMoon / cycleLength;
   
   // Calculate illumination percentage (0-100)
-  const illuminationDecimal = (1 - Math.cos((cyclePosition / lunarCycleLength) * 2 * Math.PI)) / 2;
+  const illuminationDecimal = (1 - Math.cos(cyclePosition * 2 * Math.PI)) / 2;
   const illumination = Math.round(illuminationDecimal * 100);
   
   // Determine phase based on cycle position with more precise boundaries
   let phase: string;
   
-  if (cyclePosition < 1.84566) {
+  if (cyclePosition < 0.0625) {
     phase = "New Moon";
-  } else if (cyclePosition < 5.53699) {
+  } else if (cyclePosition < 0.1875) {
     phase = "Waxing Crescent";
-  } else if (cyclePosition < 9.22831) {
+  } else if (cyclePosition < 0.3125) {
     phase = "First Quarter";
-  } else if (cyclePosition < 12.91963) {
+  } else if (cyclePosition < 0.4375) {
     phase = "Waxing Gibbous";
-  } else if (cyclePosition < 16.61096) {
+  } else if (cyclePosition < 0.5625) {
     phase = "Full Moon";
-  } else if (cyclePosition < 20.30228) {
+  } else if (cyclePosition < 0.6875) {
     phase = "Waning Gibbous";
-  } else if (cyclePosition < 23.99361) {
+  } else if (cyclePosition < 0.8125) {
     phase = "Last Quarter";
   } else {
     phase = "Waning Crescent";
   }
   
-  console.log(`🌙 calculateMoonPhase for ${date.toISOString().slice(0, 10)}: cyclePosition=${cyclePosition.toFixed(2)}, phase=${phase}, illumination=${illumination}%`);
+  console.log(
+    `calculateMoonPhase: anchor=${lastNewMoon.toISOString().slice(0, 10)}, ` +
+    `cycleLength=${cycleLength.toFixed(5)}, ` +
+    `daysSinceNewMoon=${daysSinceNewMoon.toFixed(5)}, ` +
+    `cyclePosition=${cyclePosition.toFixed(5)}, ` +
+    `phase=${phase}, ` +
+    `illumination=${illumination}`
+  );
   
   return { phase, illumination };
 };
