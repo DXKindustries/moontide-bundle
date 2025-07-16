@@ -29,18 +29,18 @@ export default function AppHeader({
             MoonTide
           </h1>
         </div>
-        <div className="flex items-center justify-evenly py-2 w-full">
-          <Link to="/fishing-calendar" className="flex flex-col items-center">
-            <Button variant="ghost" size="icon" className="mb-1">
-              <Calendar className="h-5 w-5" />
+        <div className="flex items-center justify-evenly py-1 w-full">
+          <Link to="/fishing-calendar" className="flex flex-col items-center w-20 gap-1">
+            <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+              <Calendar className="h-6 w-6" />
             </Button>
-            <div className="text-xs text-gray-400">Moon Calendar</div>
+            <div className="text-xs text-gray-400 text-center">Moon Calendar</div>
           </Link>
-          <Link to="/settings" className="flex flex-col items-center">
-            <Button variant="ghost" size="icon" className="mb-1">
-              <Settings className="h-5 w-5" />
+          <Link to="/settings" className="flex flex-col items-center w-20 gap-1">
+            <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+              <Settings className="h-6 w-6" />
             </Button>
-            <div className="text-xs text-gray-400">Settings</div>
+            <div className="text-xs text-gray-400 text-center">Settings</div>
           </Link>
           <LocationSelector
             onSelect={onLocationChange}
@@ -48,11 +48,11 @@ export default function AppHeader({
             forceOpen={forceShowLocationSelector}
             onClose={onLocationSelectorClose}
             triggerContent={
-              <div className="flex flex-col items-center">
-                <Button variant="ghost" size="icon" className="mb-1">
-                  <MapPin className="h-5 w-5" />
+              <div className="flex flex-col items-center w-20 gap-1">
+                <Button variant="ghost" size="icon" className="h-6 w-6 p-0">
+                  <MapPin className="h-6 w-6" />
                 </Button>
-                <div className="text-xs text-gray-400">Change Tides</div>
+                <div className="text-xs text-gray-400 text-center">Change Tides</div>
               </div>
             }
           />
