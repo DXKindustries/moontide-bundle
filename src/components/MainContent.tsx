@@ -6,6 +6,7 @@ import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
 import { formatApiDate } from '@/utils/dateTimeUtils';
+import { calculateMoonPhase } from '@/utils/lunarUtils';
 
 interface MainContentProps {
   error: string | null;
@@ -36,9 +37,11 @@ export default function MainContent({
   banner,
   onGetStarted
 }: MainContentProps) {
+  const { phase, illumination } = calculateMoonPhase(new Date(currentDate));
+
   const moonPhaseData = {
-    phase: weeklyForecast.length > 0 ? weeklyForecast[0].moonPhase : "Waxing Crescent",
-    illumination: weeklyForecast.length > 0 ? weeklyForecast[0].illumination : 35,
+    phase,
+    illumination,
     moonrise: "18:42",
     moonset: "07:15",
     date: formatApiDate(currentDate)
