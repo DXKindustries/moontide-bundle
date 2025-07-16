@@ -146,6 +146,10 @@
     @apply border-2 !border-moon-primary;
   }
 
+  .navItem {
+    @apply flex flex-col items-center gap-[2px] h-[42px];
+  }
+
   /* Responsive calendar layout */
   .rdp {
     width: 100%;
