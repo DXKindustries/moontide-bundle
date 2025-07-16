@@ -23,41 +23,68 @@ export default function AppHeader({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-sm shadow-md">
       <div className="flex flex-col w-full">
-        <div className="flex items-center justify-center py-2 px-4">
+        <div className="flex items-center justify-center pt-2 pb-1 px-4">
           <MoonTideIcon className="h-6 w-6 text-moon-primary mr-2" />
           <h1 className="text-xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
             MoonTide
           </h1>
         </div>
-        <div className="flex items-center justify-evenly py-1 w-full">
-          <Link to="/fishing-calendar" className="flex flex-col items-center w-20 gap-1">
-            <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-              <Calendar className="h-5 w-5" />
-            </Button>
-            <div className="text-xs text-gray-400 text-center">Moon Calendar</div>
-          </Link>
-          <Link to="/settings" className="flex flex-col items-center w-20 gap-1">
-            <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <div className="text-xs text-gray-400 text-center">Settings</div>
-          </Link>
-          <LocationSelector
-            onSelect={onLocationChange}
-            onStationSelect={onStationSelect}
-            forceOpen={forceShowLocationSelector}
-            onClose={onLocationSelectorClose}
-            buttonClassName="p-0"
-            triggerContent={
-              <div className="flex flex-col items-center w-20 gap-1">
-                <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                  <MapPin className="h-5 w-5" />
+        <nav className="flex flex-col w-full">
+          <div className="flex items-center h-7">
+            <Link
+              to="/fishing-calendar"
+              className="flex flex-1 items-center justify-center"
+            >
+              <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
+                <Calendar className="w-[18px] h-[18px]" />
+              </Button>
+            </Link>
+            <Link
+              to="/settings"
+              className="flex flex-1 items-center justify-center"
+            >
+              <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
+                <Settings className="w-[18px] h-[18px]" />
+              </Button>
+            </Link>
+            <LocationSelector
+              onSelect={onLocationChange}
+              onStationSelect={onStationSelect}
+              forceOpen={forceShowLocationSelector}
+              onClose={onLocationSelectorClose}
+              buttonClassName="flex flex-1 items-center justify-center p-0"
+              triggerContent={
+                <Button variant="ghost" size="icon" className="p-0 text-[18px] leading-none">
+                  <MapPin className="w-[18px] h-[18px]" />
                 </Button>
-                <div className="text-xs text-gray-400 text-center">Change Tides</div>
-              </div>
-            }
-          />
-        </div>
+              }
+            />
+          </div>
+          <div className="flex h-4 text-[11px] leading-[13px] text-center text-gray-400">
+            <Link
+              to="/fishing-calendar"
+              className="flex flex-1 items-center justify-center"
+            >
+              Moon Calendar
+            </Link>
+            <Link
+              to="/settings"
+              className="flex flex-1 items-center justify-center"
+            >
+              Settings
+            </Link>
+            <LocationSelector
+              onSelect={onLocationChange}
+              onStationSelect={onStationSelect}
+              forceOpen={forceShowLocationSelector}
+              onClose={onLocationSelectorClose}
+              buttonClassName="flex flex-1 items-center justify-center p-0"
+              triggerContent={
+                <span className="w-full">Change Tides</span>
+              }
+            />
+          </div>
+        </nav>
       </div>
     </header>
   );
