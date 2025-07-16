@@ -22,7 +22,6 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
   const isSummerWindow = date >= summerSolstice && date < winterSolstice;
   const refLabelDate = isSummerWindow ? 'Jun 21' : 'Dec 21';
   const refSeasonFull = isSummerWindow ? 'Summer' : 'Winter';
-  const refSeasonShort = isSummerWindow ? 'Sum.' : 'Win.';
 
   const solsticeDaylightMins = calculateSolarTimes(
     isSummerWindow ? summerSolstice : winterSolstice,
@@ -57,11 +56,8 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date }) => {
         <span className={`font-semibold ${gettingLonger ? 'text-lime-400' : gettingShorter ? 'text-red-400' : 'text-gray-300'}`}>{sunTimes.changeFromPrevious}</span>
       </div>
       <div className="mt-1 text-sm leading-tight">
-        <div className="flex items-center gap-1 whitespace-nowrap text-[0.688rem] sm:text-xs md:text-sm text-gray-400">
-          <span>Since {refLabelDate}</span>
-          {/* xs/sm = short label; md+ = full label */}
-          <span className="md:hidden">({refSeasonShort})</span>
-          <span className="hidden md:inline">({refSeasonFull} Solstice)</span>
+        <div className="flex items-center whitespace-nowrap gap-1 text-[0.688rem] sm:text-xs md:text-sm text-gray-400">
+          Since {refLabelDate} ({refSeasonFull} Solstice)
         </div>
         <div className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
           Daylight {formatSignedDuration(deltaMins)}
