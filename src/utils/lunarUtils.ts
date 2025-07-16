@@ -68,6 +68,8 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 };
 
 // More accurate moon phase calculation using a known lunar cycle reference
+import { debugLog } from "./debugLogger";
+
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
   console.log("USING DYNAMIC EPHEMERIS ANCHOR — version 2024-07-16");
 
@@ -89,9 +91,9 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
   const illuminationDecimal = (1 - Math.cos(cyclePosition * 2 * Math.PI)) / 2;
   const illumination = Math.round(illuminationDecimal * 100);
   
-  // Determine phase based on cycle position with more precise boundaries
+  // Determine phase with refined waning boundaries
   let phase: string;
-  
+
   if (cyclePosition < 0.0625) {
     phase = "New Moon";
   } else if (cyclePosition < 0.1875) {
@@ -102,32 +104,24 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
     phase = "Waxing Gibbous";
   } else if (cyclePosition < 0.5625) {
     phase = "Full Moon";
-  } else if (cyclePosition < 0.6875) {
-    phase = "Waning Gibbous";
-  } else if (cyclePosition < 0.8125) {
-    phase = "Last Quarter";
   } else {
-    phase = "Waning Crescent";
+    const isWaning = cyclePosition >= 0.5;
+    const nearLastQuarter = Math.abs(cyclePosition - 0.75) <= 0.01;
+    const illuminationNearHalf = isWaning && Math.abs(illumination - 50) <= 5;
+
+    if (nearLastQuarter || illuminationNearHalf) {
+      phase = "Last Quarter";
+    } else if (cyclePosition < 0.74) {
+      phase = "Waning Gibbous";
+    } else {
+      phase = "Waning Crescent";
+    }
   }
   
-  console.log('Input date:', date.toISOString());
-  console.log('lastNewMoon:', lastNewMoon.toISOString());
-  console.log('nextNewMoon:', nextNewMoon.toISOString());
-  console.log('daysSinceNewMoon:', daysSinceNewMoon);
-  console.log('cycleLength:', cycleLength);
-  console.log('cyclePosition:', cyclePosition);
-  console.log('phase:', phase);
-  console.log('illumination:', illumination);
-
-  console.log('Phase boundaries used:', {
-    newMoon: '<0.0625',
-    waxingCrescent: '<0.1875',
-    firstQuarter: '<0.3125',
-    waxingGibbous: '<0.4375',
-    fullMoon: '<0.5625',
-    waningGibbous: '<0.6875',
-    lastQuarter: '<0.8125',
-    waningCrescent: '>=0.8125'
+  debugLog('calculateMoonPhase', {
+    cyclePosition,
+    illumination,
+    phase,
   });
   
   return { phase, illumination };
