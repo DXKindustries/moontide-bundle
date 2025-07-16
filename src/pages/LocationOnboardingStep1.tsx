@@ -233,7 +233,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
         <div className="flex-grow space-y-2 overflow-y-auto">
           <Select onValueChange={handleStateChange} value={selectedState}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a state" />
+              <SelectValue placeholder="Choose a state to view tides" />
             </SelectTrigger>
             <SelectContent className="max-h-60">
               {stateOptions.map((st) => (
