@@ -15,6 +15,7 @@ export const haversineDistance = (
 };
 
 // Function to determine moon phase based on date
+// DEPRECATED: use calculateMoonPhase from src/utils/lunarUtils.ts instead
 export const getMoonPhase = (date: Date): { phase: string, illumination: number } => {
   // Simple moon phase calculation (approximate)
   const year = date.getFullYear();
