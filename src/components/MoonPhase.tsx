@@ -78,17 +78,15 @@ const MoonPhase = ({
   return (
     <div className="w-full">
       <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
-        <CardHeader>
-          <CardTitle className="flex flex-col items-center space-y-1">
-            <span className="whitespace-nowrap text-base font-semibold sm:text-lg">{actualPhase}</span>
-            {fullMoonName && (
-              <FullMoonBanner fullMoonName={fullMoonName} />
-            )}
-            <span className="text-moon-primary text-sm whitespace-nowrap sm:text-base">{date}</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-6">
+        <CardHeader className="flex flex-col items-center space-y-2 py-4">
           <MoonVisual phase={actualPhase} illumination={actualIllumination} />
+          <CardTitle className="text-center text-lg sm:text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
+            {actualPhase}
+          </CardTitle>
+          {fullMoonName && <FullMoonBanner fullMoonName={fullMoonName} />}
+          <p className="text-sm text-muted-foreground -mt-1">{date}</p>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-4">
 
           <MoonData
             illumination={actualIllumination}
