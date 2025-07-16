@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Info } from "lucide-react";
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
-import { getFullMoonName, isFullMoon, getMoonEmoji } from '@/utils/lunarUtils';
+import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
 import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
 import { TideCycle } from '@/services/tide/types';
 import { Badge } from "@/components/ui/badge";
@@ -159,7 +159,6 @@ const WeeklyForecast = ({
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">Moon Phase</p>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">{getMoonEmoji(day.moonPhase)}</span>
                         <span className="text-sm">
                           {day.moonPhase}
                           {fullMoonName && (
