@@ -231,111 +231,118 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
         </div>
 
         <div className="flex-grow space-y-2 overflow-y-auto">
-          <Select onValueChange={handleStateChange} value={selectedState}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a state to view tides" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {stateOptions.map((st) => (
-                <SelectItem key={st.value} value={st.value}>
-                  {st.label} ({st.value})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* --- Updated Two-Line State Selector Below --- */}
+          <div style={{ marginBottom: 2 }}>
+            <div style={{ fontSize: '0.98em', color: '#BBB', marginBottom: 2 }}>
+              To View Tides
+            </div>
+            <Select onValueChange={handleStateChange} value={selectedState}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a State" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {stateOptions.map((st) => (
+                  <SelectItem key={st.value} value={st.value}>
+                    {st.label} ({st.value})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* --- End of Two-Line State Selector --- */}
 
           {selectedState && (
             <div className="space-y-2">
-            <Input
-              placeholder="Search stations"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <div className="flex gap-2 items-center">
-              {[10, 20, 30].map((r) => (
-                <Button
-                  key={r}
-                  size="sm"
-                  variant={radius === r ? 'default' : 'outline'}
-                  disabled={!selectedStation}
-                  onClick={() => setRadius(r)}
-                >
-                  {r}km
-                </Button>
-              ))}
-              {selectedStation && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleClearSelection}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            {error && (
-              <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
-                {error}
-              </div>
-            )}
-
-            <div className="max-h-40 overflow-y-auto border rounded-md divide-y">
-              {loading && (
-                <div className="p-2 text-sm flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading stations...
-                </div>
-              )}
-              {!loading &&
-                radiusFilteredStations.map((st) => (
-                  <div
-                    key={st.id}
-                    className={`p-2 cursor-pointer hover:bg-accent flex items-center justify-between ${selectedStation?.id === st.id ? 'bg-accent' : ''}`}
-                    onClick={() => setSelectedStation(st)}
-                  >
-                    <div>
-                      <div className="font-medium">{st.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {st.state} - {st.id} ({st.lat}, {st.lng})
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              {!loading && !error && radiusFilteredStations.length === 0 && (
-                <div className="p-2 text-sm">No stations found</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {favoriteStates.length > 0 && (
-          <div className="space-y-1">
-            <div className="text-sm font-medium">Favorite States</div>
-            <div className="flex flex-wrap gap-2">
-              {favoriteStates.map((st) => (
-                <div key={st} className="flex items-center gap-1">
+              <Input
+                placeholder="Search stations"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <div className="flex gap-2 items-center">
+                {[10, 20, 30].map((r) => (
                   <Button
+                    key={r}
                     size="sm"
-                    variant={selectedState === st ? 'default' : 'outline'}
-                    onClick={() => handleStateChange(st)}
+                    variant={radius === r ? 'default' : 'outline'}
+                    disabled={!selectedStation}
+                    onClick={() => setRadius(r)}
                   >
-                    {st}
+                    {r}km
                   </Button>
+                ))}
+                {selectedStation && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFavorite(st);
-                    }}
+                    onClick={handleClearSelection}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
+                )}
+              </div>
+              {error && (
+                <div className="p-2 text-sm text-red-600 bg-red-50 rounded">
+                  {error}
                 </div>
-              ))}
+              )}
+
+              <div className="max-h-40 overflow-y-auto border rounded-md divide-y">
+                {loading && (
+                  <div className="p-2 text-sm flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading stations...
+                  </div>
+                )}
+                {!loading &&
+                  radiusFilteredStations.map((st) => (
+                    <div
+                      key={st.id}
+                      className={`p-2 cursor-pointer hover:bg-accent flex items-center justify-between ${selectedStation?.id === st.id ? 'bg-accent' : ''}`}
+                      onClick={() => setSelectedStation(st)}
+                    >
+                      <div>
+                        <div className="font-medium">{st.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {st.state} - {st.id} ({st.lat}, {st.lng})
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {!loading && !error && radiusFilteredStations.length === 0 && (
+                  <div className="p-2 text-sm">No stations found</div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {favoriteStates.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-sm font-medium">Favorite States</div>
+              <div className="flex flex-wrap gap-2">
+                {favoriteStates.map((st) => (
+                  <div key={st} className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant={selectedState === st ? 'default' : 'outline'}
+                      onClick={() => handleStateChange(st)}
+                    >
+                      {st}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFavorite(st);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="sticky bottom-0 bg-background pt-2 space-y-2">
