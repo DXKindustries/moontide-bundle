@@ -4,8 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-// ✅ SVGR component import (matches Tide screen)
-import { ReactComponent as MoonTideIcon } from "@/assets/MoonTideIcon.svg";
+// ✅ default-URL import
+import MoonTideIcon from "@/assets/MoonTideIcon.svg";
 
 type FishingCalendarHeaderProps = {
   currentLocation: {
@@ -24,7 +24,8 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
     <div className="container mx-auto">
       <div className="flex flex-col items-center sm:flex-row sm:justify-between gap-2">
         <div className="flex items-center">
-          <MoonTideIcon className="h-8 w-8 text-moon-primary mr-2" />
+          {/* plain <img> logo */}
+          <img src={MoonTideIcon} alt="MoonTide logo" className="h-8 w-8 mr-2" />
           <h1 className="text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
             Calendar
           </h1>
