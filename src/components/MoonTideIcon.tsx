@@ -1,35 +1,13 @@
 import React from 'react';
+import { ReactComponent as MoonTideSvg } from '../assets/MoonTideIcon.svg';
 
-export default function MoonTideIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      width="320"
-      height="290"
-      viewBox="0 0 320 290"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path
-        d="M160 290c-88.366 0-160-64.981-160-145C0 64.981 71.634 0 160 0c88.366 0 160 64.981 160 145 0 80.019-71.634 145-160 145z"
-        fill="#8B5CF6"
-      />
-      <path
-        d="M320 145c0 80.019-71.634 145-160 145S0 225.019 0 145c0-2.465.062-4.921.183-7.366C29.044 187.555 90.073 236 160 236c69.927 0 130.956-48.445 159.817-98.366.121 2.445.183 4.901.183 7.366z"
-        fill="#38BDF8"
-      />
-      <path
-        d="M320 145c0 80.019-71.634 145-160 145S0 225.019 0 145c0-2.465.062-4.921.183-7.366C29.044 187.555 90.073 236 160 236c69.927 0 130.956-48.445 159.817-98.366.121 2.445.183 4.901.183 7.366z"
-        fill="#38BDF8"
-      />
-      <path
-        d="M320 145c0 80.019-71.634 145-160 145S0 225.019 0 145c0-2.465.062-4.921.183-7.366C29.044 187.555 90.073 236 160 236c69.927 0 130.956-48.445 159.817-98.366.121 2.445.183 4.901.183 7.366z"
-        fill="#38BDF8"
-      />
-      <path
-        d="M320 145c0 80.019-71.634 145-160 145S0 225.019 0 145c0-2.465.062-4.921.183-7.366C29.044 187.555 90.073 236 160 236c69.927 0 130.956-48.445 159.817-98.366.121 2.445.183 4.901.183 7.366z"
-        fill="#38BDF8"
-      />
-    </svg>
-  );
+/**
+ * Re-exports the SVG file as a React component.
+ * Usage elsewhere stays exactly the same:
+ *   <MoonTideIcon width={48} height={48} />
+ */
+export default function MoonTideIcon(
+  props: React.SVGProps<SVGSVGElement>
+): JSX.Element {
+  return <MoonTideSvg {...props} />;
 }
