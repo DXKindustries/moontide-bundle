@@ -1,7 +1,8 @@
 import React from 'react';
-import { CloudMoon, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
+import MoonTideIcon from "@/assets/icons/MoonTideIcon.svg";   // ← new wave-moon logo
 
 type FishingCalendarHeaderProps = {
   currentLocation: {
@@ -21,7 +22,7 @@ const FishingCalendarHeader: React.FC<FishingCalendarHeaderProps> = ({
       <div className="container mx-auto">
         <div className="flex flex-col items-center sm:flex-row sm:justify-between gap-2">
           <div className="flex items-center">
-            <CloudMoon className="h-8 w-8 text-moon-primary mr-2" />
+            <MoonTideIcon className="h-8 w-8 text-moon-primary mr-2" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-moon-primary to-moon-blue bg-clip-text text-transparent">
               Calendar
             </h1>
