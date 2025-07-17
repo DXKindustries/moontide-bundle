@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 
 // ✅ path now points to your existing SVG
-import MoonTideIcon from "@/assests/MoonTideIcon.svg";
+import MoonTideIcon from "@/assets/MoonTideIcon.svg";
 
 type FishingCalendarHeaderProps = {
   currentLocation: {
