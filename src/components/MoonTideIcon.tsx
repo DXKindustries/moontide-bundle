@@ -1,13 +1,12 @@
 import React from 'react';
-import { ReactComponent as MoonTideSvg } from '../assets/MoonTideIcon.svg';
+import iconPath from '../assets/MoonTideIcon.svg';
 
 /**
- * Re-exports the SVG file as a React component.
- * Usage elsewhere stays exactly the same:
- *   <MoonTideIcon width={48} height={48} />
+ * Renders the Moon-Tide logo SVG as an <img>.
+ * Keeps the same <MoonTideIcon {...props} /> interface.
  */
 export default function MoonTideIcon(
-  props: React.SVGProps<SVGSVGElement>
+  props: React.ImgHTMLAttributes<HTMLImageElement>
 ): JSX.Element {
-  return <MoonTideSvg {...props} />;
+  return <img src={iconPath} alt="Moon-Tide logo" {...props} />;
 }
