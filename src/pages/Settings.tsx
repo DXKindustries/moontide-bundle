@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StarsBackdrop from '@/components/StarsBackdrop';
 import SettingsHeader from '@/components/settings/SettingsHeader';
@@ -23,6 +22,17 @@ const Settings = () => {
         <SettingsHeader onBackPress={handleBackPress} />
         <div className="px-4 mt-6">
           <SettingsList />
+          <div className="mt-12 text-center space-y-2">
+            <p className="text-sm text-gray-400">
+              For more information, detailed instructions, and the latest updates, visit our website.
+            </p>
+            <Button
+              variant="link"
+              onClick={() => window.open('https://moontide.site', '_blank')}
+            >
+              Visit moontide.site
+            </Button>
+          </div>
         </div>
       </div>
     </div>
