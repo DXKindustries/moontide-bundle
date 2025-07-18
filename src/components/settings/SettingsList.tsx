@@ -2,17 +2,19 @@
 import React from 'react';
 import SettingsSection from './SettingsSection';
 import SettingsItem from './SettingsItem';
-import { 
-  User, 
-  MapPin, 
-  Bell, 
-  Palette, 
-  Globe, 
-  Shield, 
-  HelpCircle, 
+import {
+  User,
+  MapPin,
+  Bell,
+  Palette,
+  Globe,
+  Shield,
+  HelpCircle,
   Info,
   Star,
-  Share2
+  Share2,
+  FileText,
+  Mail
 } from 'lucide-react';
 
 const SettingsList = () => {
@@ -91,6 +93,24 @@ const SettingsList = () => {
           title="Share App"
           subtitle="Tell friends about MoonTide"
           onClick={() => console.log('Share clicked')}
+        />
+        <SettingsItem
+          icon={FileText}
+          title="Privacy Policy"
+          subtitle="Read how we handle data"
+          onClick={() => window.open('https://moontide.site/privacy', '_blank')}
+        />
+        <SettingsItem
+          icon={FileText}
+          title="Terms of Service"
+          subtitle="Review our terms"
+          onClick={() => window.open('https://moontide.site/terms', '_blank')}
+        />
+        <SettingsItem
+          icon={Mail}
+          title="Send Feedback or Suggestions"
+          subtitle="We'd love to hear from you"
+          onClick={() => window.open('mailto:moontidesite@gmail.com?subject=' + encodeURIComponent('Moontide App Feedback'), '_blank')}
         />
       </SettingsSection>
     </div>
