@@ -116,6 +116,7 @@ const WeeklyForecast = ({
           currentLocation={currentLocation || null}
           stationName={stationName || null}
           stationId={stationId || null}
+          showZipCode={false}
         />
       </CardHeader>
       <CardContent>
