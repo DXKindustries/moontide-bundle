@@ -8,9 +8,10 @@ interface LocationDisplayProps {
   stationName: string | null;
   stationId?: string | null;
   hasError?: boolean; // Add this prop to detect tide data errors
+  showZipCode?: boolean;
 }
 
-export default function LocationDisplay({ currentLocation, stationName, stationId, hasError }: LocationDisplayProps) {
+export default function LocationDisplay({ currentLocation, stationName, stationId, hasError, showZipCode = true }: LocationDisplayProps) {
   const formatLocationDisplay = () => {
     if (!currentLocation) return 'Select a location';
     if (stationName) return stationName;
@@ -41,7 +42,7 @@ export default function LocationDisplay({ currentLocation, stationName, stationI
         <span className="text-sm font-medium">
           {formatLocationDisplay()}
         </span>
-        {currentLocation.zipCode && (
+        {showZipCode && currentLocation.zipCode && (
           <span className="text-xs text-muted-foreground ml-2">
             ZIP {currentLocation.zipCode}
           </span>
