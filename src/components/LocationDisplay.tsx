@@ -11,7 +11,7 @@ interface LocationDisplayProps {
   showZipCode?: boolean;
 }
 
-export default function LocationDisplay({ currentLocation, stationName, stationId, hasError, showZipCode = true }: LocationDisplayProps) {
+export default function LocationDisplay({ currentLocation, stationName, stationId, hasError, showZipCode = false }: LocationDisplayProps) {
   const formatLocationDisplay = () => {
     if (!currentLocation) return 'Select a location';
     if (stationName) return stationName;
