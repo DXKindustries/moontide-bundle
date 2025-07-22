@@ -35,7 +35,7 @@ const SettingsList = () => {
         subtitle="Explore tidal stations near you"
         onClick={() =>
           window.open(
-            'https://tidesandcurrents.noaa.gov/map/',
+            'https://tidesandcurrents.noaa.gov/map/index.html',
             '_blank',
             'noopener,noreferrer'
           )
