@@ -1,6 +1,6 @@
 import React from 'react';
 import SettingsItem from './SettingsItem';
-import { FileText, Mail } from 'lucide-react';
+import { FileText, Mail, Globe } from 'lucide-react';
 
 const SettingsList = () => {
   return (
@@ -26,6 +26,18 @@ const SettingsList = () => {
             'mailto:moontidesite@gmail.com?subject=' +
               encodeURIComponent('Moontide App Feedback'),
             '_blank'
+          )
+        }
+      />
+      <SettingsItem
+        icon={Globe}
+        title="🌐 View NOAA Tide Station Map"
+        subtitle="Explore tidal stations near you"
+        onClick={() =>
+          window.open(
+            'https://tidesandcurrents.noaa.gov/map/',
+            '_blank',
+            'noopener,noreferrer'
           )
         }
       />
