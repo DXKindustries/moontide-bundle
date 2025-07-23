@@ -18,7 +18,6 @@ import { TidePoint, TideCycle } from '@/services/tide/types';
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
 import { formatIsoToAmPm, parseIsoAsLocal, formatDateTimeAsLocalIso } from '@/utils/dateTimeUtils';
-import { debugLog } from '@/utils/debugLogger';
 
 type TideChartProps = {
   curve: TidePoint[]; // continuous six-minute data
@@ -55,7 +54,6 @@ const TideChart = ({
   stationId,
   banner
 }: TideChartProps) => {
-  debugLog('TideChart render', { curvePoints: curve.length, eventCount: events.length, stationId });
   const today = new Date(date + 'T00:00:00');
   if (isNaN(today.getTime())) {
     const fallback = new Date(date);
