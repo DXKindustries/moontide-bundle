@@ -15,8 +15,6 @@ import { Station, sortStationsForDefault } from '@/services/tide/stationService'
 import { filterStationsNearby } from '@/utils/stationSearch';
 
 const Index = () => {
-  console.log('🚀 Index component rendering...');
-
   const {
     currentLocation,
     setCurrentLocation,
@@ -44,13 +42,8 @@ const Index = () => {
   const prevLocationIdRef = useRef<string | null>(currentLocation?.id || null);
   const prevStationIdRef = useRef<string | null>(selectedStation?.id || null);
 
-  const handleStationSelect = (st: Station) => {
-    console.log('🎯 Index onSelect station:', st);
-    setSelectedStation(st);
+  const handleStationSelect = (st: Station) => {    setSelectedStation(st);
   };
-
-  console.log('🌊 Current location for useTideData:', currentLocation);
-
   useEffect(() => {
     if (!currentLocation) {
       if (availableStations.length !== 0) setAvailableStations([]);
@@ -108,9 +101,7 @@ const Index = () => {
               currentLocation.lat,
               currentLocation.lng,
               filtered,
-            );
-            console.log('📍 Nearby stations:', filtered);
-          }
+            );          }
 
           const sorted = sortStationsForDefault(
             filtered,
@@ -150,14 +141,6 @@ const Index = () => {
     stationId,
     banner
   } = useTideData({ location: currentLocation, station: selectedStation });
-
-  console.log('📊 useTideData results:', {
-    isLoading,
-    error,
-    tideDataLength: tideData?.length || 0,
-    hasCurrentLocation: !!currentLocation
-  });
-
   if (!currentLocation) {
     return (
       <LocationOnboardingStep1 onStationSelect={handleStationSelect} />

@@ -9,9 +9,7 @@ import SettingsList from '@/components/settings/SettingsList';
 const Settings = () => {
   const navigate = useNavigate();
 
-  const handleBackPress = () => {
-    console.log('Back button pressed - navigating to home');
-    navigate('/');
+  const handleBackPress = () => {    navigate('/');
   };
 
   return (

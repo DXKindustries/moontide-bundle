@@ -14,5 +14,3 @@ export const STATION_BY_ZIP: Record<string, { id: string; name: string }> = {
   // Newport, Rhode Island
   '02840': { id: '8452660', name: 'Newport, RI' },
 };
-
-console.log('🗺️ Station mapping is now using real NOAA data instead of hardcoded values');

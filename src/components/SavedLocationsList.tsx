@@ -64,9 +64,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
   };
 
   const handleConfirmDelete = (): void => {
-    if (deletingLocation) {
-      console.log('🗑️ Deleting location:', deletingLocation);
-      locationStorage.deleteLocation(deletingLocation);
+    if (deletingLocation) {      locationStorage.deleteLocation(deletingLocation);
       const updated = locationStorage.getLocationHistory();
       setLocationHistory(updated);
       setDeletingLocation(null);
