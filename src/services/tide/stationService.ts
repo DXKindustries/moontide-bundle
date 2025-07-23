@@ -2,7 +2,6 @@
 
 import { cacheService } from '../cacheService';
 import { getDistanceKm } from './geo';
-import { debugLog } from '@/utils/debugLogger';
 
 const NOAA_MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi';
 
@@ -32,13 +31,11 @@ export async function getStationsForLocation(
   const key = `stations:${userInput.toLowerCase()}`;
 
   if (!userInput || !userInput.trim()) {
-    debugLog('Invalid station search term', { userInput });
     return [];
   }
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
-    debugLog('Station list cache hit', { userInput, count: cached.length });
     return cached;
   }
 
@@ -46,12 +43,10 @@ export async function getStationsForLocation(
     userInput,
   )}`;
 
-  debugLog('Fetching stations for location', { userInput, url });
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to fetch station list.");
   const data = await response.json();
   const stations = data.stations || [];
-  debugLog('Stations fetched', { userInput, count: stations.length });
   cacheService.set(key, stations, STATION_CACHE_TTL);
   return stations;
 }
@@ -68,36 +63,30 @@ export async function getStationsNearCoordinates(
 
   const cached = cacheService.get<Station[]>(key);
   if (cached) {
-    debugLog('Nearby station cache hit', { lat, lon, count: cached.length });
     return cached;
   }
 
   const url = `${NOAA_MDAPI_BASE}/stations.json?type=tidepredictions&rows=10000&lat=${lat}&lon=${lon}&radius=${radiusKm}`;
 
-  debugLog('Fetching stations near coordinates', { lat, lon, url });
   const response = await fetch(url);
   if (!response.ok) throw new Error('Unable to fetch station list.');
   const data = await response.json();
   const stations = data.stations || [];
-  debugLog('Nearby stations fetched', { lat, lon, count: stations.length });
   cacheService.set(key, stations, STATION_CACHE_TTL);
   return stations;
 }
 
 export async function getStationById(id: string): Promise<Station | null> {
   if (!isValidStationId(id)) {
-    debugLog('Invalid station ID lookup', { id });
     return null;
   }
   const key = `station:${id}`;
   const cached = cacheService.get<Station>(key);
   if (cached) {
-    debugLog('Station cache hit', id);
     return cached;
   }
 
   const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
-  debugLog('Fetching station by ID', { id, url });
   try {
     const response = await fetch(url);
     console.log('🟡 Raw station fetch result:', response);
@@ -124,7 +113,6 @@ export async function getStationById(id: string): Promise<Station | null> {
       longitude: parseFloat(stationData.lng ?? stationData.longitude),
       state: stationData.state,
     };
-    debugLog('Station fetched', station);
     cacheService.set(key, station, STATION_CACHE_TTL);
     return station;
   } catch (error) {

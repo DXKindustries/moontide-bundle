@@ -68,7 +68,6 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 };
 
 // More accurate moon phase calculation using a known lunar cycle reference
-import { debugLog } from "./debugLogger";
 
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
   console.log("USING DYNAMIC EPHEMERIS ANCHOR — version 2024-07-16");
@@ -118,7 +117,6 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
     }
   }
   
-  debugLog('calculateMoonPhase', {
     cyclePosition,
     illumination,
     phase,
