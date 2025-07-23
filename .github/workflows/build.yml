@@ -37,7 +37,7 @@ jobs:
 
       # 6) Upload artifact
       - name: Upload site.zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: site.zip
           path: site.zip
