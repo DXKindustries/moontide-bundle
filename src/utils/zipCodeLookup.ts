@@ -56,9 +56,7 @@ export const lookupZipCode = async (
 
   // ── 1. NEW CACHE SYSTEM ──────────────────────────────────
   const cached = cacheService.get<ZipApiResponse>(cacheKey);
-  if (cached) {
-    console.log(`✅ ZIP ${cleanZip} found in new cache system`);
-    return cached;
+  if (cached) {    return cached;
   }
 
   // ── 2. LEGACY LOCAL CACHE ────────────────────────────────
@@ -66,25 +64,18 @@ export const lookupZipCode = async (
   if (legacyCache[cleanZip]) {
     const result = legacyCache[cleanZip];
     // Migrate to new cache system
-    cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);
-    console.log(`✅ ZIP ${cleanZip} found in legacy cache and migrated`);
-    return result;
+    cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);    return result;
   }
 
   // ── 3. REMOTE LOOK-UP ────────────────────────────────────
-  try {
-    console.log(`🌐 Fetching ZIP ${cleanZip} from remote API`);
-    const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+  try {    const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
     if (!res.ok) return null;
 
     const data = (await res.json()) as ZipApiResponse;
     
     // Save to both cache systems
     cacheService.set(cacheKey, data, ZIP_API_CACHE_TTL);
-    saveZipCache(cleanZip, data);
-    
-    console.log(`✅ ZIP ${cleanZip} fetched and cached successfully`);
-    return data;
+    saveZipCache(cleanZip, data);    return data;
   } catch (err) {
     console.error('ZIP lookup network error:', err);
     return null;
