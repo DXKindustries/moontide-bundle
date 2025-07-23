@@ -62,11 +62,7 @@ export default function LocationSearchInput({
     return null;
   };
 
-  const addLocation = async () => {
-    console.log('🏁 addLocation triggered.');
-    const input = search.trim();
-    console.log('🔍 Attempting to add location for input:', input);
-    
+  const addLocation = async () => {    const input = search.trim();    
     const parsed = parseLocationInput(input);
     
     if (!parsed) {
@@ -79,11 +75,7 @@ export default function LocationSearchInput({
       let location: SavedLocation | null = null;
 
       if (parsed.type === 'zip') {
-        // ZIP code lookup
-        console.log('🌐 Looking up ZIP code:', parsed.zipCode);
-        const geo = await lookupZipCode(parsed.zipCode!);
-        console.log('📍 ZIP lookup result:', geo);
-        
+        // ZIP code lookup        const geo = await lookupZipCode(parsed.zipCode!);        
         if (!geo || !geo.places || geo.places.length === 0) {
           console.error('❌ ZIP not found in lookup service');
           toast.error('ZIP code not found. Please check and try again.');
@@ -93,9 +85,7 @@ export default function LocationSearchInput({
         const cityState = `${geo.places[0]['place name']}, ${geo.places[0].state}`;
         
         // De-dup on zip
-        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {
-          console.log('⚠️ ZIP already exists in saved locations');
-          toast.info('ZIP already saved');
+        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {          toast.info('ZIP already saved');
           setSearch('');
           onClose();
           return;
@@ -111,9 +101,7 @@ export default function LocationSearchInput({
           lng: parseFloat(geo.places[0].longitude),
         };
       } else if (parsed.type === 'cityStateZip') {
-        // Verify ZIP code and use provided city/state
-        console.log('🌐 Verifying ZIP code for city/state:', parsed);
-        const geo = await lookupZipCode(parsed.zipCode!);
+        // Verify ZIP code and use provided city/state        const geo = await lookupZipCode(parsed.zipCode!);
         
         if (!geo || !geo.places || geo.places.length === 0) {
           console.error('❌ ZIP not found in lookup service');
@@ -124,9 +112,7 @@ export default function LocationSearchInput({
         const cityState = `${parsed.city}, ${parsed.state}`;
         
         // De-dup on zip
-        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {
-          console.log('⚠️ ZIP already exists in saved locations');
-          toast.info('Location already saved');
+        if (savedLocations.some(l => l.zipCode === parsed.zipCode)) {          toast.info('Location already saved');
           setSearch('');
           onClose();
           return;
@@ -147,9 +133,7 @@ export default function LocationSearchInput({
         const locationId = `${parsed.city}-${parsed.state}`.toLowerCase();
         
         // De-dup on city/state combination
-        if (savedLocations.some(l => l.id === locationId)) {
-          console.log('⚠️ City/State already exists in saved locations');
-          toast.info('Location already saved');
+        if (savedLocations.some(l => l.id === locationId)) {          toast.info('Location already saved');
           setSearch('');
           onClose();
           return;
@@ -166,16 +150,12 @@ export default function LocationSearchInput({
         };
       }
       
-      if (location) {
-        console.log('✅ Created location object:', location);
-        
+      if (location) {        
         // Clear search and close dropdown
         setSearch('');
         onClose();
         
-        // Call onLocationAdd
-        console.log('📢 Calling onLocationAdd with location:', location);
-        onLocationAdd(location);
+        // Call onLocationAdd        onLocationAdd(location);
         
         toast.success(`Added ${location.cityState}`);
       }
@@ -185,18 +165,12 @@ export default function LocationSearchInput({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    console.log(`⌨️ Key pressed in location input: ${e.key}`);
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      console.log('🎯 Enter key detected, calling addLocation');
-      addLocation();
+  const handleKeyDown = (e: React.KeyboardEvent) => {    if (e.key === 'Enter') {
+      e.preventDefault();      addLocation();
     }
   };
 
-  const handleAddClick = () => {
-    console.log('🎯 Add location button clicked');
-    if (search.trim()) {
+  const handleAddClick = () => {    if (search.trim()) {
       addLocation();
     } else {
       toast.error('Enter a location first');

@@ -19,10 +19,7 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     console.error('Invalid station ID');
     return;
   }
-  const stationObject = station;
-  console.log('💾 Saving fetched station object:', stationObject);
-  console.log('Saving station currentLocation to storage:', station);
-  const finalState = userState ?? station.state ?? '';
+  const stationObject = station;  const finalState = userState ?? station.state ?? '';
   const storageObj = {
     stationId: station.id,
     stationName: station.name,
@@ -36,8 +33,6 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     isManual: false,
   };
   safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
-  console.log('Station currentLocation saved.');
-
   const locationData: LocationData = {
     zipCode: station.zip ?? '',
     city: station.city ?? station.name,
@@ -87,12 +82,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     stationName: isStationId ? location.name : undefined,
     nickname: location.name !== city ? location.name : undefined,
     isManual: false,
-  };
-
-  console.log('Saving current location to storage:', storageObj);
-  safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
-  console.log('Station currentLocation saved successfully.');
-
+  };  safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
   const locationData: LocationData = {
     zipCode: location.zipCode,
     city: city || location.name,
@@ -132,9 +122,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
 }
 
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
-  const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-  console.log('Loaded currentLocation from storage:', saved);
-  if (saved && saved.stationId && NUMERIC_ID_RE.test(String(saved.stationId))) {
+  const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);  if (saved && saved.stationId && NUMERIC_ID_RE.test(String(saved.stationId))) {
     return {
       id: saved.stationId || saved.zipCode || `${saved.city}-${saved.state}`,
       name: saved.nickname || saved.stationName || saved.city,
