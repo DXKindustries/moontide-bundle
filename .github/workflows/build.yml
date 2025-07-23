@@ -28,3 +28,16 @@ jobs:
       # 4) Build production
       - name: Build production
         run: npm run build
+
+      # 5) Package site
+      - name: Compress output
+        run: |
+          cd dist
+          zip -r ../site.zip .
+
+      # 6) Upload artifact
+      - name: Upload site.zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: site.zip
+          path: site.zip
