@@ -15,9 +15,7 @@ interface LocationManagerProps {
 }
 
 const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selectedState }: LocationManagerProps) => {
-  const handleLocationChange = (location: SavedLocation) => {
-    console.log('🔄 LocationManager: Location change requested:', location);
-    if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
+  const handleLocationChange = (location: SavedLocation) => {    if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
       console.error('Invalid station ID');
       toast.error('Invalid station ID');
       return;
@@ -29,12 +27,8 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selected
         id: normalized.stationId,
         country: location.country || 'USA',
         name: location.name || normalized.stationName,
-      };
-      console.log('🔄 LocationManager: Calling setCurrentLocation');
-      setCurrentLocation(updatedLocation);
-      persistCurrentLocation(updatedLocation);
-      console.log('💾 LocationManager: Location saved successfully');
-      setShowLocationSelector(false);
+      };      setCurrentLocation(updatedLocation);
+      persistCurrentLocation(updatedLocation);      setShowLocationSelector(false);
       toast.success(`Loading tide data for ${updatedLocation.name}`);
     } catch (error) {
       console.error('❌ LocationManager: Invalid station:', error);
@@ -42,9 +36,7 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selected
     }
   };
 
-  const onSelectStation = (station: Station) => {
-    console.log('🔄 LocationManager: Station selected:', station);
-    if (!station.id || !NUMERIC_ID_RE.test(String(station.id))) {
+  const onSelectStation = (station: Station) => {    if (!station.id || !NUMERIC_ID_RE.test(String(station.id))) {
       console.error('Invalid station ID');
       toast.error('Invalid station ID');
       return;
@@ -52,18 +44,14 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selected
     const normalized = normalizeStation({ ...station, state: selectedState ?? station.state });
     try {
       persistStationCurrentLocation(normalized, selectedState);
-      saveStationHistory(normalized);
-      console.log('💾 LocationManager: Station saved successfully');
-    } catch (error) {
+      saveStationHistory(normalized);    } catch (error) {
       console.error('❌ LocationManager: Error saving station:', error);
     }
     setShowLocationSelector(false);
     toast.success(`Loading tide data for ${normalized.name}`);
   };
 
-  const handleLocationClear = () => {
-    console.log('🔄 LocationManager: Clearing current location');
-    
+  const handleLocationClear = () => {    
     // Clear storage first
     try {
       clearCurrentLocation();
@@ -72,13 +60,9 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selected
     }
     
     // Update state
-    setCurrentLocation(null);
-    console.log('🔄 LocationManager: Location cleared');
-  };
+    setCurrentLocation(null);  };
 
   const handleGetStarted = (location?: LocationData) => {
-    console.log('🔄 LocationManager: handleGetStarted called with:', location);
-
     if (location) {
       if (!location.stationId || !NUMERIC_ID_RE.test(location.stationId)) {
         console.error('Invalid station ID');
@@ -96,9 +80,7 @@ const LocationManager = ({ setCurrentLocation, setShowLocationSelector, selected
       };
 
       handleLocationChange(savedLocation);
-    } else {
-      console.log('🔄 LocationManager: No location provided, showing selector');
-      setShowLocationSelector(true);
+    } else {      setShowLocationSelector(true);
     }
   };
 

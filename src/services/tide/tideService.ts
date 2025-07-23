@@ -111,9 +111,7 @@ async function fetchTier(
     const key = cacheKey(p);
 
     const cached = cacheService.get<NoaaTideResponse>(key);
-    if (cached) {
-      console.log(`✅ Cache HIT for ${key}`);
-      return cached;
+    if (cached) {      return cached;
     }
 
     const { rows, err } = await tryFetch(buildUrl(p));

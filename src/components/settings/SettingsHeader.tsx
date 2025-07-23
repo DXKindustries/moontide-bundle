@@ -8,9 +8,7 @@ type SettingsHeaderProps = {
 };
 
 const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
-  const handleBackClick = () => {
-    console.log('SettingsHeader back button clicked');
-    onBackPress();
+  const handleBackClick = () => {    onBackPress();
   };
 
   return (

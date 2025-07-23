@@ -27,9 +27,7 @@ export default function CacheManagement() {
     setIsLoading(true);
     try {
       const cacheStats = getCacheStats();
-      setStats(cacheStats);
-      console.log('📊 Cache stats loaded:', cacheStats);
-    } catch (error) {
+      setStats(cacheStats);    } catch (error) {
       console.error('❌ Error loading cache stats:', error);
       setStats({ size: 0, entries: [] });
       toast.error('Failed to load cache statistics');
@@ -47,9 +45,7 @@ export default function CacheManagement() {
       setIsLoading(true);
       clearGeocodingCache();
       setRefreshKey(prev => prev + 1);
-      toast.success('Cache cleared successfully');
-      console.log('🧹 Cache cleared successfully');
-    } catch (error) {
+      toast.success('Cache cleared successfully');    } catch (error) {
       console.error('❌ Error clearing cache:', error);
       toast.error('Failed to clear cache');
     } finally {
@@ -59,9 +55,7 @@ export default function CacheManagement() {
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
-    toast.success('Cache stats refreshed');
-    console.log('🔄 Cache stats refreshed');
-  };
+    toast.success('Cache stats refreshed');  };
 
   const formatTime = (ms: number) => {
     if (ms < 0) return 'Expired';
