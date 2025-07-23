@@ -28,7 +28,6 @@ export const locationStorage = {
   saveCurrentLocation(location: LocationData): void {
     const id = validId(location);
     if (!id) {
-      console.error('[locationStorage] invalid stationId, aborting save');
       return;
     }
     const entry = {
@@ -67,7 +66,6 @@ export const locationStorage = {
   updateLocation(updated: LocationData): void {
     const id = validId(updated);
     if (!id) {
-      console.error('[locationStorage] invalid stationId, aborting update');
       return;
     }
     const history = locationStorage.getLocationHistory();
@@ -93,7 +91,6 @@ export const locationStorage = {
   deleteLocation(toDelete: LocationData): void {
     const id = validId(toDelete);
     if (!id) {
-      console.error('[locationStorage] invalid stationId, aborting delete');
       return;
     }
     const history = locationStorage

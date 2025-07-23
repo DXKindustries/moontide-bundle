@@ -12,7 +12,6 @@ function getInitialLocation(): (SavedLocation & { id: string; country: string })
   try {
     return loadCurrentLocation();
   } catch (error) {
-    console.warn('Error reading location:', error);
     return null;
   }
 }
@@ -38,19 +37,14 @@ const useLocationStateValue = () => {
 
   const setCurrentLocationWithPersist = useCallback((location: (SavedLocation & { id: string; country: string }) | null) => {
     setCurrentLocation(location);
-    try {
-      if (location) {
-        if (!NUMERIC_ID_RE.test(location.id)) {
-          console.error('Invalid station ID');
-          return;
-        }
-        persistCurrentLocation(location);
-        setShowLocationSelector(false);
-      } else {
-        clearCurrentLocation();
+    if (location) {
+      if (!NUMERIC_ID_RE.test(location.id)) {
+        return;
       }
-    } catch (err) {
-      console.warn('Error saving location:', err);
+      persistCurrentLocation(location);
+      setShowLocationSelector(false);
+    } else {
+      clearCurrentLocation();
     }
   }, []);
 
@@ -59,7 +53,6 @@ const useLocationStateValue = () => {
     setSelectedStation(station);
     if (station) {
       if (!NUMERIC_ID_RE.test(String(station.id))) {
-        console.error('Invalid station ID');
         return;
       }
       // Pick the state from userSelectedState (if set for this station), else NOAA's station.state
@@ -93,16 +86,12 @@ const useLocationStateValue = () => {
       setCurrentLocationWithPersist(mergedLocation);
       setShowLocationSelector(false);
 
-      try {
-        safeLocalStorage.set(
-          CURRENT_STATION_KEY,
-          station
-            ? { ...station, state: effectiveState, userSelectedState: station.userSelectedState }
-            : null,
-        );
-      } catch (err) {
-        console.warn('Error saving station:', err);
-      }
+      safeLocalStorage.set(
+        CURRENT_STATION_KEY,
+        station
+          ? { ...station, state: effectiveState, userSelectedState: station.userSelectedState }
+          : null,
+      );
     }
   }, [currentLocation, setCurrentLocationWithPersist]);
 

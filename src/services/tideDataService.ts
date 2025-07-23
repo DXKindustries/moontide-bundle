@@ -25,10 +25,6 @@ export async function getTideData(
   dateIso: string
   ): Promise<Prediction[]> {
   if (!isValidStationId(stationId) || !isValidIsoDate(dateIso)) {
-    console.error('❌ Invalid parameters for tide data request', {
-      stationId,
-      dateIso,
-    });
     throw new Error('Invalid parameters for tide data request');
   }
 

@@ -12,16 +12,12 @@ const CURRENT_LOCATION_KEY = 'currentLocation';
 
 export function persistStationCurrentLocation(station?: Station | null, userState?: string | null) {
   if (!station) {
-    console.error('Station object is undefined, not saving.');
     return;
   }
   if (!station.id || !NUMERIC_ID_RE.test(String(station.id))) {
-    console.error('Invalid station ID');
     return;
   }
   const stationObject = station;
-  console.log('💾 Saving fetched station object:', stationObject);
-  console.log('Saving station currentLocation to storage:', station);
   const finalState = userState ?? station.state ?? '';
   const storageObj = {
     stationId: station.id,
@@ -36,7 +32,6 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
     isManual: false,
   };
   safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
-  console.log('Station currentLocation saved.');
 
   const locationData: LocationData = {
     zipCode: station.zip ?? '',
@@ -71,7 +66,6 @@ export function persistStationCurrentLocation(station?: Station | null, userStat
 
 export function persistCurrentLocation(location: SavedLocation & { id: string; country: string }) {
   if (!location.id || !NUMERIC_ID_RE.test(location.id)) {
-    console.error('Invalid station ID');
     return;
   }
   const [city, state] = location.cityState.split(', ');
@@ -89,9 +83,7 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
     isManual: false,
   };
 
-  console.log('Saving current location to storage:', storageObj);
   safeLocalStorage.set(CURRENT_LOCATION_KEY, storageObj);
-  console.log('Station currentLocation saved successfully.');
 
   const locationData: LocationData = {
     zipCode: location.zipCode,
@@ -133,7 +125,6 @@ export function persistCurrentLocation(location: SavedLocation & { id: string; c
 
 export function loadCurrentLocation(): (SavedLocation & { id: string; country: string }) | null {
   const saved = safeLocalStorage.get(CURRENT_LOCATION_KEY);
-  console.log('Loaded currentLocation from storage:', saved);
   if (saved && saved.stationId && NUMERIC_ID_RE.test(String(saved.stationId))) {
     return {
       id: saved.stationId || saved.zipCode || `${saved.city}-${saved.state}`,

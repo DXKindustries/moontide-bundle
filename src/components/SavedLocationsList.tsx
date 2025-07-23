@@ -40,7 +40,6 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
         setStationStates(map);
         setMetadataReady(true);
       } catch (err) {
-        console.error('Failed to load station metadata', err);
         setMetadataReady(true); // Still set ready to prevent infinite loading
       }
     };
@@ -65,7 +64,6 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   const handleConfirmDelete = (): void => {
     if (deletingLocation) {
-      console.log('🗑️ Deleting location:', deletingLocation);
       locationStorage.deleteLocation(deletingLocation);
       const updated = locationStorage.getLocationHistory();
       setLocationHistory(updated);

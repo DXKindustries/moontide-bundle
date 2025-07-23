@@ -87,25 +87,14 @@ export async function getStationById(id: string): Promise<Station | null> {
   }
 
   const url = `${NOAA_MDAPI_BASE}/stations/${id}.json`;
-  try {
-    const response = await fetch(url);
-    console.log('🟡 Raw station fetch result:', response);
-    if (response.status === 404) return null;
-    let data;
-    try {
-      data = await response.json();
-      console.log('🟢 Response JSON (if applicable):', data);
-    } catch (jsonError) {
-      console.error('Error parsing station response JSON:', jsonError);
-      throw jsonError;
-    }
+  const response = await fetch(url);
+  if (response.status === 404) return null;
+  const data = await response.json();
     if (!response.ok) throw new Error('Unable to fetch station');
     const stationData = Array.isArray(data.stations) ? data.stations[0] : null;
     if (!stationData) {
-      console.error('❌ No station found for this ID');
       return null;
     }
-    console.log('Fetched station object:', stationData);
     const station: Station = {
       id: stationData.id,
       name: stationData.name,
@@ -113,12 +102,8 @@ export async function getStationById(id: string): Promise<Station | null> {
       longitude: parseFloat(stationData.lng ?? stationData.longitude),
       state: stationData.state,
     };
-    cacheService.set(key, station, STATION_CACHE_TTL);
-    return station;
-  } catch (error) {
-    console.error('Error fetching station by ID:', error);
-    throw error;
-  }
+  cacheService.set(key, station, STATION_CACHE_TTL);
+  return station;
 }
 
 /**

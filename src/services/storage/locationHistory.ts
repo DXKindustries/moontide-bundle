@@ -77,7 +77,6 @@ export function getLocationHistory(): SavedLocation[] {
 export function saveLocationHistory(item: Station | LocationHistoryEntry): void {
   const id = validId(item);
   if (!id) {
-    console.error('[storage] saveLocationHistory → invalid station ID');
     return;
   }
   const entry = normalizeStation(item);
@@ -101,7 +100,6 @@ export function getStationHistory(): StationHistoryItem[] {
 export function saveStationHistory(item: Station | LocationHistoryEntry): void {
   const id = validId(item);
   if (!id) {
-    console.error('[storage] saveStationHistory → invalid station ID');
     return;
   }
   const entry = normalizeStation(item);

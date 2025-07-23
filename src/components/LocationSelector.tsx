@@ -58,10 +58,9 @@ export default function LocationSelector({
   const navigate = useNavigate();
 
   const handleSavedLocationSelect = (location: LocationData): void => {
-    console.log('📍 Saved location selected:', location);
 
     if (!location.stationId || !NUMERIC_ID_RE.test(location.stationId)) {
-      console.error('Invalid station ID');
+      
       onClose?.();
       return;
     }

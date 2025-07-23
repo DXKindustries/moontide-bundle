@@ -17,24 +17,20 @@ class CacheService {
     };
     
     this.cache.set(key, entry);
-    console.log(`🔄 Cache SET: ${key}`);
   }
 
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
     
     if (!entry) {
-      console.log(`❌ Cache MISS: ${key}`);
       return null;
     }
 
     if (Date.now() > entry.expiry) {
       this.cache.delete(key);
-      console.log(`⏰ Cache EXPIRED: ${key}`);
       return null;
     }
 
-    console.log(`✅ Cache HIT: ${key}`);
     return entry.data as T;
   }
 
@@ -52,15 +48,11 @@ class CacheService {
 
   delete(key: string): boolean {
     const deleted = this.cache.delete(key);
-    if (deleted) {
-      console.log(`🗑️ Cache DELETE: ${key}`);
-    }
     return deleted;
   }
 
   clear(): void {
     this.cache.clear();
-    console.log('🧹 Cache CLEARED');
   }
 
   size(): number {

@@ -34,7 +34,6 @@ const MoonPhase = ({
   onGetStarted,
   hasData
 }: MoonPhaseProps) => {
-  console.log('Moon phase function used in UI:', calculateMoonPhase.name);
   // Simplified location detection - just check if location exists and has basic data
   const hasLocation = Boolean(
     currentLocation &&
@@ -45,12 +44,6 @@ const MoonPhase = ({
     )
   );
 
-  console.log('🌙 MoonPhase - Location check:', {
-    hasCurrentLocation: !!currentLocation,
-    hasLocation,
-    zipCode: currentLocation?.zipCode,
-    city: currentLocation?.city
-  });
 
   // Calculate the actual moon phase for today
   const currentDate = React.useMemo(() => new Date(date), [date]);

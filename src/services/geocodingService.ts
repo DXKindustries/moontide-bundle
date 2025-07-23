@@ -12,21 +12,18 @@ const ZIP_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 const CITY_CACHE_TTL = 24 * 60 * 60 * 1000; // 1 day
 
 export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResult | null> {
-  console.log(`🗺️ Getting coordinates for ZIP: ${zipCode}`);
   
   const cacheKey = `zip:${zipCode}`;
   
   // Check cache first
   const cached = cacheService.get<GeocodeResult>(cacheKey);
   if (cached) {
-    console.log(`✅ Found ZIP ${zipCode} in cache`);
     return cached;
   }
   
   
   // Try the free geocoding API
   try {
-    console.log(`🌐 Fetching coordinates from geocoding API for ZIP: ${zipCode}`);
     const response = await fetch(`${GEOCODING_API_BASE}${zipCode}`);
     
     if (!response.ok) {
@@ -44,27 +41,24 @@ export async function getCoordinatesForZip(zipCode: string): Promise<GeocodeResu
         state: place['state abbreviation']
       };
       
-      console.log(`✅ Geocoded ZIP ${zipCode}:`, result);
       cacheService.set(cacheKey, result, ZIP_CACHE_TTL);
       return result;
     }
     
     throw new Error('No location data found');
   } catch (error) {
-    console.warn(`⚠️ Geocoding failed for ZIP ${zipCode}:`, error);
+    // geocoding failed
     return null;
   }
 }
 
 export async function getCoordinatesForCity(city: string, state: string): Promise<GeocodeResult | null> {
-  console.log(`🏙️ Getting coordinates for city: ${city}, ${state}`);
 
   const cacheKey = `city:${city.toLowerCase()}-${state.toLowerCase()}`;
 
   // Check cache first
   const cached = cacheService.get<GeocodeResult>(cacheKey);
   if (cached) {
-    console.log(`✅ Found ${city}, ${state} in cache`);
     return cached;
   }
 
@@ -80,7 +74,6 @@ export async function getCoordinatesForCity(city: string, state: string): Promis
         addressdetails: '1'
       }).toString();
 
-    console.log(`🌐 Fetching coordinates from geocoding API for ${city}, ${state}`);
     const response = await fetch(url, {
       headers: { 'User-Agent': 'moontide-app' }
     });
@@ -100,14 +93,13 @@ export async function getCoordinatesForCity(city: string, state: string): Promis
         state: address.state_code || address.state || state
       } as GeocodeResult;
 
-      console.log(`✅ Geocoded ${city}, ${state}:`, result);
       cacheService.set(cacheKey, result, CITY_CACHE_TTL);
       return result;
     }
 
     throw new Error('No location data found');
   } catch (error) {
-    console.warn(`⚠️ Geocoding failed for ${city}, ${state}:`, error);
+    // geocoding failed
     return null;
   }
 }

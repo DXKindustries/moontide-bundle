@@ -97,7 +97,6 @@ async function fetchTier(
 ): Promise<NoaaTideResponse> {
   const validationError = validateParams(base);
   if (validationError) {
-    console.error('❌ NOAA request aborted:', validationError, base);
     return { predictions: [] };
   }
   const tiers: Array<Pick<QueryParams, 'product' | 'interval'>> = [
@@ -111,10 +110,9 @@ async function fetchTier(
     const key = cacheKey(p);
 
     const cached = cacheService.get<NoaaTideResponse>(key);
-    if (cached) {
-      console.log(`✅ Cache HIT for ${key}`);
-      return cached;
-    }
+      if (cached) {
+        return cached;
+      }
 
     const { rows, err } = await tryFetch(buildUrl(p));
     if (rows) {
@@ -122,16 +120,10 @@ async function fetchTier(
       return rows;
     }
 
-    console.info(
-      `ℹ️ No data for ${tier.product}/${tier.interval} → trying next tier`,
-      err,
-    );
+      // continue to next tier if no data
   }
 
-  console.warn('⚠️ NOAA returned no data for any tier', {
-    station: station.id,
-    err,
-  });
+  // no data for any tier
   return { predictions: [] }; // allow UI to show “no data”
 }
 

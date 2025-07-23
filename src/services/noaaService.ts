@@ -14,7 +14,6 @@ export async function getStationsForUserLocation(
 ): Promise<Station[]> {
   const radius = 30;
   if (lat != null && lon != null) {
-    console.log('Geocoded Lat/Lng:', { lat, lng: lon });
     const all = await getStationsNearCoordinates(lat, lon, radius);
 
     const candidateStations = all.map((s) => ({
@@ -22,7 +21,6 @@ export async function getStationsForUserLocation(
       distance: getDistanceKm(lat, lon, s.latitude, s.longitude),
     }));
 
-    console.log('Total candidate stations:', candidateStations.length);
 
     const filtered = candidateStations.filter(
       (s) =>
@@ -31,16 +29,12 @@ export async function getStationsForUserLocation(
         s.distance <= radius,
     );
 
-    console.log('Stations within 30km:', filtered.length, filtered);
 
     if (filtered.length === 0) {
       const sortedByDistance = [...candidateStations]
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 10);
-      console.warn(
-        'No nearby stations. Closest 10:',
-        sortedByDistance.map((s) => ({ name: s.name, distance: s.distance })),
-      );
+      // No nearby stations found
     }
 
     if (state) {

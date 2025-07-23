@@ -11,6 +11,5 @@ export async function fetchStationMetadata(): Promise<Array<{
   lat: number;
   lng: number;
 }>> {
-  console.log('📊 Fetching station metadata...');
   return await metadataManager.ensureLoaded();
 }

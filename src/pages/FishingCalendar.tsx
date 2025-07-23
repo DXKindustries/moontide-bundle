@@ -66,7 +66,6 @@ const Calendar = () => {
       if (period === 'AM' && hours === 12) hours = 0;
       return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
     } catch (error) {
-      console.error('Error parsing time string:', error);
       return new Date();
     }
   };

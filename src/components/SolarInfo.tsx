@@ -9,7 +9,6 @@ type SolarInfoProps = {
 };
 
 const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
-  console.log('🌅 SolarInfo received solarTimes:', solarTimes);
   
   const isGettingLonger = solarTimes.changeFromPrevious?.includes('+') || solarTimes.changeFromPrevious?.includes('longer');
   const isGettingShorter = solarTimes.changeFromPrevious?.includes('-') || solarTimes.changeFromPrevious?.includes('shorter');

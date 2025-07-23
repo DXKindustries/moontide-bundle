@@ -57,7 +57,6 @@ export const lookupZipCode = async (
   // ── 1. NEW CACHE SYSTEM ──────────────────────────────────
   const cached = cacheService.get<ZipApiResponse>(cacheKey);
   if (cached) {
-    console.log(`✅ ZIP ${cleanZip} found in new cache system`);
     return cached;
   }
 
@@ -67,13 +66,11 @@ export const lookupZipCode = async (
     const result = legacyCache[cleanZip];
     // Migrate to new cache system
     cacheService.set(cacheKey, result, ZIP_API_CACHE_TTL);
-    console.log(`✅ ZIP ${cleanZip} found in legacy cache and migrated`);
     return result;
   }
 
   // ── 3. REMOTE LOOK-UP ────────────────────────────────────
   try {
-    console.log(`🌐 Fetching ZIP ${cleanZip} from remote API`);
     const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
     if (!res.ok) return null;
 
@@ -82,11 +79,9 @@ export const lookupZipCode = async (
     // Save to both cache systems
     cacheService.set(cacheKey, data, ZIP_API_CACHE_TTL);
     saveZipCache(cleanZip, data);
-    
-    console.log(`✅ ZIP ${cleanZip} fetched and cached successfully`);
     return data;
   } catch (err) {
-    console.error('ZIP lookup network error:', err);
+    // network error
     return null;
   }
 };
