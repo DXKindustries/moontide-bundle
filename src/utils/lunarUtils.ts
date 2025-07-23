@@ -116,12 +116,7 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
       phase = "Waning Crescent";
     }
   }
-  
-    cyclePosition,
-    illumination,
-    phase,
-  });
-  
+
   return { phase, illumination };
 };
 

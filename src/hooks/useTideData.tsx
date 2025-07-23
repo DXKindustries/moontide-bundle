@@ -230,10 +230,6 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
         };
         tideCache.set(cacheKey, cacheEntry);
         setBanner(null);
-          points: curveData.length,
-          events: tidePoints.length,
-          forecastDays: forecast.length,
-        });
         setIsLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch tide data');

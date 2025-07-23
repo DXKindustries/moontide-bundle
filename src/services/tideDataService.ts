@@ -64,12 +64,11 @@ export async function getTideData(
 
   const data = raw as { predictions?: { t: string; v: string; type: 'H' | 'L' }[] };
   const list = Array.isArray(data?.predictions) ? data.predictions : [];
-  if (!Array.isArray(data?.predictions)) {
-  }
   return list.map((p: { t: string; v: string; type: 'H' | 'L' }): Prediction => ({
     timeIso: `${p.t.replace(' ', 'T')}:00`,
     valueFt: parseFloat(p.v),
     kind: p.type,
-  }));}
+  }));
+}
 
 export { getStationsForUserLocation } from './noaaService';
