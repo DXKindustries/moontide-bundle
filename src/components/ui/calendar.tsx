@@ -51,15 +51,18 @@ function Calendar({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onAnimationEnd={() => setSwipeDirection(null)}
+      className={cn(
+        swipeDirection === "next" && "calendar-animate-next",
+        swipeDirection === "prev" && "calendar-animate-prev"
+      )}
     >
+      <style>{`
+        .calendar-animate-next .rdp-months { animation: calendar-slide-left 0.3s ease-out; }
+        .calendar-animate-prev .rdp-months { animation: calendar-slide-right 0.3s ease-out; }
+      `}</style>
       <DayPicker
         showOutsideDays={showOutsideDays}
-        className={cn(
-          "p-3 pointer-events-auto",
-          className,
-          swipeDirection === "next" && "animate-calendar-slide-left",
-          swipeDirection === "prev" && "animate-calendar-slide-right"
-        )}
+        className={cn("p-3 pointer-events-auto", className)}
         classNames={{
           months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
           month: "space-y-4",
