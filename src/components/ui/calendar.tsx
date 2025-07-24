@@ -57,6 +57,14 @@ function Calendar({
       )}
     >
       <style>{`
+        @keyframes calendar-slide-left {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+        @keyframes calendar-slide-right {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
         .calendar-animate-next .rdp-months { animation: calendar-slide-left 0.3s ease-out; }
         .calendar-animate-prev .rdp-months { animation: calendar-slide-right 0.3s ease-out; }
       `}</style>
