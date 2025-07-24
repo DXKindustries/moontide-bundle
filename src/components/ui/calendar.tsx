@@ -51,6 +51,7 @@ function Calendar({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onAnimationEnd={() => setSwipeDirection(null)}
+      className="overflow-hidden"
     >
       <DayPicker
         showOutsideDays={showOutsideDays}
