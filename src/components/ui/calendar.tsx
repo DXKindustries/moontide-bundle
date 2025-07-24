@@ -2,7 +2,7 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import { addMonths, subMonths } from "date-fns";
+import { addMonths, subMonths, isAfter } from "date-fns";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,9 +16,20 @@ function Calendar({
   ...props
 }: CalendarProps) {
   const touchStartX = React.useRef<number | null>(null);
+  const [swipeDirection, setSwipeDirection] = React.useState<"next" | "prev" | null>(null);
   const handleTouchStart = React.useCallback((e: React.TouchEvent<HTMLDivElement>) => {
     touchStartX.current = e.changedTouches[0].clientX;
   }, []);
+
+  const handleMonthChange = React.useCallback(
+    (date: Date) => {
+      const currentMonth = props.month ?? new Date();
+      const isNext = isAfter(date, currentMonth);
+      setSwipeDirection(isNext ? "next" : "prev");
+      props.onMonthChange?.(date);
+    },
+    [props.onMonthChange, props.month]
+  );
 
   const handleTouchEnd = React.useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
@@ -28,15 +39,23 @@ function Calendar({
       if (Math.abs(diff) > threshold) {
         const currentMonth = props.month ?? new Date();
         const newMonth = diff < 0 ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1);
-        props.onMonthChange?.(newMonth);
+        handleMonthChange(newMonth);
       }
       touchStartX.current = null;
     },
-    [props]
+    [props.month, handleMonthChange]
   );
 
   return (
-    <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onAnimationEnd={() => setSwipeDirection(null)}
+      className={cn(
+        swipeDirection === "next" && "animate-calendar-slide-left",
+        swipeDirection === "prev" && "animate-calendar-slide-right"
+      )}
+    >
       <DayPicker
         showOutsideDays={showOutsideDays}
         className={cn("p-3 pointer-events-auto", className)}
@@ -74,11 +93,12 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
-      }}
-      {...props}
+        onMonthChange={handleMonthChange}
+        components={{
+          IconLeft: ({ ..._props }) => <ChevronLeft className="h-4 w-4" />,
+          IconRight: ({ ..._props }) => <ChevronRight className="h-4 w-4" />,
+        }}
+        {...props}
       />
     </div>
   );
