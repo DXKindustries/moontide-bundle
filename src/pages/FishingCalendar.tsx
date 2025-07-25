@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format, addDays, addMonths, parse } from 'date-fns';
-import { Card, CardContent } from "@/components/ui/card";
 import StarsBackdrop from '@/components/StarsBackdrop';
 import { useTideData } from '@/hooks/useTideData';
 import { useLocationState } from '@/hooks/useLocationState';
 import { TideForecast, TideCycle } from '@/services/tide/types';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import FishingCalendarHeader from '@/components/fishing/FishingCalendarHeader';
-import CalendarCard from '@/components/fishing/CalendarCard';
+import MoonCalendar from '@/components/MoonCalendar';
 import SelectedDateDetails from '@/components/fishing/SelectedDateDetails';
 
 // Types for calendar conditions (was: fishing conditions)
@@ -202,7 +201,11 @@ const Calendar = () => {
         )}
 
         <div className="w-full">
-          <CalendarCard selectedDate={selectedDate} />
+          <MoonCalendar
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            weeklyForecast={weeklyForecast}
+          />
         </div>
 
         {selectedDateInfo && (
