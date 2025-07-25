@@ -1,6 +1,7 @@
 import React from 'react';
 import { addMonths, subMonths } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+// Use lightweight local stubs to avoid bundling the full framer-motion library
+import { motion, AnimatePresence } from '@/lib/framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Card,
