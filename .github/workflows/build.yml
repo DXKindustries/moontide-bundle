@@ -38,7 +38,7 @@ jobs:
 
       # 6) Set up Android SDK
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v2
 
       # 7) Build Android debug APK
       - name: Build Android APK
