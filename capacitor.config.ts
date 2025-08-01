@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.moontide',   // ← use your real ID
+  appId: 'com.moontide.app',
   appName: 'MoonTide',
   webDir: 'dist',
   bundledWebRuntime: false,
