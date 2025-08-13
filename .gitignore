@@ -1,3 +1,12 @@
 node_modules/
 dist/
 android/app/build/
+
+# Keystore file - contains sensitive credentials
+keystore.jks
+
+# Android App Bundle - build artifact
+*.aab
+
+# Keystore properties file - contains sensitive credentials
+/android/keystore.properties
