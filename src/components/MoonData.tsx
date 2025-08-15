@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { formatTimeToAmPm } from '@/utils/dateTimeUtils';
+import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
 import { calculateMoonPhase } from '@/utils/lunarUtils';
 
 type MoonDataProps = {
@@ -59,11 +59,11 @@ const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
       </div>
       <div className="flex items-center justify-between py-1">
         <span className="text-muted-foreground">Moonrise</span>
-        <span className="font-semibold">{formatTimeToAmPm(moonrise)}</span>
+        <span className="font-semibold">{formatIsoToAmPm(moonrise)}</span>
       </div>
       <div className="flex items-center justify-between py-1">
         <span className="text-muted-foreground">Moonset</span>
-        <span className="font-semibold">{formatTimeToAmPm(moonset)}</span>
+        <span className="font-semibold">{formatIsoToAmPm(moonset)}</span>
       </div>
       <div className="flex items-center justify-between py-1">
         <span className="text-muted-foreground">Next Phase</span>
