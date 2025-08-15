@@ -5,7 +5,7 @@ import WeeklyForecast from '@/components/WeeklyForecast';
 import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
-import { formatApiDate } from '@/utils/dateTimeUtils';
+import { formatApiDate, parseIsoAsLocal } from '@/utils/dateTimeUtils';
 import { calculateMoonPhase, calculateMoonTimes } from '@/utils/lunarUtils';
 
 interface MainContentProps {
@@ -37,10 +37,11 @@ export default function MainContent({
   banner,
   onGetStarted
 }: MainContentProps) {
-  const { phase, illumination } = calculateMoonPhase(new Date(currentDate));
+  const dateObj = parseIsoAsLocal(`${currentDate}T00:00:00`);
+  const { phase, illumination } = calculateMoonPhase(dateObj);
   const lat = currentLocation?.lat ?? 41.4353;
   const lng = currentLocation?.lng ?? -71.4616;
-  const { moonrise, moonset } = calculateMoonTimes(new Date(currentDate), lat, lng);
+  const { moonrise, moonset } = calculateMoonTimes(dateObj, lat, lng);
 
   const moonPhaseData = {
     phase,
