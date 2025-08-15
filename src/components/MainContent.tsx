@@ -6,7 +6,7 @@ import { TidePoint, TideForecast } from '@/services/tide/types';
 import { LocationData } from '@/types/locationTypes';
 import { SavedLocation } from './LocationSelector';
 import { formatApiDate } from '@/utils/dateTimeUtils';
-import { calculateMoonPhase } from '@/utils/lunarUtils';
+import { calculateMoonPhase, calculateMoonTimes } from '@/utils/lunarUtils';
 
 interface MainContentProps {
   error: string | null;
@@ -38,12 +38,15 @@ export default function MainContent({
   onGetStarted
 }: MainContentProps) {
   const { phase, illumination } = calculateMoonPhase(new Date(currentDate));
+  const lat = currentLocation?.lat ?? 41.4353;
+  const lng = currentLocation?.lng ?? -71.4616;
+  const { moonrise, moonset } = calculateMoonTimes(new Date(currentDate), lat, lng);
 
   const moonPhaseData = {
     phase,
     illumination,
-    moonrise: "18:42",
-    moonset: "07:15",
+    moonrise,
+    moonset,
     date: formatApiDate(currentDate)
   };
 
