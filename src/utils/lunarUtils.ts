@@ -118,6 +118,7 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
   return { phase, illumination };
 };
 
+import { formatDateTimeAsLocalIso } from "./dateTimeUtils";
 import { FULL_MOON_SET, NEW_MOON_SET, NEW_MOON_DATES_UTC } from "./moonEphemeris";
 
 // Replace isDateFullMoon and isDateNewMoon with accurate table lookups
@@ -154,4 +155,107 @@ export const isDateNewMoon = (date: Date): boolean => {
   if (NEW_MOON_SET.has(yyyymmdd)) return true;
   // Optionally ±1 day logic, see above comments.
   return false;
+};
+
+// Calculate moonrise and moonset times for a given date and location.
+// Algorithm adapted from the SunCalc library (https://github.com/mourner/suncalc)
+export const calculateMoonTimes = (
+  date: Date,
+  lat: number = 41.4353,
+  lng: number = -71.4616
+): { moonrise: string; moonset: string } => {
+  const rad = Math.PI / 180;
+  const dayMs = 1000 * 60 * 60 * 24;
+  const J1970 = 2440588;
+  const J2000 = 2451545;
+
+  const toJulian = (d: Date) => d.getTime() / dayMs - 0.5 + J1970;
+  const toDays = (d: Date) => toJulian(d) - J2000;
+
+  const e = rad * 23.4397;
+
+  const rightAscension = (l: number, b: number) =>
+    Math.atan2(Math.sin(l) * Math.cos(e) - Math.tan(b) * Math.sin(e), Math.cos(l));
+  const declination = (l: number, b: number) =>
+    Math.asin(Math.sin(b) * Math.cos(e) + Math.cos(b) * Math.sin(e) * Math.sin(l));
+
+  const altitude = (H: number, phi: number, dec: number) =>
+    Math.asin(Math.sin(phi) * Math.sin(dec) + Math.cos(phi) * Math.cos(dec) * Math.cos(H));
+
+  const siderealTime = (d: number, lw: number) => rad * (280.16 + 360.9856235 * d) - lw;
+
+  const moonCoords = (d: number) => {
+    const L = rad * (218.316 + 13.176396 * d);
+    const M = rad * (134.963 + 13.064993 * d);
+    const F = rad * (93.272 + 13.229350 * d);
+
+    const l = L + rad * 6.289 * Math.sin(M);
+    const b = rad * 5.128 * Math.sin(F);
+
+    return { ra: rightAscension(l, b), dec: declination(l, b) };
+  };
+
+  const getMoonPosition = (d: Date, lat: number, lng: number) => {
+    const lw = rad * -lng;
+    const phi = rad * lat;
+    const days = toDays(d);
+
+    const c = moonCoords(days);
+    const H = siderealTime(days, lw) - c.ra;
+    const h = altitude(H, phi, c.dec) - rad * 0.017; // parallax correction
+
+    return { altitude: h };
+  };
+
+  const hoursLater = (d: Date, h: number) => new Date(d.getTime() + h * 60 * 60 * 1000);
+
+  const hc = 0.133 * rad;
+  let h0 = getMoonPosition(date, lat, lng).altitude - hc;
+  let rise: number | null = null;
+  let set: number | null = null;
+  let h1: number, h2: number;
+
+  for (let i = 1; i <= 24; i += 2) {
+    h1 = getMoonPosition(hoursLater(date, i), lat, lng).altitude - hc;
+    h2 = getMoonPosition(hoursLater(date, i + 1), lat, lng).altitude - hc;
+
+    const a = (h0 + h2) / 2 - h1;
+    const b = (h2 - h0) / 2;
+    const xe = -b / (2 * a);
+    const ye = (a * xe + b) * xe + h0;
+    const d = b * b - 4 * a * h0;
+    let roots = 0;
+    let x1 = 0;
+    let x2 = 0;
+
+    if (d >= 0) {
+      const dx = Math.sqrt(d) / (Math.abs(a) * 2);
+      x1 = xe - dx;
+      x2 = xe + dx;
+      if (Math.abs(x1) <= 1) roots++;
+      if (Math.abs(x2) <= 1) roots++;
+      if (x1 < -1) x1 = x2;
+    }
+
+    if (roots === 1) {
+      if (h0 < 0) rise = i + x1;
+      else set = i + x1;
+    } else if (roots === 2) {
+      rise = i + (ye < 0 ? x2 : x1);
+      set = i + (ye < 0 ? x1 : x2);
+    }
+
+    if (rise !== null && set !== null) break;
+    h0 = h2;
+  }
+
+  const result = {
+    rise: rise !== null ? hoursLater(date, rise) : null,
+    set: set !== null ? hoursLater(date, set) : null,
+  };
+
+  return {
+    moonrise: result.rise ? formatDateTimeAsLocalIso(result.rise) : '',
+    moonset: result.set ? formatDateTimeAsLocalIso(result.set) : '',
+  };
 };
