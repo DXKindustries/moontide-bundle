@@ -164,6 +164,9 @@ export const calculateMoonTimes = (
   lat: number = 41.4353,
   lng: number = -71.4616
 ): { moonrise: string; moonset: string } => {
+  const t = new Date(date);
+  t.setHours(0, 0, 0, 0);
+
   const rad = Math.PI / 180;
   const dayMs = 1000 * 60 * 60 * 24;
   const J1970 = 2440588;
@@ -210,20 +213,20 @@ export const calculateMoonTimes = (
   const hoursLater = (d: Date, h: number) => new Date(d.getTime() + h * 60 * 60 * 1000);
 
   const hc = 0.133 * rad;
-  let h0 = getMoonPosition(date, lat, lng).altitude - hc;
+  let h0 = getMoonPosition(t, lat, lng).altitude - hc;
   let rise: number | null = null;
   let set: number | null = null;
-  let h1: number, h2: number;
+  let h1: number, h2: number, ye: number;
 
   for (let i = 1; i <= 24; i += 2) {
-    h1 = getMoonPosition(hoursLater(date, i), lat, lng).altitude - hc;
-    h2 = getMoonPosition(hoursLater(date, i + 1), lat, lng).altitude - hc;
+    h1 = getMoonPosition(hoursLater(t, i), lat, lng).altitude - hc;
+    h2 = getMoonPosition(hoursLater(t, i + 1), lat, lng).altitude - hc;
 
     const a = (h0 + h2) / 2 - h1;
     const b = (h2 - h0) / 2;
     const xe = -b / (2 * a);
-    const ye = (a * xe + b) * xe + h0;
-    const d = b * b - 4 * a * h0;
+    ye = (a * xe + b) * xe + h1;
+    const d = b * b - 4 * a * h1;
     let roots = 0;
     let x1 = 0;
     let x2 = 0;
@@ -249,10 +252,19 @@ export const calculateMoonTimes = (
     h0 = h2;
   }
 
-  const result = {
-    rise: rise !== null ? hoursLater(date, rise) : null,
-    set: set !== null ? hoursLater(date, set) : null,
+  const result: {
+    rise: Date | null;
+    set: Date | null;
+    alwaysUp?: boolean;
+    alwaysDown?: boolean;
+  } = {
+    rise: rise !== null ? hoursLater(t, rise) : null,
+    set: set !== null ? hoursLater(t, set) : null,
   };
+
+  if (rise === null && set === null) {
+    result[ye! > 0 ? 'alwaysUp' : 'alwaysDown'] = true;
+  }
 
   return {
     moonrise: result.rise ? formatDateTimeAsLocalIso(result.rise) : '',
