@@ -164,8 +164,7 @@ const MoonCalendar: React.FC<MoonCalendarProps> = ({
         `}</style>
               <Calendar
                 mode="single"
-                selected={undefined}
-                onSelect={() => {}}
+                disabled={true}
                 month={displayMonth}
                 onMonthChange={changeMonth}
                 modifiers={modifiers}
