@@ -197,7 +197,7 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
           .filter(d => d >= todayStr)
           .slice(0, 7)
           .map((date) => {
-            const dayObj = new Date(`${date}T00:00:00`);
+            const dayObj = parseIsoAsLocal(`${date}T00:00:00`);
             const day = dayObj.toLocaleDateString('en-US', { weekday: 'short' });
             const { phase, illumination } = calculateMoonPhase(dayObj);
 
