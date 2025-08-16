@@ -169,6 +169,9 @@ const MoonCalendar: React.FC<MoonCalendarProps> = ({
                 onMonthChange={changeMonth}
                 modifiers={modifiers}
                 modifiersClassNames={modifiersClassNames}
+                classNames={{
+                  day_disabled: 'text-foreground opacity-75',
+                }}
                 footer={
                   <div className="mt-3 pt-3 border-t border-muted">
                     <div className="flex items-center gap-2 mb-2">
