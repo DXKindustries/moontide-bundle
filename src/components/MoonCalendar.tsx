@@ -1,7 +1,5 @@
 import React from 'react';
-import { addMonths, subMonths } from 'date-fns';
-// Use lightweight local stubs to avoid bundling the full framer-motion library
-import { motion, AnimatePresence } from '@/lib/framer-motion';
+import { addMonths } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Card,
@@ -24,14 +22,6 @@ export type MoonCalendarProps = {
   weeklyForecast: TideForecast[];
 };
 
-const swipeConfidenceThreshold = 50;
-
-const variants = {
-  enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({ x: direction > 0 ? -300 : 300, opacity: 0 }),
-};
-
 const MoonCalendar: React.FC<MoonCalendarProps> = ({
   selectedDate,
   onSelectDate,
@@ -40,24 +30,10 @@ const MoonCalendar: React.FC<MoonCalendarProps> = ({
   const [displayMonth, setDisplayMonth] = React.useState<Date>(
     selectedDate || new Date()
   );
-  const [direction, setDirection] = React.useState(0);
 
-  const changeMonth = React.useCallback(
-    (newMonth: Date) => {
-      setDirection(newMonth > displayMonth ? 1 : -1);
-      setDisplayMonth(newMonth);
-    },
-    [displayMonth]
-  );
-
-  const handleDragEnd = (_: any, info: { offset: { x: number } }) => {
-    const { x } = info.offset;
-    if (x < -swipeConfidenceThreshold) {
-      changeMonth(addMonths(displayMonth, 1));
-    } else if (x > swipeConfidenceThreshold) {
-      changeMonth(subMonths(displayMonth, 1));
-    }
-  };
+  const changeMonth = React.useCallback((newMonth: Date) => {
+    setDisplayMonth(newMonth);
+  }, []);
 
   const modifiers = React.useMemo(
     () => ({
@@ -104,28 +80,13 @@ const MoonCalendar: React.FC<MoonCalendarProps> = ({
 
   return (
     <div className="overflow-hidden">
-      <AnimatePresence initial={false} custom={direction}>
-        <motion.div
-          key={displayMonth.toISOString()}
-          className="touch-pan-y"
-          custom={direction}
-          variants={variants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ type: 'tween', ease: 'easeInOut', duration: 0.04 }}
-          drag="x"
-          dragElastic={0.2}
-          dragConstraints={{ left: 0, right: 0 }}
-          onDragEnd={handleDragEnd}
-        >
-          <Card className="bg-card/50 backdrop-blur-md">
-            <CardHeader className="flex items-center gap-2">
-              <MoonTideIcon width={20} height={20} />
-              <CardTitle>Calendar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <style>{`
+      <Card className="bg-card/50 backdrop-blur-md">
+        <CardHeader className="flex items-center gap-2">
+          <MoonTideIcon width={20} height={20} />
+          <CardTitle>Calendar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <style>{`
           .calendar-full-moon-overlay {
             position: relative !important;
             background-color: #facc15 !important;
@@ -214,8 +175,6 @@ const MoonCalendar: React.FC<MoonCalendarProps> = ({
               />
             </CardContent>
           </Card>
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 };
