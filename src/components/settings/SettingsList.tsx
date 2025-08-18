@@ -9,13 +9,13 @@ const SettingsList = () => {
         icon={FileText}
         title="Privacy Policy"
         subtitle="Read how we handle data"
-        onClick={() => window.open('https://moontide.site/privacy', '_blank')}
+        onClick={() => window.open('https://moontide.site/privacy.html', '_blank')}
       />
       <SettingsItem
         icon={FileText}
         title="Terms of Service"
         subtitle="Review our terms"
-        onClick={() => window.open('https://moontide.site/terms', '_blank')}
+        onClick={() => window.open('https://moontide.site/terms.html', '_blank')}
       />
       <SettingsItem
         icon={Mail}
