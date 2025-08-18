@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useRef, useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import useEmblaCarousel, { EmblaCarouselType } from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import {
@@ -15,14 +16,13 @@ import { buttonVariants } from "@/components/ui/button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-type Direction = "next" | "prev" | null;
-
-const SWIPE_THRESHOLD_PX = 60; // how far you need to drag to trigger month switch
-const MAX_DRAG_SLOPE = 0.58; // reject if vertical movement dominates (tan ~ 30deg)
-
 /**
- * A DayPicker wrapper that adds native-like swipe animation between months.
- * Both months are rendered and slide horizontally during the gesture.
+ * Lightweight, high-performance month slider for react-day-picker using Embla Carousel.
+ * - Renders prev | current | next months as slides.
+ * - Swipe or buttons animate to neighbor; after settle we commit month and re-center.
+ * - Respects fromMonth / toMonth bounds (snaps back if at edge).
+ * - Works controlled (props.month) or uncontrolled.
+ * - No network/API use. Pure client-side.
  */
 function Calendar({
   className,
@@ -36,191 +36,151 @@ function Calendar({
   components,
   ...props
 }: CalendarProps) {
-  // We animate one "page" at a time. For parity with DayPicker defaults we keep numberOfMonths = 1 for animation,
-  // but we’ll still honor a user-provided numberOfMonths visually by letting DayPicker render that layout inside each page.
-  const numberOfMonths = controlledNumberOfMonths ?? 1;
-
-  // Controlled/uncontrolled month support
   const isControlled = controlledMonth instanceof Date;
-  const [uncontrolledMonth, setUncontrolledMonth] = useState<Date>(
-    controlledMonth ?? startOfMonth(new Date())
+  const [internalMonth, setInternalMonth] = useState<Date>(
+    startOfMonth(controlledMonth ?? new Date())
   );
-  const currentMonth = isControlled ? startOfMonth(controlledMonth as Date) : uncontrolledMonth;
 
+  // keep internal in sync with controlled month changes
   useEffect(() => {
     if (isControlled && controlledMonth) {
-      // keep internal in sync so render of neighbor months is accurate
-      setUncontrolledMonth(startOfMonth(controlledMonth));
+      const sm = startOfMonth(controlledMonth);
+      setInternalMonth((prev) => (prev.getTime() === sm.getTime() ? prev : sm));
     }
   }, [isControlled, controlledMonth]);
+
+  const currentMonth = isControlled
+    ? startOfMonth(controlledMonth as Date)
+    : internalMonth;
+
+  const prevMonth = useMemo(() => startOfMonth(subMonths(currentMonth, 1)), [currentMonth]);
+  const nextMonth = useMemo(() => startOfMonth(addMonths(currentMonth, 1)), [currentMonth]);
+
+  const numberOfMonths = controlledNumberOfMonths ?? 1;
 
   // Bounds
   const canGoPrev = useMemo(() => {
     if (!fromMonth) return true;
-    return !isBefore(startOfMonth(currentMonth), startOfMonth(fromMonth));
-  }, [currentMonth, fromMonth]);
+    // You can go prev if the target "prevMonth" is not before fromMonth's start
+    return !isBefore(prevMonth, startOfMonth(fromMonth));
+  }, [fromMonth, prevMonth]);
 
   const canGoNext = useMemo(() => {
     if (!toMonth) return true;
-    return !isAfter(startOfMonth(currentMonth), startOfMonth(toMonth));
-  }, [currentMonth, toMonth]);
+    // You can go next if the target "nextMonth" is not after toMonth's start
+    return !isAfter(nextMonth, startOfMonth(toMonth));
+  }, [toMonth, nextMonth]);
 
-  // Refs & state for gesture + animation
-  const frameRef = useRef<HTMLDivElement | null>(null);
-  const widthRef = useRef<number>(0);
+  // Embla
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    axis: "x",
+    loop: false, // we simulate infinite by re-centering after month switch
+    dragFree: false,
+    watchDrag: true,
+    align: "center",
+    skipSnaps: false,
+    duration: 16, // quick but smooth
+  });
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragX, setDragX] = useState(0); // live drag offset
-  const [animating, setAnimating] = useState(false);
-  const [animTarget, setAnimTarget] = useState<Direction>(null); // where animation is heading
-  const startRef = useRef<{ x: number; y: number } | null>(null);
-  const axisLockedRef = useRef<"x" | "y" | null>(null);
-
-  // Measure width for correct slide distance
-  useEffect(() => {
-    const measure = () => {
-      if (frameRef.current) {
-        widthRef.current = frameRef.current.clientWidth;
-      }
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (frameRef.current) ro.observe(frameRef.current);
-    return () => ro.disconnect();
+  // Always keep the "current" slide centered (index 1) after any month commit
+  const recenter = useCallback((api: EmblaCarouselType | null, animate = false) => {
+    if (!api) return;
+    api.scrollTo(1, animate);
   }, []);
 
-  // Helper: fire external onMonthChange and/or update internal month
+  // Commit a month change (controlled/uncontrolled) and recentre without visual jump.
   const commitMonthChange = useCallback(
     (newMonth: Date) => {
-      if (!isControlled) setUncontrolledMonth(newMonth);
+      if (!isControlled) setInternalMonth(newMonth);
       onMonthChange?.(newMonth);
+      // After React paints the new slides, re-center without animation
+      queueMicrotask(() => recenter(emblaApi, false));
     },
-    [isControlled, onMonthChange]
+    [isControlled, onMonthChange, emblaApi, recenter]
   );
 
-  // Compute neighboring months
-  const prevMonth = useMemo(() => startOfMonth(subMonths(currentMonth, 1)), [currentMonth]);
-  const nextMonth = useMemo(() => startOfMonth(addMonths(currentMonth, 1)), [currentMonth]);
+  // Handle selection change after a swipe ends
+  const handleEmblaSelect = useCallback(() => {
+    if (!emblaApi) return;
+    const idx = emblaApi.selectedScrollSnap(); // 0 | 1 | 2
+    if (idx === 1) return; // already centered
 
-  // Drag handlers
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (animating) return;
-    // Only left button for mouse
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    startRef.current = { x: e.clientX, y: e.clientY };
-    axisLockedRef.current = null;
-    setIsDragging(true);
-    setDragX(0);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !startRef.current) return;
-    const dx = e.clientX - startRef.current.x;
-    const dy = e.clientY - startRef.current.y;
-
-    if (!axisLockedRef.current) {
-      // lock axis when movement is decisive
-      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-        const slope = Math.abs(dy) / Math.max(1, Math.abs(dx));
-        axisLockedRef.current = slope > MAX_DRAG_SLOPE ? "y" : "x";
+    // Left slide (0) means going to prev
+    if (idx === 0) {
+      if (canGoPrev) {
+        commitMonthChange(prevMonth);
       } else {
-        return;
+        // snap back if at left bound
+        recenter(emblaApi, true);
       }
+      return;
     }
-    if (axisLockedRef.current === "y") return; // ignore vertical scroll
 
-    // Prevent overswipe beyond bounds: add resistance
-    const w = Math.max(1, widthRef.current);
-    let applied = dx;
-
-    if (dx > 0 && !canGoPrev) {
-      applied = Math.sqrt(dx) * 4; // resistance
-    } else if (dx < 0 && !canGoNext) {
-      applied = -Math.sqrt(-dx) * 4; // resistance
-    } else {
-      // clamp to half width to avoid absurd values during fast drags
-      const limit = w * 0.9;
-      if (applied > limit) applied = limit;
-      if (applied < -limit) applied = -limit;
+    // Right slide (2) means going to next
+    if (idx === 2) {
+      if (canGoNext) {
+        commitMonthChange(nextMonth);
+      } else {
+        // snap back if at right bound
+        recenter(emblaApi, true);
+      }
+      return;
     }
-    setDragX(applied);
-  };
+  }, [emblaApi, canGoPrev, canGoNext, prevMonth, nextMonth, commitMonthChange, recenter]);
 
-  const finishDrag = (velocityX = 0) => {
-    if (!isDragging) return;
-    setIsDragging(false);
+  // Wire Embla events
+  useEffect(() => {
+    if (!emblaApi) return;
+    recenter(emblaApi, false); // ensure centered on mount
+    emblaApi.on("select", handleEmblaSelect);
+    return () => {
+      emblaApi.off("select", handleEmblaSelect);
+    };
+  }, [emblaApi, handleEmblaSelect, recenter]);
 
-    const w = Math.max(1, widthRef.current);
-    const distance = dragX + velocityX * 120; // small "flick" assist
-    let go: Direction = null;
-
-    if (distance <= -SWIPE_THRESHOLD_PX && canGoNext) go = "next";
-    if (distance >= SWIPE_THRESHOLD_PX && canGoPrev) go = "prev";
-
-  if (!go) {
-    // snap back
-    setAnimating(true);
-    setAnimTarget(null);
-    return;
-  }
-
-  // animate to the next page
-  setAnimating(true);
-  setAnimTarget(go);
-};
-
-  const onPointerUp = () => finishDrag(0);
-  const onPointerCancel = () => finishDrag(0);
+  // If container size changes or month changes externally, ensure we stay centered
+  useEffect(() => {
+    recenter(emblaApi, false);
+  }, [recenter, emblaApi, currentMonth, numberOfMonths]);
 
   // Keyboard navigation with animation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-  if (animating) return;
-  if (e.key === "ArrowLeft" && canGoPrev) {
-    e.preventDefault();
-    // simulate a left-swipe completion
-    setAnimating(true);
-    setAnimTarget("prev");
-  } else if (e.key === "ArrowRight" && canGoNext) {
-    e.preventDefault();
-    setAnimating(true);
-    setAnimTarget("next");
-  }
-};
+  const safeGoPrev = useCallback(() => {
+    if (!emblaApi) return;
+    if (!canGoPrev) {
+      recenter(emblaApi, true);
+      return;
+    }
+    // Animate to slide 0 (left); on settle, handleEmblaSelect commits
+    emblaApi.scrollTo(0, true);
+  }, [emblaApi, canGoPrev, recenter]);
 
-  // Translate calculation: while dragging, translate by dragX. When animating, slide to full width.
-  const w = Math.max(1, widthRef.current);
-  let translateX = dragX;
+  const safeGoNext = useCallback(() => {
+    if (!emblaApi) return;
+    if (!canGoNext) {
+      recenter(emblaApi, true);
+      return;
+    }
+    // Animate to slide 2 (right); on settle, handleEmblaSelect commits
+    emblaApi.scrollTo(2, true);
+  }, [emblaApi, canGoNext, recenter]);
 
-  if (animating) {
-    if (animTarget === "next") translateX = -w; // move left to reveal next
-    else if (animTarget === "prev") translateX = w; // move right to reveal prev
-    else translateX = 0; // snap back
-  }
-
-  // We draw three pages (prev, current, next) inside a wide strip; we center current at 0.
-  const baseOffset = -w; // prev at -width, current at 0, next at +width when no drag
-  const stripStyle: React.CSSProperties = {
-    width: `${w * 3}px`,
-    height: "100%",
-    display: "flex",
-    touchAction: "pan-y",
-    transform: `translate3d(${baseOffset + translateX}px, 0, 0)`,
-    transition: isDragging ? "none" : "transform 180ms ease-out",
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      safeGoPrev();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      safeGoNext();
+    }
   };
 
-  const pageStyle: React.CSSProperties = {
-    width: `${w}px`,
-    flex: "0 0 auto",
-  };
-
-  // Hide DayPicker's built-in nav; we re-render icons in caption to keep visuals identical
+  // Hide DayPicker's own nav; we provide absolute buttons to drive the slider
   const mergedClassNames = {
     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
     month: "space-y-4",
     caption: "flex justify-center pt-1 relative items-center",
     caption_label: "text-sm font-medium",
-    nav: "space-x-1 flex items-center",
+    nav: "hidden",
     nav_button: cn(
       buttonVariants({ variant: "outline" }),
       "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
@@ -229,11 +189,10 @@ function Calendar({
     nav_button_next: "absolute right-1",
     table: "w-full border-collapse space-y-1",
     head_row: "flex",
-    head_cell:
-      "text-muted-foreground rounded-md flex-1 font-normal text-[0.8rem]",
+    head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
     row: "flex w-full mt-2",
     cell:
-      "text-center text-sm p-0 relative flex-1 aspect-square " +
+      "h-9 w-9 text-center text-sm p-0 relative " +
       "[&:has([aria-selected].day-range-end)]:rounded-r-md " +
       "[&:has([aria-selected].day-outside)]:bg-accent/50 " +
       "[&:has([aria-selected])]:bg-accent " +
@@ -242,7 +201,7 @@ function Calendar({
       "focus-within:relative focus-within:z-20",
     day: cn(
       buttonVariants({ variant: "ghost" }),
-      "w-full h-full p-0 font-normal aria-selected:opacity-100"
+      "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
     ),
     day_range_end: "day-range-end",
     day_selected:
@@ -257,62 +216,42 @@ function Calendar({
     ...classNames,
   };
 
-  // Replace icons (keep your lucide-react chevrons)
   const mergedComponents = {
     IconLeft: () => <ChevronLeft className="h-4 w-4" />,
     IconRight: () => <ChevronRight className="h-4 w-4" />,
     ...components,
   };
 
-  // Helper to render a DayPicker page for a given month
-  const renderPage = (m: Date, key: string) => (
-    <div key={key} style={pageStyle} className="overflow-hidden">
+  // Render a DayPicker page locked to a specific month
+  const Page = ({ m, k }: { m: Date; k: string }) => (
+    <div
+      className="embla__slide min-w-0 flex-[0_0_100%] overflow-hidden"
+      key={k}
+    >
       <DayPicker
-        // Visual parity props
         showOutsideDays={showOutsideDays}
         className={cn("p-3", className)}
         classNames={mergedClassNames}
         components={mergedComponents}
-        // Freeze the page to this exact month; navigation is handled by our wrapper
         month={m}
         onMonthChange={() => {}}
-        // keep consumer props (selection, mode, etc.)
         numberOfMonths={numberOfMonths}
+        fromMonth={fromMonth}
+        toMonth={toMonth}
         {...props}
       />
     </div>
   );
 
-  // Prevent clicks while dragging to avoid accidental date selections
-  const pointerEventsClass = isDragging || animating ? "pointer-events-none select-none" : "";
-
-  const handleTransitionEnd = useCallback(() => {
-    if (!animating) return;
-    if (animTarget === "next") {
-      commitMonthChange(nextMonth);
-    } else if (animTarget === "prev") {
-      commitMonthChange(prevMonth);
-    }
-    setAnimating(false);
-    setAnimTarget(null);
-    setDragX(0);
-  }, [animating, animTarget, commitMonthChange, nextMonth, prevMonth]);
-
-  // Clamp external attempts to go beyond bounds
-const safeGoPrev = () => {
-  if (!canGoPrev || animating) return;
-  setAnimating(true);
-  setAnimTarget("prev");
-};
-const safeGoNext = () => {
-  if (!canGoNext || animating) return;
-  setAnimating(true);
-  setAnimTarget("next");
-};
-
-  // Replace DayPicker nav buttons by placing our own absolute buttons on top (preserves your visuals)
-  const NavButtons = () => (
-    <>
+  return (
+    <div
+      className="relative w-full"
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      role="application"
+      aria-label="Calendar with swipeable months"
+    >
+      {/* Absolute nav buttons to drive the slider */}
       <button
         type="button"
         aria-label="Previous month"
@@ -339,30 +278,14 @@ const safeGoNext = () => {
       >
         <ChevronRight className="h-4 w-4" />
       </button>
-    </>
-  );
 
-  return (
-    <div
-      ref={frameRef}
-      className={cn("relative w-full overflow-hidden", pointerEventsClass)}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      onKeyDown={handleKeyDown}
-      tabIndex={0} // enable keyboard focus
-      role="application"
-      aria-label="Calendar with swipeable months"
-    >
-      {/* Absolute nav buttons layered above to keep your look & feel */}
-      <NavButtons />
-
-      {/* Sliding strip with prev | current | next pages */}
-      <div style={stripStyle} onTransitionEnd={handleTransitionEnd}>
-        {renderPage(prevMonth, "prev")}
-        {renderPage(currentMonth, "current")}
-        {renderPage(nextMonth, "next")}
+      {/* Embla viewport + container + three slides */}
+      <div ref={emblaRef} className="embla__viewport overflow-hidden">
+        <div className="embla__container flex">
+          <Page m={prevMonth} k="prev" />
+          <Page m={currentMonth} k="current" />
+          <Page m={nextMonth} k="next" />
+        </div>
       </div>
     </div>
   );
@@ -371,3 +294,4 @@ const safeGoNext = () => {
 Calendar.displayName = "Calendar";
 
 export { Calendar };
+
