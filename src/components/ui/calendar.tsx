@@ -158,61 +158,35 @@ function Calendar({
     if (distance <= -SWIPE_THRESHOLD_PX && canGoNext) go = "next";
     if (distance >= SWIPE_THRESHOLD_PX && canGoPrev) go = "prev";
 
-    if (!go) {
-      // snap back
-      setAnimating(true);
-      setAnimTarget(null);
-      // end animation after transition
-      window.setTimeout(() => {
-        setAnimating(false);
-        setDragX(0);
-      }, 180);
-      return;
-    }
-
-    // animate to the next page
+  if (!go) {
+    // snap back
     setAnimating(true);
-    setAnimTarget(go);
+    setAnimTarget(null);
+    return;
+  }
 
-    // when animation ends, commit month change and reset
-    window.setTimeout(() => {
-      const newMonth = go === "next" ? nextMonth : prevMonth;
-      commitMonthChange(newMonth);
-      setAnimating(false);
-      setAnimTarget(null);
-      setDragX(0);
-    }, 220);
-  };
+  // animate to the next page
+  setAnimating(true);
+  setAnimTarget(go);
+};
 
   const onPointerUp = () => finishDrag(0);
   const onPointerCancel = () => finishDrag(0);
 
   // Keyboard navigation with animation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (animating) return;
-    if (e.key === "ArrowLeft" && canGoPrev) {
-      e.preventDefault();
-      // simulate a left-swipe completion
-      setAnimating(true);
-      setAnimTarget("prev");
-      window.setTimeout(() => {
-        commitMonthChange(prevMonth);
-        setAnimating(false);
-        setAnimTarget(null);
-        setDragX(0);
-      }, 180);
-    } else if (e.key === "ArrowRight" && canGoNext) {
-      e.preventDefault();
-      setAnimating(true);
-      setAnimTarget("next");
-      window.setTimeout(() => {
-        commitMonthChange(nextMonth);
-        setAnimating(false);
-        setAnimTarget(null);
-        setDragX(0);
-      }, 180);
-    }
-  };
+  if (animating) return;
+  if (e.key === "ArrowLeft" && canGoPrev) {
+    e.preventDefault();
+    // simulate a left-swipe completion
+    setAnimating(true);
+    setAnimTarget("prev");
+  } else if (e.key === "ArrowRight" && canGoNext) {
+    e.preventDefault();
+    setAnimating(true);
+    setAnimTarget("next");
+  }
+};
 
   // Translate calculation: while dragging, translate by dragX. When animating, slide to full width.
   const w = Math.max(1, widthRef.current);
@@ -311,29 +285,29 @@ function Calendar({
   // Prevent clicks while dragging to avoid accidental date selections
   const pointerEventsClass = isDragging || animating ? "pointer-events-none select-none" : "";
 
-  // Clamp external attempts to go beyond bounds
-  const safeGoPrev = () => {
-    if (!canGoPrev || animating) return;
-    setAnimating(true);
-    setAnimTarget("prev");
-    window.setTimeout(() => {
-      commitMonthChange(prevMonth);
-      setAnimating(false);
-      setAnimTarget(null);
-      setDragX(0);
-    }, 180);
-  };
-  const safeGoNext = () => {
-    if (!canGoNext || animating) return;
-    setAnimating(true);
-    setAnimTarget("next");
-    window.setTimeout(() => {
+  const handleTransitionEnd = useCallback(() => {
+    if (!animating) return;
+    if (animTarget === "next") {
       commitMonthChange(nextMonth);
-      setAnimating(false);
-      setAnimTarget(null);
-      setDragX(0);
-    }, 180);
-  };
+    } else if (animTarget === "prev") {
+      commitMonthChange(prevMonth);
+    }
+    setAnimating(false);
+    setAnimTarget(null);
+    setDragX(0);
+  }, [animating, animTarget, commitMonthChange, nextMonth, prevMonth]);
+
+  // Clamp external attempts to go beyond bounds
+const safeGoPrev = () => {
+  if (!canGoPrev || animating) return;
+  setAnimating(true);
+  setAnimTarget("prev");
+};
+const safeGoNext = () => {
+  if (!canGoNext || animating) return;
+  setAnimating(true);
+  setAnimTarget("next");
+};
 
   // Replace DayPicker nav buttons by placing our own absolute buttons on top (preserves your visuals)
   const NavButtons = () => (
@@ -370,7 +344,7 @@ function Calendar({
   return (
     <div
       ref={frameRef}
-      className={cn("relative w-full", pointerEventsClass)}
+      className={cn("relative w-full overflow-hidden", pointerEventsClass)}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -384,7 +358,7 @@ function Calendar({
       <NavButtons />
 
       {/* Sliding strip with prev | current | next pages */}
-      <div style={stripStyle}>
+      <div style={stripStyle} onTransitionEnd={handleTransitionEnd}>
         {renderPage(prevMonth, "prev")}
         {renderPage(currentMonth, "current")}
         {renderPage(nextMonth, "next")}
