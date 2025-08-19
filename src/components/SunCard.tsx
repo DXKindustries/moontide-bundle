@@ -40,6 +40,11 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
 
   return (
     <div className="flex flex-col gap-y-2 text-sm">
+      {/* Title row */}
+      <div className="text-base sm:text-lg font-semibold tracking-tight mb-1">
+        Solar Flow
+      </div>
+
       {zipCode && (
         <div className="text-xs text-muted-foreground">ZIP {zipCode}</div>
       )}
@@ -76,7 +81,6 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
         </div>
       </div>
       <div className="mt-3">
-        <h3 className="mb-1 text-xs font-semibold">Solar Flow</h3>
         <SolarFlow lat={lat} lng={lng} date={date} />
       </div>
     </div>
