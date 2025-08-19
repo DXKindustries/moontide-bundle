@@ -68,6 +68,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
     12,
     calcY(series.indices.winter),
   ];
+  const guideLabels = [
+    'Summer Solstice (max)',
+    'Equinox (~12h)',
+    'Winter Solstice (min)',
+  ];
 
   return (
     <div className={cn('w-full', className)}>
@@ -114,6 +119,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
               y2={24}
               className="stroke-destructive"
               strokeWidth={0.5}
+              strokeDasharray="4 4"
             />
           </svg>
         </div>
@@ -129,6 +135,20 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
           >
             Now
           </div>
+          {guideYs.map((y, i) => (
+            <div
+              key={`t-${i}`}
+              className="absolute text-[0.625rem] text-muted-foreground"
+              style={{
+                left: 0,
+                top: `${(y / 24) * 100}%`,
+                transform: 'translate(-105%, -50%)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {guideLabels[i]}
+            </div>
+          ))}
         </div>
       </div>
       {showMonths && (
