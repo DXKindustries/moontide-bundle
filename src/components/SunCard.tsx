@@ -1,6 +1,7 @@
 import React from 'react';
 import { calculateSolarTimes } from '@/utils/solarUtils';
 import { formatSignedDuration } from '../utils/time';
+import SolarFlow from './SolarFlow';
 
 interface SunCardProps {
   lat: number;
@@ -47,33 +48,39 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
           <span className="text-gray-400">Sunrise</span>
           <span className="font-semibold">{sunTimes.sunrise}</span>
         </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Sunset</span>
-        <span className="font-semibold">{sunTimes.sunset}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Daylight</span>
-        <span className="font-semibold text-yellow-400">{sunTimes.daylight}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Darkness</span>
-        <span className="font-semibold text-blue-400">{sunTimes.darkness}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Change</span>
-        <span className={`font-semibold ${gettingLonger ? 'text-lime-400' : gettingShorter ? 'text-red-400' : 'text-gray-300'}`}>{sunTimes.changeFromPrevious}</span>
-      </div>
-      <div className="mt-1 text-sm leading-tight">
-        <div className="flex items-center whitespace-nowrap gap-1 text-[0.688rem] sm:text-xs md:text-sm text-gray-400">
-          Since {refLabelDate} ({refSeasonFull} Solstice)
+        <div className="flex justify-between">
+          <span className="text-gray-400">Sunset</span>
+          <span className="font-semibold">{sunTimes.sunset}</span>
         </div>
-        <div className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
-          Daylight {formatSignedDuration(deltaMins)}
+        <div className="flex justify-between">
+          <span className="text-gray-400">Daylight</span>
+          <span className="font-semibold text-yellow-400">{sunTimes.daylight}</span>
         </div>
+        <div className="flex justify-between">
+          <span className="text-gray-400">Darkness</span>
+          <span className="font-semibold text-blue-400">{sunTimes.darkness}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-400">Change</span>
+          <span className={`font-semibold ${gettingLonger ? 'text-lime-400' : gettingShorter ? 'text-red-400' : 'text-gray-300'}`}>
+            {sunTimes.changeFromPrevious}
+          </span>
+        </div>
+        <div className="mt-1 text-sm leading-tight">
+          <div className="flex items-center whitespace-nowrap gap-1 text-[0.688rem] sm:text-xs md:text-sm text-gray-400">
+            Since {refLabelDate} ({refSeasonFull} Solstice)
+          </div>
+          <div className={deltaMins < 0 ? 'text-red-400' : 'text-lime-400'}>
+            Daylight {formatSignedDuration(deltaMins)}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3">
+        <SolarFlow lat={lat} lng={lng} date={date} />
       </div>
     </div>
-  </div>
   );
 };
 
 export default SunCard;
+
