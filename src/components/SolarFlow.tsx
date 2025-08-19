@@ -63,15 +63,10 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
     [days, total]
   );
 
-  const guideYs = [
-    calcY(series.indices.summer),
-    12,
-    calcY(series.indices.winter),
-  ];
-  const guideLabels = [
-    'Summer Solstice (max)',
-    'Equinox (~12h)',
-    'Winter Solstice (min)',
+  const guides = [
+    { y: calcY(series.indices.summer), label: 'Summer Solstice (max)' },
+    { y: 12, label: 'Equinox (~12h)' },
+    { y: calcY(series.indices.winter), label: 'Winter Solstice (min)' },
   ];
 
   return (
@@ -95,13 +90,13 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
                 strokeDasharray="2 2"
               />
             ))}
-            {guideYs.map((y, i) => (
+            {guides.map((g, i) => (
               <line
                 key={`h-${i}`}
                 x1={0}
                 x2={total}
-                y1={y}
-                y2={y}
+                y1={g.y}
+                y2={g.y}
                 className="stroke-muted-foreground/10"
                 strokeWidth={0.5}
                 strokeDasharray="2 2"
@@ -135,18 +130,18 @@ const SolarFlow: React.FC<SolarFlowProps> = ({
           >
             Now
           </div>
-          {guideYs.map((y, i) => (
+          {guides.map((g, i) => (
             <div
               key={`t-${i}`}
               className="absolute text-[0.625rem] text-muted-foreground"
               style={{
                 left: 0,
-                top: `${(y / 24) * 100}%`,
+                top: `${(g.y / 24) * 100}%`,
                 transform: 'translate(-105%, -50%)',
                 whiteSpace: 'nowrap',
               }}
             >
-              {guideLabels[i]}
+              {g.label}
             </div>
           ))}
         </div>
