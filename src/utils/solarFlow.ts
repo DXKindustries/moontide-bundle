@@ -40,12 +40,14 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
   let springEquinoxIndex = 0;
   let autumnEquinoxIndex = 0;
 
-  let max = -Infinity;
-  let min = Infinity;
-  let prev = days[0]?.daylightHr ?? 0;
+  let max = days[0]?.daylightHr ?? 0;
+  let min = max;
 
-  for (let i = 0; i < days.length; i++) {
+  // start loop from second element to allow interpolation with previous
+  for (let i = 1; i < days.length; i++) {
     const h = days[i].daylightHr;
+    const prev = days[i - 1].daylightHr;
+
     if (h > max) {
       max = h;
       summerIndex = i;
@@ -54,14 +56,24 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
       min = h;
       winterIndex = i;
     }
-    const month = days[i].date.getMonth();
-    if (!springEquinoxIndex && month >= 2 && month <= 3 && prev < 12 && h >= 12) {
-      springEquinoxIndex = i;
+
+    // spring equinox (~March) where daylight crosses 12h going up
+    if (!springEquinoxIndex) {
+      const month = days[i].date.getMonth();
+      if (month >= 2 && month <= 3 && prev < 12 && h >= 12) {
+        const frac = (12 - prev) / (h - prev);
+        springEquinoxIndex = i - 1 + frac;
+      }
     }
-    if (!autumnEquinoxIndex && month >= 8 && month <= 9 && prev > 12 && h <= 12) {
-      autumnEquinoxIndex = i;
+
+    // autumn equinox (~September) where daylight crosses 12h going down
+    if (!autumnEquinoxIndex) {
+      const month = days[i].date.getMonth();
+      if (month >= 8 && month <= 9 && prev > 12 && h <= 12) {
+        const frac = (prev - 12) / (prev - h);
+        autumnEquinoxIndex = i - 1 + frac;
+      }
     }
-    prev = h;
   }
 
   const total = days.length;
@@ -84,17 +96,13 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
   return series;
 };
 
-export const getCurrentDayIndexJuneShifted = (date: Date): number => {
-  const year = date.getFullYear();
-  const june21 = new Date(year, 5, 21);
-  june21.setHours(0, 0, 0, 0);
-  let diff = Math.floor((date.getTime() - june21.getTime()) / dayMs);
-  if (diff < 0) {
-    const prevJune21 = new Date(year - 1, 5, 21);
-    prevJune21.setHours(0, 0, 0, 0);
-    const daysInYear = Math.round((june21.getTime() - prevJune21.getTime()) / dayMs);
-    diff += daysInYear;
-  }
-  return diff;
+export const getCurrentDayIndexJuneShifted = (
+  series: SolarSeries,
+  date: Date
+): number => {
+  const start = new Date(series.juneShiftedDays[0].date);
+  const diff = (date.getTime() - start.getTime()) / dayMs;
+  const total = series.juneShiftedDays.length;
+  return diff < 0 ? diff + total : diff;
 };
 
