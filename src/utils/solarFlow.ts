@@ -30,14 +30,30 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
   const start = new Date(year, 0, 1);
   start.setHours(12, 0, 0, 0);
 
+  // Current year
   for (let d = new Date(start); d.getFullYear() === year; d.setTime(d.getTime() + dayMs)) {
     const times = calculateSolarTimes(new Date(d), lat, lng);
     days.push({ date: new Date(d), daylightHr: times.daylightMinutes / 60 });
   }
 
+  // First half of the following year (through June)
+  const nextYearStart = new Date(year + 1, 0, 1);
+  nextYearStart.setHours(12, 0, 0, 0);
+  const nextYearDays: SolarDay[] = [];
+  for (
+    let d = new Date(nextYearStart);
+    d.getFullYear() === year + 1 && d.getMonth() < 6;
+    d.setTime(d.getTime() + dayMs)
+  ) {
+    const times = calculateSolarTimes(new Date(d), lat, lng);
+    nextYearDays.push({ date: new Date(d), daylightHr: times.daylightMinutes / 60 });
+  }
+
+  const combinedDays = days.concat(nextYearDays);
+
   let summerIndex = 0;
   let winterIndex = 0;
-  let springEquinoxIndex = 0;
+  let springEquinoxIndex = 0; // next year's spring
   let autumnEquinoxIndex = 0;
 
   let max = days[0]?.daylightHr ?? 0;
@@ -57,15 +73,6 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
       winterIndex = i;
     }
 
-    // spring equinox (~March) where daylight crosses 12h going up
-    if (!springEquinoxIndex) {
-      const month = days[i].date.getMonth();
-      if (month >= 2 && month <= 3 && prev < 12 && h >= 12) {
-        const frac = (12 - prev) / (h - prev);
-        springEquinoxIndex = i - 1 + frac;
-      }
-    }
-
     // autumn equinox (~September) where daylight crosses 12h going down
     if (!autumnEquinoxIndex) {
       const month = days[i].date.getMonth();
@@ -76,13 +83,30 @@ export const getSolarSeries = (lat: number, lng: number, year: number): SolarSer
     }
   }
 
-  const total = days.length;
-  const juneShiftedDays = days.slice(summerIndex).concat(days.slice(0, summerIndex));
+  // Find next year's spring equinox (~March) in the concatenated range
+  for (let i = 1; i < nextYearDays.length; i++) {
+    const h = nextYearDays[i].daylightHr;
+    const prev = nextYearDays[i - 1].daylightHr;
+    if (!springEquinoxIndex) {
+      const month = nextYearDays[i].date.getMonth();
+      if (month >= 2 && month <= 3 && prev < 12 && h >= 12) {
+        const frac = (12 - prev) / (h - prev);
+        springEquinoxIndex = days.length + i - 1 + frac;
+      }
+    }
+  }
+
+  const isLeap = (y: number) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+  const total = isLeap(year + 1) ? 366 : 365;
+  const juneShiftedDays = combinedDays.slice(summerIndex, summerIndex + total);
+  if (juneShiftedDays.length !== total) {
+    console.warn('Unexpected juneShiftedDays length', juneShiftedDays.length);
+  }
   const shift = (idx: number) => (idx - summerIndex + total) % total;
 
   const series: SolarSeries = {
     year,
-    days,
+    days: combinedDays,
     juneShiftedDays,
     indices: {
       summer: 0,
