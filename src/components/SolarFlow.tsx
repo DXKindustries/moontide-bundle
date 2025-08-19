@@ -18,10 +18,25 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // Get the "current" day index shifted to June start
   const now = getCurrentDayIndexJuneShifted(series, date);
 
+  // Exaggerate the vertical axis around the 12h equinox line
+  const Y_SCALE = 10;
+  const MID = 12;
+
+  // Convert a daylight-hour value to a scaled Y coordinate
+  const rawY = (hr: number) => MID + (MID - hr) * Y_SCALE;
+
+  // Pre-calculate Y values to determine the chart's vertical range
+  const yValues = days.map((d) => rawY(d.daylightHr));
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const yOffset = -minY;
+  const chartHeight = maxY - minY;
+
+  // Helper to convert daylight hours to scaled/shifted coordinates
+  const toY = (hr: number) => rawY(hr) + yOffset;
+
   // Build the polyline points string for the yellow curve
-  const points = days
-    .map((d, i) => `${i},${24 - d.daylightHr}`)
-    .join(" ");
+  const points = days.map((d, i) => `${i},${toY(d.daylightHr)}`).join(" ");
 
   // Interpolates daylight hours smoothly for guides
   const calcY = (idx: number) => {
@@ -29,7 +44,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
     const i1 = (i0 + 1) % total;
     const t = idx - i0;
     const hr = days[i0].daylightHr * (1 - t) + days[i1].daylightHr * t;
-    return 24 - hr;
+    return toY(hr);
   };
 
   // Month labels for vertical guides
@@ -53,7 +68,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         position: "relative",
       }}
     >
-      <svg viewBox={`0 0 ${total} 24`} width="100%" height="140">
+      <svg viewBox={`0 0 ${total} ${chartHeight}`} width="100%" height="140">
         {/* Vertical month gridlines */}
         {months.map((m) => (
           // FIX: use stable key from month label + index, not array index
@@ -62,7 +77,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
             x1={m.idx}
             x2={m.idx}
             y1={0}
-            y2={24}
+            y2={chartHeight}
             stroke="#646464"
             strokeWidth="0.5"
             strokeDasharray="2 2"
@@ -70,7 +85,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         ))}
 
         {/* Horizontal guide lines: Summer, Equinox, Winter */}
-        {[calcY(series.indices.summer), 12, calcY(series.indices.winter)].map(
+        {[calcY(series.indices.summer), toY(12), calcY(series.indices.winter)].map(
           (y, idx) => (
             // FIX: use a string-based key so React can match correctly
             <line
@@ -99,7 +114,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           x1={now}
           x2={now}
           y1={0}
-          y2={24}
+          y2={chartHeight}
           stroke="#FF0000"
           strokeWidth="1"
           strokeDasharray="4 4"
