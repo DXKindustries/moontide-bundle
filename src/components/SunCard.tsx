@@ -76,6 +76,7 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
         </div>
       </div>
       <div className="mt-3">
+        <h3 className="mb-1 text-xs font-semibold">Solar Flow</h3>
         <SolarFlow lat={lat} lng={lng} date={date} />
       </div>
     </div>
