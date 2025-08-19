@@ -13,7 +13,7 @@ interface SolarFlowProps {
 const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   const series = getSolarSeries(lat, lng, date.getFullYear());
   const days = series.juneShiftedDays;
-  const total = days.length;
+  const total = series.juneShiftedDays.length; // June this year -> next June
 
   // Get the "current" day index shifted to June start
   const now = getCurrentDayIndexJuneShifted(series, date);
@@ -58,7 +58,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   const PADDING_TOP = 12;
   const labelTop = (y: number) => PADDING_TOP + (y / chartHeight) * SVG_HEIGHT;
 
-  // Month labels for vertical guides
+  // Month labels for vertical guides spanning June to the following June
   const months = [
     { label: "Jun", idx: 0 },
     { label: "Sep", idx: series.indices.autumn },
