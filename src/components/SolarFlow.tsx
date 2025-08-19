@@ -47,6 +47,17 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
     return toY(hr);
   };
 
+  // Y-positions for the major guides
+  const guideY = {
+    summer: calcY(series.indices.summer),
+    equinox: toY(12),
+    winter: calcY(series.indices.winter),
+  } as const;
+
+  const SVG_HEIGHT = 140;
+  const PADDING_TOP = 12;
+  const labelTop = (y: number) => PADDING_TOP + (y / chartHeight) * SVG_HEIGHT;
+
   // Month labels for vertical guides
   const months = [
     { label: "Jun", idx: 0 },
@@ -68,10 +79,9 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         position: "relative",
       }}
     >
-      <svg viewBox={`0 0 ${total} ${chartHeight}`} width="100%" height="140">
+      <svg viewBox={`0 0 ${total} ${chartHeight}`} width="100%" height={SVG_HEIGHT}>
         {/* Vertical month gridlines */}
         {months.map((m) => (
-          // FIX: use stable key from month label + index, not array index
           <line
             key={m.label + m.idx}
             x1={m.idx}
@@ -85,21 +95,18 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         ))}
 
         {/* Horizontal guide lines: Summer, Equinox, Winter */}
-        {[calcY(series.indices.summer), toY(12), calcY(series.indices.winter)].map(
-          (y, idx) => (
-            // FIX: use a string-based key so React can match correctly
-            <line
-              key={`h-guide-${idx}`}
-              x1={0}
-              x2={total}
-              y1={y}
-              y2={y}
-              stroke="#646464"
-              strokeWidth="0.5"
-              strokeDasharray="2 2"
-            />
-          )
-        )}
+        {Object.values(guideY).map((y, idx) => (
+          <line
+            key={`h-guide-${idx}`}
+            x1={0}
+            x2={total}
+            y1={y}
+            y2={y}
+            stroke="#646464"
+            strokeWidth="0.5"
+            strokeDasharray="2 2"
+          />
+        ))}
 
         {/* Daylight curve (yellow polyline) */}
         <polyline
@@ -125,7 +132,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          top: 12,
+          top: PADDING_TOP,
           left: `${(now / total) * 100}%`,
           transform: "translate(-50%, -100%)",
           color: "#FF0000",
@@ -136,20 +143,34 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       </div>
 
       {/* Guide labels on left side */}
-      <div style={{ position: "absolute", left: 8, top: 16 }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 8,
+          top: labelTop(guideY.summer),
+          transform: "translateY(-50%)",
+        }}
+      >
         Summer Solstice (max)
       </div>
       <div
         style={{
           position: "absolute",
           left: 8,
-          top: "50%",
+          top: labelTop(guideY.equinox),
           transform: "translateY(-50%)",
         }}
       >
         Equinox (~12h)
       </div>
-      <div style={{ position: "absolute", left: 8, bottom: 16 }}>
+      <div
+        style={{
+          position: "absolute",
+          left: 8,
+          top: labelTop(guideY.winter),
+          transform: "translateY(-50%)",
+        }}
+      >
         Winter Solstice (min)
       </div>
 
@@ -160,17 +181,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           bottom: 0,
           left: 0,
           width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
           transform: "translateY(100%)",
         }}
       >
         {months.map((m) => (
-          // FIX: again, use label+idx as stable key instead of map index
           <span
             key={`month-${m.label}-${m.idx}`}
             style={{
-              position: "relative",
+              position: "absolute",
               left: `${(m.idx / total) * 100}%`,
               transform: "translateX(-50%)",
             }}
