@@ -7,13 +7,13 @@ interface SunCardProps {
   lat: number;
   lng: number;
   date: Date;
-  /** Optional ZIP code to show above the chart */
+  /** Optional ZIP code to show in the info block */
   zipCode?: string;
 }
 
 /**
  * SunCard
- * Displays metadata (e.g., ZIP, sunrise/sunset etc. if you add it) and the SolarFlow chart.
+ * Displays metadata (e.g., sunrise/sunset etc.) and the SolarFlow chart.
  * Layout matches other cards (rounded, padded, dark surface).
  */
 const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
@@ -22,8 +22,6 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
     () => calculateSolarTimes(date, lat, lng),
     [date, lat, lng]
   );
-
-  const zipText = zipCode ? `ZIP ${zipCode}` : undefined;
 
   return (
     <div
@@ -43,19 +41,8 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
             marginBottom: 2,
           }}
         >
-          Solar Flow
+          SolarFlow
         </div>
-        {zipText ? (
-          <div
-            style={{
-              fontSize: 13,
-              color: "rgba(255,255,255,0.6)",
-              marginBottom: 6,
-            }}
-          >
-            {zipText}
-          </div>
-        ) : null}
       </div>
 
       {/* Sunrise/Sunset data block */}

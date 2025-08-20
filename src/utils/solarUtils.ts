@@ -7,6 +7,7 @@ export type SolarTimes = {
   daylightMinutes: number; // Total daylight in minutes for comparison
   darkness: string;
   changeFromPrevious?: string; // Change from previous day
+  changeSinceSolstice?: string; // Difference from summer solstice
 };
 
 export type SolarEvent = {
@@ -93,6 +94,19 @@ export const calculateSolarTimes = (
     changeFromPrevious = `${diff}m shorter`;
   }
 
+  // Difference in daylight from the summer solstice (June 21)
+  const solsticeDate = new Date(date.getFullYear(), 5, 21);
+  const solstice = getTimes(solsticeDate, lat, lng);
+  const diffSolstice = daylightMinutes - Math.round(solstice.daylightMinutes);
+  let changeSinceSolstice = '';
+  if (diffSolstice !== 0) {
+    const sign = diffSolstice > 0 ? '+' : '-';
+    const abs = Math.abs(diffSolstice);
+    changeSinceSolstice = `${sign}${Math.floor(abs / 60)}h ${abs % 60}m`;
+  } else {
+    changeSinceSolstice = '0m';
+  }
+
   return {
     sunrise: format(current.sunriseDate),
     sunset: format(current.sunsetDate),
@@ -100,6 +114,7 @@ export const calculateSolarTimes = (
     daylightMinutes,
     darkness,
     changeFromPrevious,
+    changeSinceSolstice,
   };
 };
 
