@@ -92,15 +92,15 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   });
 
   useLayoutEffect(() => {
+    const calculateCenteredTop = (y: number, ref: React.RefObject<HTMLDivElement>) =>
+      labelTop(y) - (ref.current?.offsetHeight ?? 0) / 2;
+
     setLabelPos({
-      summer:
-        labelTop(guideY.summer) - (summerRef.current?.offsetHeight ?? 0) / 2,
-      equinox:
-        labelTop(guideY.equinox) - (equinoxRef.current?.offsetHeight ?? 0) / 2,
-      winter:
-        labelTop(guideY.winter) - (winterRef.current?.offsetHeight ?? 0) / 2,
+      summer: calculateCenteredTop(guideY.summer, summerRef),
+      equinox: calculateCenteredTop(guideY.equinox, equinoxRef),
+      winter: calculateCenteredTop(guideY.winter, winterRef),
     });
-  }, [chartHeight, guideY.summer, guideY.equinox, guideY.winter]);
+  }, [labelTop, guideY.summer, guideY.equinox, guideY.winter]);
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
