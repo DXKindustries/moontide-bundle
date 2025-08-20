@@ -4,42 +4,49 @@ import {
   getCurrentDayIndexJuneShifted,
 } from "@/utils/solarFlow";
 
+/**
+ * SolarFlow
+ * Responsive SVG chart showing daylight length across a June→June year,
+ * smoothed to the approved S-curve, with equinox/solstice guides and a
+ * "Now" vertical marker. Layout includes left-side guide labels and
+ * bottom month labels, matching the Tide chart’s visual language.
+ */
 interface SolarFlowProps {
   lat: number;
   lng: number;
   date: Date;
 }
 
+type Pt = { x: number; y: number };
+
 const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
+  // ----- Data prep ----------------------------------------------------------
   const series = getSolarSeries(lat, lng, date.getFullYear());
-  const days = series.juneShiftedDays;
-  const total = series.juneShiftedDays.length; // June this year -> next June
+  const days = series.juneShiftedDays;           // June this year → next June
+  const total = days.length;
 
-  // Get the "current" day index shifted to June start
-  const now = getCurrentDayIndexJuneShifted(series, date);
+  // Index of today's day in the shifted array
+  const nowIdx = getCurrentDayIndexJuneShifted(series, date);
 
-  // Exaggerate the vertical axis around the 12h equinox line
-  const Y_SCALE = 10;
+  // Exaggerate distance from the 12h line (approved visual)
   const MID = 12;
+  const Y_SCALE = 10; // keep identical to spec; visual exaggeration
 
-  // Convert a daylight-hour value to a scaled Y coordinate
+  // Raw (unshifted) Y in “chart units”; 12h stays at the middle reference
   const rawY = (hr: number) => MID + (MID - hr) * Y_SCALE;
 
-  // Pre-calculate Y values to determine the chart's vertical range
-  const yValues = days.map((d) => rawY(d.daylightHr));
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
-  const yOffset = -minY;
-  const chartHeight = maxY - minY;
+  // Compute chart vertical bounds to normalize the viewBox height
+  const rawYValues = days.map((d) => rawY(d.daylightHr));
+  const minRawY = Math.min(...rawYValues);
+  const maxRawY = Math.max(...rawYValues);
+  const yOffset = -minRawY;
+  const chartHeight = maxRawY - minRawY;
 
-  // Helper to convert daylight hours to scaled/shifted coordinates
+  // Convert daylight hours to normalized Y (0..chartHeight)
   const toY = (hr: number) => rawY(hr) + yOffset;
 
-  // Build the polyline points string for the yellow curve
-  const points = days.map((d, i) => `${i},${toY(d.daylightHr)}`).join(" ");
-
-  // Interpolates daylight hours smoothly for guides
-  const calcY = (idx: number) => {
+  // Smooth interpolation for guides at seasonal indices
+  const lerpY = (idx: number) => {
     const i0 = Math.floor(idx);
     const i1 = (i0 + 1) % total;
     const t = idx - i0;
@@ -47,168 +54,239 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
     return toY(hr);
   };
 
-  // Y-positions for the major guides
+  // Guide Y’s
   const guideY = {
-    summer: calcY(series.indices.summer),
+    summer: lerpY(series.indices.summer),
     equinox: toY(12),
-    winter: calcY(series.indices.winter),
+    winter: lerpY(series.indices.winter),
   } as const;
 
-    const SVG_HEIGHT = 140;
-    const CHART_MARGIN_LEFT = 72; // space reserved for left-side labels
-    const PADDING_TOP = 12;
-    const labelTop = (y: number) => PADDING_TOP + (y / chartHeight) * SVG_HEIGHT;
+  // ----- Geometry / layout --------------------------------------------------
+  // These govern rendered size and padding around the SVG so labels
+  // do not collide (addresses the “Now label cramped at top” issue).
+  const SVG_HEIGHT_PX = 160;          // slightly taller than Codex output
+  const TOP_PAD_PX = 28;              // space above plot for "Now" text
+  const BOTTOM_PAD_PX = 22;           // space for month labels
+  const LEFT_LABEL_COL_PX = 92;       // column for “Summer/Equinox/Winter”
+  const RIGHT_PAD_PX = 8;
 
-    // Month labels for vertical guides spanning June to the following June
-    const months = [
-      { label: "Jun", idx: 0 },
-      { label: "Sep", idx: series.indices.autumn },
-      { label: "Dec", idx: series.indices.winter },
-      { label: "Mar", idx: series.indices.spring },
-      { label: "Jun", idx: total },
-    ];
+  // Helper maps a Y in viewBox space → pixel offset within the container.
+  const labelTop = (yView: number) =>
+    TOP_PAD_PX + (yView / chartHeight) * SVG_HEIGHT_PX;
 
-    return (
+  // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
+  const months = [
+    { label: "Jun", idx: 0 },
+    { label: "Sep", idx: series.indices.autumn },
+    { label: "Dec", idx: series.indices.winter },
+    { label: "Mar", idx: series.indices.spring },
+    { label: "Jun", idx: total },
+  ];
+
+  // Points in viewBox coordinates for the smooth path
+  const linePoints: Pt[] = days.map((d, i) => ({ x: i, y: toY(d.daylightHr) }));
+
+  // Catmull-Rom → cubic Bézier (tension=1) for a clean, continuous curve
+  const pathD = buildSmoothPath(linePoints);
+
+  // Clamp "now" to [0, total] for safety
+  const nowX = Math.min(Math.max(nowIdx, 0), total);
+
+  // Palette (aligned with Tide chart tones)
+  const COL_BG = "#1B1B2E";
+  const COL_GRID = "#646464";
+  const COL_LINE = "#FFFF00";
+  const COL_NOW = "#FF3B30"; // slightly softer than pure red
+  const COL_TEXT = "rgba(255,255,255,0.88)";
+  const COL_TEXT_MUTE = "rgba(255,255,255,0.70)";
+
+  // ----- Render -------------------------------------------------------------
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        background: COL_BG,
+        color: COL_TEXT,
+        fontSize: 12,
+        lineHeight: 1.2,
+        padding: `${TOP_PAD_PX}px ${RIGHT_PAD_PX}px ${BOTTOM_PAD_PX}px ${LEFT_LABEL_COL_PX}px`,
+        overflow: "visible",
+        borderRadius: 12,
+      }}
+    >
+      {/* SVG chart */}
+      <svg
+        viewBox={`0 0 ${total} ${chartHeight}`}
+        width="100%"
+        height={SVG_HEIGHT_PX}
+        preserveAspectRatio="none"
+        style={{ display: "block" }}
+      >
+        {/* Vertical month gridlines */}
+        {months.map((m, i) => (
+          <line
+            key={`v-${i}-${m.idx}`}
+            x1={m.idx}
+            x2={m.idx}
+            y1={0}
+            y2={chartHeight}
+            stroke={COL_GRID}
+            strokeWidth={0.6}
+            strokeDasharray="3 3"
+          />
+        ))}
+
+        {/* Horizontal guides: Summer / Equinox / Winter */}
+        {[guideY.summer, guideY.equinox, guideY.winter].map((y, i) => (
+          <line
+            key={`h-${i}-${y}`}
+            x1={0}
+            x2={total}
+            y1={y}
+            y2={y}
+            stroke={COL_GRID}
+            strokeWidth={0.6}
+            strokeDasharray="3 3"
+          />
+        ))}
+
+        {/* Daylight curve (smooth path) */}
+        <path
+          d={pathD}
+          fill="none"
+          stroke={COL_LINE}
+          strokeWidth={2.5}
+          vectorEffect="non-scaling-stroke"
+        />
+
+        {/* "Now" vertical marker (dashed) */}
+        <line
+          x1={nowX}
+          x2={nowX}
+          y1={0}
+          y2={chartHeight}
+          stroke={COL_NOW}
+          strokeWidth={1.4}
+          strokeDasharray="6 6"
+        />
+      </svg>
+
+      {/* "Now" label — centered over the red line, above the plot area */}
       <div
         style={{
-          width: "100%",
-          background: "#1B1B2E",
-          color: "#fff",
-          fontFamily: "sans-serif",
-          fontSize: "12px",
-          padding: "12px 24px 24px 24px",
-          position: "relative",
-          overflow: "visible",
+          position: "absolute",
+          top: 6,
+          left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
+          transform: "translate(-50%, 0)",
+          color: COL_NOW,
+          fontWeight: 700,
+          letterSpacing: 0.2,
+          textShadow: "0 0 2px rgba(0,0,0,0.35)",
+          pointerEvents: "none",
         }}
       >
-        <div style={{ marginLeft: CHART_MARGIN_LEFT, position: "relative" }}>
-          <svg
-            viewBox={`0 0 ${total} ${chartHeight}`}
-            width="100%"
-            height={SVG_HEIGHT}
-            preserveAspectRatio="none"
-          >
-            {/* Vertical month gridlines */}
-            {months.map((m) => (
-              <line
-                key={m.label + m.idx}
-                x1={m.idx}
-                x2={m.idx}
-                y1={0}
-                y2={chartHeight}
-                stroke="#646464"
-                strokeWidth="0.5"
-                strokeDasharray="2 2"
-              />
-            ))}
-
-            {/* Horizontal guide lines: Summer, Equinox, Winter */}
-            {Object.values(guideY).map((y, idx) => (
-              <line
-                key={`h-guide-${idx}`}
-                x1={0}
-                x2={total}
-                y1={y}
-                y2={y}
-                stroke="#646464"
-                strokeWidth="0.5"
-                strokeDasharray="2 2"
-              />
-            ))}
-
-            {/* Daylight curve (yellow polyline) */}
-            <polyline
-              points={points}
-              fill="none"
-              stroke="#FFFF00"
-              strokeWidth="2"
-            />
-
-            {/* "Now" vertical line (red dashed) */}
-            <line
-              x1={now}
-              x2={now}
-              y1={0}
-              y2={chartHeight}
-              stroke="#FF0000"
-              strokeWidth="1"
-              strokeDasharray="4 4"
-            />
-          </svg>
-
-          {/* "Now" label rendered relative to chart */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: `${(now / total) * 100}%`,
-              transform: "translate(-50%, -100%)",
-              color: "#FF0000",
-              fontWeight: 600,
-            }}
-          >
-            Now
-          </div>
-
-          {/* Month labels at bottom */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: "100%",
-              transform: "translateY(100%)",
-            }}
-          >
-            {months.map((m) => (
-              <span
-                key={`month-${m.label}-${m.idx}`}
-                style={{
-                  position: "absolute",
-                  left: `${(m.idx / total) * 100}%`,
-                  transform: "translateX(-50%)",
-                }}
-              >
-                {m.label}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Guide labels on left side */}
-        <div
-          style={{
-            position: "absolute",
-            left: 8,
-            top: labelTop(guideY.summer),
-            transform: "translateY(-50%)",
-          }}
-        >
-          Summer Solstice (max)
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            left: 8,
-            top: labelTop(guideY.equinox),
-            transform: "translateY(-50%)",
-          }}
-        >
-          Equinox (~12h)
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            left: 8,
-            top: labelTop(guideY.winter),
-            transform: "translateY(-50%)",
-          }}
-        >
-          Winter Solstice (min)
-        </div>
+        Now
       </div>
-    );
+
+      {/* Bottom month labels */}
+      <div
+        style={{
+          position: "absolute",
+          left: LEFT_LABEL_COL_PX,
+          right: RIGHT_PAD_PX,
+          bottom: 2,
+          height: 16,
+        }}
+      >
+        {months.map((m, i) => (
+          <span
+            key={`month-${i}`}
+            style={{
+              position: "absolute",
+              left: `${(m.idx / total) * 100}%`,
+              transform: "translateX(-50%)",
+              color: COL_TEXT_MUTE,
+              fontSize: 12,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {m.label}
+          </span>
+        ))}
+      </div>
+
+      {/* Left-side guide labels (aligned with guide lines) */}
+      <div
+        style={{
+          position: "absolute",
+          left: 10,
+          top: labelTop(guideY.summer),
+          transform: "translateY(-50%)",
+          color: COL_TEXT_MUTE,
+          whiteSpace: "nowrap",
+        }}
+      >
+        Summer Solstice (max)
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 10,
+          top: labelTop(guideY.equinox),
+          transform: "translateY(-50%)",
+          color: COL_TEXT_MUTE,
+          whiteSpace: "nowrap",
+        }}
+      >
+        Equinox (~12h)
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 10,
+          top: labelTop(guideY.winter),
+          transform: "translateY(-50%)",
+          color: COL_TEXT_MUTE,
+          whiteSpace: "nowrap",
+        }}
+      >
+        Winter Solstice (min)
+      </div>
+    </div>
+  );
 };
 
 export default SolarFlow;
 
+/* ---------------------------- helpers ---------------------------- */
+
+/**
+ * Converts a sequence of points into a smooth cubic Bézier path using
+ * a Catmull–Rom → Bézier conversion. Produces the approved S-curve
+ * without jagged polyline segments.
+ */
+function buildSmoothPath(points: Pt[], tension = 1): string {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x},${points[0].y}`;
+
+  const path: string[] = [];
+  path.push(`M ${points[0].x},${points[0].y}`);
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i - 1] ?? points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] ?? p2;
+
+    // Catmull–Rom to Cubic Bézier control points
+    const c1x = p1.x + ((p2.x - p0.x) / 6) * tension;
+    const c1y = p1.y + ((p2.y - p0.y) / 6) * tension;
+    const c2x = p2.x - ((p3.x - p1.x) / 6) * tension;
+    const c2y = p2.y - ((p3.y - p1.y) / 6) * tension;
+
+    path.push(`C ${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`);
+  }
+
+  return path.join(" ");
+}
