@@ -23,10 +23,21 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // ----- Data prep ----------------------------------------------------------
   const series = getSolarSeries(lat, lng, date.getFullYear());
   const days = series.juneShiftedDays;
+
+  // If data is empty, render nothing to prevent a crash.
+  if (!days || days.length === 0) {
+    return null;
+  }
+
   const total = days.length;
 
   // Index of today's day in the shifted array
   const nowIdx = getCurrentDayIndexJuneShifted(series, date);
+
+  // <<< CRITICAL BLANK SCREEN FIX >>>
+  // Ensure nowIdx is within the valid bounds of the 'days' array to prevent
+  // 'undefined' access, which would cause a runtime crash.
+  const safeNowIdx = Math.min(Math.max(nowIdx, 0), total - 1);
 
   // Exaggerate distance from the 12h line (approved visual)
   const MID = 12;
@@ -61,6 +72,10 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
     winter: lerpY(series.indices.winter),
   } as const;
 
+  // Calculate Y position of the "X" marker on the curve using the safe index.
+  const nowYCurve = toY(days[safeNowIdx].daylightHr);
+  // <<< END CRITICAL BLANK SCREEN FIX >>>
+
   // ----- Geometry / layout --------------------------------------------------
   const SVG_HEIGHT_PX = 200; // Increased height for more vertical space
   const TOP_PAD_PX = 36; // Increased top padding for "Now" label to float above
@@ -86,15 +101,6 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
   // Catmull-Rom → cubic Bézier (tension=1) for a clean, continuous curve
   const pathD = buildSmoothPath(linePoints);
-
-  // <<< CRITICAL BLANK SCREEN FIX >>>
-  // Ensure nowIdx is within the valid bounds of the 'days' array to prevent
-  // 'undefined' access, which would cause a runtime crash.
-  const safeNowIdx = Math.min(Math.max(nowIdx, 0), total - 1);
-
-  // Calculate Y position of the "X" marker on the curve using the safe index.
-  const nowYCurve = toY(days[safeNowIdx].daylightHr);
-  // <<< END CRITICAL BLANK SCREEN FIX >>>
 
   // Palette (aligned with Tide chart tones)
   const COL_BG = "#1B1B2E";
@@ -166,8 +172,8 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
         {/* "Now" vertical marker (dashed) */}
         <line
-          x1={nowIdx} // Use nowIdx for the line's position
-          x2={nowIdx} // Use nowIdx for the line's position
+          x1={safeNowIdx} // Use safeNowIdx for the line's position
+          x2={safeNowIdx} // Use safeNowIdx for the line's position
           y1={0}
           y2={chartHeight}
           stroke={COL_NOW}
@@ -177,7 +183,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
         {/* "X" marker at intersection of "Now" line and curve */}
         <text
-          x={nowIdx} // Use nowIdx for the text's x position
+          x={safeNowIdx} // Use safeNowIdx for the text's x position
           y={nowYCurve}
           fill={COL_NOW}
           textAnchor="middle" // Center the 'x' horizontally
@@ -195,7 +201,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         style={{
           position: "absolute",
           top: 8, // Adjusted top for better floating appearance
-          left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowIdx / total) * 100}%)`, // Use nowIdx
+          left: `calc(${LEFT_LABEL_COL_PX}px + ${(safeNowIdx / total) * 100}%)`, // Use safeNowIdx
           transform: "translate(-50%, 0)",
           color: COL_NOW,
           fontWeight: 700,
