@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   getSolarSeries,
   getCurrentDayIndexJuneShifted,
@@ -74,11 +74,36 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
   // Rounded to whole pixels for more precise alignment with grid lines.
-  const labelTop = (yView: number) =>
-    Math.round(
-      TOP_PAD_PX +
-        (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX)
-    ); // maps viewBox Y to pixel offset
+  const labelTop = useCallback(
+    (yView: number) =>
+      Math.round(
+        TOP_PAD_PX +
+          (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX)
+      ),
+    [chartHeight]
+  ); // maps viewBox Y to pixel offset
+
+  const summerRef = useRef<HTMLDivElement>(null);
+  const equinoxRef = useRef<HTMLDivElement>(null);
+  const winterRef = useRef<HTMLDivElement>(null);
+  const [labelPos, setLabelPos] = useState({
+    summer: 0,
+    equinox: 0,
+    winter: 0,
+  });
+
+  useLayoutEffect(() => {
+    const calculateCenteredTop = (
+      y: number,
+      ref: React.RefObject<HTMLDivElement>
+    ) => labelTop(y) - (ref.current?.offsetHeight ?? 0) / 2;
+
+    setLabelPos({
+      summer: calculateCenteredTop(guideY.summer, summerRef),
+      equinox: calculateCenteredTop(guideY.equinox, equinoxRef),
+      winter: calculateCenteredTop(guideY.winter, winterRef),
+    });
+  }, [labelTop, guideY.summer, guideY.equinox, guideY.winter]);
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
@@ -244,11 +269,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
       {/* Left-side guide labels (aligned with guide lines) */}
       <div
+        ref={summerRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.summer),
-          transform: "translateY(-50%)",
+          top: labelPos.summer,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
@@ -260,11 +285,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         Summer<br />Solstice<br />(max)
       </div>
       <div
+        ref={equinoxRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.equinox),
-          transform: "translateY(-50%)",
+          top: labelPos.equinox,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
@@ -276,11 +301,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         Equinox<br />(~12h)
       </div>
       <div
+        ref={winterRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.winter),
-          transform: "translateY(-50%)",
+          top: labelPos.winter,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
