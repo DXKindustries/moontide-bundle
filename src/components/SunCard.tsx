@@ -1,11 +1,14 @@
 import React from "react";
 import SolarFlow from "./SolarFlow";
+import SolarInfo from "./SolarInfo";
+import { calculateSolarTimes } from "@/utils/solarUtils";
 
 interface SunCardProps {
   lat: number;
   lng: number;
   date: Date;
-  zipText?: string; // optional label line like "ZIP 01475"
+  /** Optional ZIP code to show above the chart */
+  zipCode?: string;
 }
 
 /**
@@ -13,7 +16,15 @@ interface SunCardProps {
  * Displays metadata (e.g., ZIP, sunrise/sunset etc. if you add it) and the SolarFlow chart.
  * Layout matches other cards (rounded, padded, dark surface).
  */
-const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipText }) => {
+const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
+  // Calculate sunrise/sunset and daylight metrics for the info block
+  const solarTimes = React.useMemo(
+    () => calculateSolarTimes(date, lat, lng),
+    [date, lat, lng]
+  );
+
+  const zipText = zipCode ? `ZIP ${zipCode}` : undefined;
+
   return (
     <div
       style={{
@@ -45,6 +56,11 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipText }) => {
             {zipText}
           </div>
         ) : null}
+      </div>
+
+      {/* Sunrise/Sunset data block */}
+      <div style={{ padding: "0 8px 12px 8px" }}>
+        <SolarInfo solarTimes={solarTimes} zipCode={zipCode} />
       </div>
 
       {/* Chart */}
