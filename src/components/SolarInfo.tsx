@@ -12,13 +12,13 @@ const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
   const isGettingShorter = solarTimes.changeFromPrevious?.includes('-') || solarTimes.changeFromPrevious?.includes('shorter');
 
   return (
-    <div className="bg-muted/20 backdrop-blur-sm py-3 px-4 rounded-lg">
+    <div className="bg-muted/20 backdrop-blur-sm py-3 px-4 rounded-lg text-[11px]">
       {zipCode && (
-        <div className="text-center text-xs font-medium mb-2 text-muted-foreground">
+        <div className="text-center text-[11px] font-medium mb-2 text-muted-foreground">
           Sunrise/Sunset for ZIP {zipCode}
         </div>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-y-1 text-xs text-center">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-y-1 text-[11px] text-center">
         {/* Sunrise */}
         <div className="flex flex-col">
           <span className="text-muted-foreground">Sunrise</span>
@@ -63,7 +63,7 @@ const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
       </div>
 
       {solarTimes.changeSinceSolstice && (
-        <div className="mt-3 text-center text-xs">
+        <div className="mt-3 text-center text-[11px]">
           <div className="text-muted-foreground">Since Jun 21 (Summer Solstice)</div>
           <div
             className={`font-semibold ${
