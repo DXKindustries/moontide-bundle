@@ -54,151 +54,160 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
     winter: calcY(series.indices.winter),
   } as const;
 
-  const SVG_HEIGHT = 140;
-  const PADDING_TOP = 12;
-  const labelTop = (y: number) => PADDING_TOP + (y / chartHeight) * SVG_HEIGHT;
+    const SVG_HEIGHT = 140;
+    const CHART_MARGIN_LEFT = 72; // space reserved for left-side labels
+    const PADDING_TOP = 12;
+    const labelTop = (y: number) => PADDING_TOP + (y / chartHeight) * SVG_HEIGHT;
 
-  // Month labels for vertical guides spanning June to the following June
-  const months = [
-    { label: "Jun", idx: 0 },
-    { label: "Sep", idx: series.indices.autumn },
-    { label: "Dec", idx: series.indices.winter },
-    { label: "Mar", idx: series.indices.spring },
-    { label: "Jun", idx: total },
-  ];
+    // Month labels for vertical guides spanning June to the following June
+    const months = [
+      { label: "Jun", idx: 0 },
+      { label: "Sep", idx: series.indices.autumn },
+      { label: "Dec", idx: series.indices.winter },
+      { label: "Mar", idx: series.indices.spring },
+      { label: "Jun", idx: total },
+    ];
 
-  return (
-    <div
-      style={{
-        width: 560,
-        background: "#1B1B2E",
-        color: "#fff",
-        fontFamily: "sans-serif",
-        fontSize: "12px",
-        padding: "12px 24px 24px 80px",
-        position: "relative",
-      }}
-    >
-      <svg viewBox={`0 0 ${total} ${chartHeight}`} width="100%" height={SVG_HEIGHT}>
-        {/* Vertical month gridlines */}
-        {months.map((m) => (
-          <line
-            key={m.label + m.idx}
-            x1={m.idx}
-            x2={m.idx}
-            y1={0}
-            y2={chartHeight}
-            stroke="#646464"
-            strokeWidth="0.5"
-            strokeDasharray="2 2"
-          />
-        ))}
-
-        {/* Horizontal guide lines: Summer, Equinox, Winter */}
-        {Object.values(guideY).map((y, idx) => (
-          <line
-            key={`h-guide-${idx}`}
-            x1={0}
-            x2={total}
-            y1={y}
-            y2={y}
-            stroke="#646464"
-            strokeWidth="0.5"
-            strokeDasharray="2 2"
-          />
-        ))}
-
-        {/* Daylight curve (yellow polyline) */}
-        <polyline
-          points={points}
-          fill="none"
-          stroke="#FFFF00"
-          strokeWidth="2"
-        />
-
-        {/* "Now" vertical line (red dashed) */}
-        <line
-          x1={now}
-          x2={now}
-          y1={0}
-          y2={chartHeight}
-          stroke="#FF0000"
-          strokeWidth="1"
-          strokeDasharray="4 4"
-        />
-      </svg>
-
-      {/* "Now" label rendered relative to chart */}
+    return (
       <div
         style={{
-          position: "absolute",
-          top: PADDING_TOP,
-          left: `${(now / total) * 100}%`,
-          transform: "translate(-50%, -100%)",
-          color: "#FF0000",
-          fontWeight: 600,
-        }}
-      >
-        Now
-      </div>
-
-      {/* Guide labels on left side */}
-      <div
-        style={{
-          position: "absolute",
-          left: 8,
-          top: labelTop(guideY.summer),
-          transform: "translateY(-50%)",
-        }}
-      >
-        Summer Solstice (max)
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 8,
-          top: labelTop(guideY.equinox),
-          transform: "translateY(-50%)",
-        }}
-      >
-        Equinox (~12h)
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 8,
-          top: labelTop(guideY.winter),
-          transform: "translateY(-50%)",
-        }}
-      >
-        Winter Solstice (min)
-      </div>
-
-      {/* Month labels at bottom */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
           width: "100%",
-          transform: "translateY(100%)",
+          background: "#1B1B2E",
+          color: "#fff",
+          fontFamily: "sans-serif",
+          fontSize: "12px",
+          padding: "12px 24px 24px 24px",
+          position: "relative",
+          overflow: "visible",
         }}
       >
-        {months.map((m) => (
-          <span
-            key={`month-${m.label}-${m.idx}`}
+        <div style={{ marginLeft: CHART_MARGIN_LEFT, position: "relative" }}>
+          <svg
+            viewBox={`0 0 ${total} ${chartHeight}`}
+            width="100%"
+            height={SVG_HEIGHT}
+            preserveAspectRatio="none"
+          >
+            {/* Vertical month gridlines */}
+            {months.map((m) => (
+              <line
+                key={m.label + m.idx}
+                x1={m.idx}
+                x2={m.idx}
+                y1={0}
+                y2={chartHeight}
+                stroke="#646464"
+                strokeWidth="0.5"
+                strokeDasharray="2 2"
+              />
+            ))}
+
+            {/* Horizontal guide lines: Summer, Equinox, Winter */}
+            {Object.values(guideY).map((y, idx) => (
+              <line
+                key={`h-guide-${idx}`}
+                x1={0}
+                x2={total}
+                y1={y}
+                y2={y}
+                stroke="#646464"
+                strokeWidth="0.5"
+                strokeDasharray="2 2"
+              />
+            ))}
+
+            {/* Daylight curve (yellow polyline) */}
+            <polyline
+              points={points}
+              fill="none"
+              stroke="#FFFF00"
+              strokeWidth="2"
+            />
+
+            {/* "Now" vertical line (red dashed) */}
+            <line
+              x1={now}
+              x2={now}
+              y1={0}
+              y2={chartHeight}
+              stroke="#FF0000"
+              strokeWidth="1"
+              strokeDasharray="4 4"
+            />
+          </svg>
+
+          {/* "Now" label rendered relative to chart */}
+          <div
             style={{
               position: "absolute",
-              left: `${(m.idx / total) * 100}%`,
-              transform: "translateX(-50%)",
+              top: 0,
+              left: `${(now / total) * 100}%`,
+              transform: "translate(-50%, -100%)",
+              color: "#FF0000",
+              fontWeight: 600,
             }}
           >
-            {m.label}
-          </span>
-        ))}
+            Now
+          </div>
+
+          {/* Month labels at bottom */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              transform: "translateY(100%)",
+            }}
+          >
+            {months.map((m) => (
+              <span
+                key={`month-${m.label}-${m.idx}`}
+                style={{
+                  position: "absolute",
+                  left: `${(m.idx / total) * 100}%`,
+                  transform: "translateX(-50%)",
+                }}
+              >
+                {m.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Guide labels on left side */}
+        <div
+          style={{
+            position: "absolute",
+            left: 8,
+            top: labelTop(guideY.summer),
+            transform: "translateY(-50%)",
+          }}
+        >
+          Summer Solstice (max)
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 8,
+            top: labelTop(guideY.equinox),
+            transform: "translateY(-50%)",
+          }}
+        >
+          Equinox (~12h)
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 8,
+            top: labelTop(guideY.winter),
+            transform: "translateY(-50%)",
+          }}
+        >
+          Winter Solstice (min)
+        </div>
       </div>
-    </div>
-  );
+    );
 };
 
 export default SolarFlow;
