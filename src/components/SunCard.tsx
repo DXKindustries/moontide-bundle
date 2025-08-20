@@ -35,7 +35,7 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
       <div style={{ padding: "2px 8px 10px 8px" }}>
         <div
           style={{
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: 700,
             color: "rgba(255,255,255,0.92)",
             marginBottom: 2,
