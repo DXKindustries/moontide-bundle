@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import {
   getSolarSeries,
   getCurrentDayIndexJuneShifted,
@@ -64,16 +64,43 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // ----- Geometry / layout --------------------------------------------------
   // These govern rendered size and padding around the SVG so labels
   // do not collide (addresses the “Now label cramped at top” issue).
-  const SVG_HEIGHT_PX = 160;
-  const TOP_PAD_PX = 32; // Increased top padding so "Now" label can float above chart
-  const BOTTOM_PAD_PX = 32; // Increased bottom padding for cleaner spacing
+  // Shrink the overall vertical footprint ~20% to soften the "V" curve
+  // while preserving relative spacing.
+  const SVG_HEIGHT_PX = 128;
+  const TOP_PAD_PX = 26; // proportional top padding so "Now" label can float above chart
+  const BOTTOM_PAD_PX = 26; // proportional bottom padding for cleaner spacing
   const LEFT_LABEL_COL_PX = 60; // Narrower label column stretches X-axis
   const RIGHT_PAD_PX = 8;
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
+  // Rounded to whole pixels for more precise alignment with grid lines.
   const labelTop = (yView: number) =>
-    TOP_PAD_PX +
-    (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX); // maps viewBox Y to pixel offset
+    Math.round(
+      TOP_PAD_PX +
+        (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX)
+    ); // maps viewBox Y to pixel offset
+
+  // Precise positions for guide labels
+  const summerRef = useRef<HTMLDivElement>(null);
+  const equinoxRef = useRef<HTMLDivElement>(null);
+  const winterRef = useRef<HTMLDivElement>(null);
+
+  const [labelPos, setLabelPos] = useState({
+    summer: 0,
+    equinox: 0,
+    winter: 0,
+  });
+
+  useLayoutEffect(() => {
+    setLabelPos({
+      summer:
+        labelTop(guideY.summer) - (summerRef.current?.offsetHeight ?? 0) / 2,
+      equinox:
+        labelTop(guideY.equinox) - (equinoxRef.current?.offsetHeight ?? 0) / 2,
+      winter:
+        labelTop(guideY.winter) - (winterRef.current?.offsetHeight ?? 0) / 2,
+    });
+  }, [chartHeight, guideY.summer, guideY.equinox, guideY.winter]);
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
@@ -239,11 +266,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
       {/* Left-side guide labels (aligned with guide lines) */}
       <div
+        ref={summerRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.summer),
-          transform: "translateY(-50%)",
+          top: labelPos.summer,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
@@ -252,14 +279,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           whiteSpace: "normal",
         }}
       >
-        Summer<br />Solstice<br />(max)
+        Summer<br />Solstice
       </div>
       <div
+        ref={equinoxRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.equinox),
-          transform: "translateY(-50%)",
+          top: labelPos.equinox,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
@@ -271,11 +298,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         Equinox<br />(~12h)
       </div>
       <div
+        ref={winterRef}
         style={{
           position: "absolute",
           left: 0,
-          top: labelTop(guideY.winter),
-          transform: "translateY(-50%)",
+          top: labelPos.winter,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
           fontSize: 7,
@@ -284,7 +311,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           whiteSpace: "normal",
         }}
       >
-        Winter<br />Solstice<br />(min)
+        Winter<br />Solstice
       </div>
     </div>
   );
