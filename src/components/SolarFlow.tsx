@@ -66,13 +66,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // do not collide (addresses the “Now label cramped at top” issue).
   const SVG_HEIGHT_PX = 160;
   const TOP_PAD_PX = 32; // Increased top padding so "Now" label can float above chart
-  const BOTTOM_PAD_PX = 18; // CHANGE: Reduced bottom padding
-  const LEFT_LABEL_COL_PX = 80; // CHANGE: Reduced label column width
+  const BOTTOM_PAD_PX = 32; // Increased bottom padding for cleaner spacing
+  const LEFT_LABEL_COL_PX = 60; // Narrower label column stretches X-axis
   const RIGHT_PAD_PX = 8;
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
   const labelTop = (yView: number) =>
-    TOP_PAD_PX + (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX); // CHANGE: Corrected math to account for padding
+    TOP_PAD_PX +
+    (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX); // maps viewBox Y to pixel offset
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
@@ -92,6 +93,8 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // Clamp "now" to [0, total] for safety
   const nowX = Math.min(Math.max(nowIdx, 0), total);
   const nowY = lerpY(nowX); // Y-position where the red line intersects the curve
+  const nowPercent = nowX / total;
+  const nowLeft = `calc(${LEFT_LABEL_COL_PX}px + ${nowPercent * 100}% - ${(LEFT_LABEL_COL_PX + RIGHT_PAD_PX) * nowPercent}px)`;
 
   // Palette (aligned with Tide chart tones)
   const COL_BG = "#1B1B2E";
@@ -109,7 +112,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         width: "100%",
         background: COL_BG,
         color: COL_TEXT,
-        fontSize: 10, // CHANGE: Reduced font size for better mobile display
+        fontSize: 9, // Further reduced font size for compact layout
         lineHeight: 1.2,
         padding: `${TOP_PAD_PX}px ${RIGHT_PAD_PX}px ${BOTTOM_PAD_PX}px ${LEFT_LABEL_COL_PX}px`,
         overflow: "visible",
@@ -178,11 +181,11 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         style={{
           position: "absolute",
           top: labelTop(nowY),
-          left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
+          left: nowLeft,
           transform: "translate(-50%, -50%)",
           color: COL_NOW,
           pointerEvents: "none",
-          fontSize: 12,
+          fontSize: 10,
         }}
       >
         ×
@@ -193,14 +196,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         style={{
           position: "absolute",
           top: 4,
-          left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
+          left: nowLeft,
           transform: "translate(-50%, 0)",
           color: COL_NOW,
           fontWeight: 700,
           letterSpacing: 0.2,
           textShadow: "0 0 2px rgba(0,0,0,0.35)",
           pointerEvents: "none",
-          fontSize: 10, // CHANGE: Reduced font size to match chart labels
+          fontSize: 9, // match overall smaller typography
         }}
       >
         Now
@@ -224,7 +227,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
               left: `${(m.idx / total) * 100}%`,
               transform: "translateX(-50%)",
               color: COL_TEXT_MUTE,
-              fontSize: 10, // CHANGE: Reduced font size for better mobile display
+              fontSize: 9, // further reduced font size
               whiteSpace: "nowrap",
             }}
           >
@@ -237,14 +240,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 4,
+          left: 0,
           top: labelTop(guideY.summer),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          width: LEFT_LABEL_COL_PX - 8,
-          fontSize: 8,
+          width: LEFT_LABEL_COL_PX,
+          fontSize: 7,
           lineHeight: 1.1,
-          textAlign: "left",
+          textAlign: "center",
           whiteSpace: "normal",
         }}
       >
@@ -253,14 +256,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 4,
+          left: 0,
           top: labelTop(guideY.equinox),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          width: LEFT_LABEL_COL_PX - 8,
-          fontSize: 8,
+          width: LEFT_LABEL_COL_PX,
+          fontSize: 7,
           lineHeight: 1.1,
-          textAlign: "left",
+          textAlign: "center",
           whiteSpace: "normal",
         }}
       >
@@ -269,14 +272,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 4,
+          left: 0,
           top: labelTop(guideY.winter),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          width: LEFT_LABEL_COL_PX - 8,
-          fontSize: 8,
+          width: LEFT_LABEL_COL_PX,
+          fontSize: 7,
           lineHeight: 1.1,
-          textAlign: "left",
+          textAlign: "center",
           whiteSpace: "normal",
         }}
       >
