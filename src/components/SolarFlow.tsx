@@ -64,16 +64,21 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // ----- Geometry / layout --------------------------------------------------
   // These govern rendered size and padding around the SVG so labels
   // do not collide (addresses the “Now label cramped at top” issue).
-  const SVG_HEIGHT_PX = 160;
-  const TOP_PAD_PX = 32; // Increased top padding so "Now" label can float above chart
-  const BOTTOM_PAD_PX = 32; // Increased bottom padding for cleaner spacing
+  // Shrink the overall vertical footprint ~20% to soften the "V" curve
+  // while preserving relative spacing.
+  const SVG_HEIGHT_PX = 128;
+  const TOP_PAD_PX = 26; // proportional top padding so "Now" label can float above chart
+  const BOTTOM_PAD_PX = 26; // proportional bottom padding for cleaner spacing
   const LEFT_LABEL_COL_PX = 60; // Narrower label column stretches X-axis
   const RIGHT_PAD_PX = 8;
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
+  // Rounded to whole pixels for more precise alignment with grid lines.
   const labelTop = (yView: number) =>
-    TOP_PAD_PX +
-    (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX); // maps viewBox Y to pixel offset
+    Math.round(
+      TOP_PAD_PX +
+        (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX)
+    ); // maps viewBox Y to pixel offset
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
