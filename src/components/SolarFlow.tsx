@@ -160,7 +160,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           d={pathD}
           fill="none"
           stroke={COL_LINE}
-          strokeWidth={1.4} // CHANGE: Reduced stroke width for a cleaner, thinner line
+          strokeWidth={1}
           vectorEffect="non-scaling-stroke"
         />
 
@@ -174,22 +174,23 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           strokeWidth={1.4}
           strokeDasharray="6 6"
         />
-      </svg>
 
-      {/* Intersection marker where red line meets yellow curve */}
-      <div
-        style={{
-          position: "absolute",
-          top: labelTop(nowY),
-          left: nowLeft,
-          transform: "translate(-50%, -50%)",
-          color: COL_NOW,
-          pointerEvents: "none",
-          fontSize: 10,
-        }}
-      >
-        ×
-      </div>
+        {/* Intersection marker where red line meets yellow curve */}
+        <g stroke={COL_NOW} strokeWidth={1.2}>
+          <line
+            x1={nowX - 2.5}
+            y1={nowY - 2.5}
+            x2={nowX + 2.5}
+            y2={nowY + 2.5}
+          />
+          <line
+            x1={nowX - 2.5}
+            y1={nowY + 2.5}
+            x2={nowX + 2.5}
+            y2={nowY - 2.5}
+          />
+        </g>
+      </svg>
 
       {/* "Now" label — centered over the red line, above the plot area */}
       <div
