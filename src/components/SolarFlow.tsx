@@ -62,7 +62,6 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   } as const;
 
   // ----- Geometry / layout --------------------------------------------------
-  // INCREASED SVG_HEIGHT_PX significantly to stretch the Y-axis
   const SVG_HEIGHT_PX = 200; // Increased height for more vertical space
   const TOP_PAD_PX = 36; // Increased top padding for "Now" label to float above
   const BOTTOM_PAD_PX = 28; // Increased bottom padding for month labels
@@ -70,7 +69,6 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   const RIGHT_PAD_PX = 8;
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
-  // Adjusted calculation to account for new padding.
   const labelTop = (yView: number) =>
     TOP_PAD_PX + (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX);
 
@@ -89,10 +87,13 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // Catmull-Rom → cubic Bézier (tension=1) for a clean, continuous curve
   const pathD = buildSmoothPath(linePoints);
 
-  // Clamp "now" to [0, total] for safety
-  const nowX = Math.min(Math.max(nowIdx, 0), total);
+  // Clamp "now" to [0, total - 1] for safety when accessing the 'days' array
+  // FIX: Ensure nowIdx does not exceed array bounds
+  const safeNowIdx = Math.min(Math.max(nowIdx, 0), total - 1);
+
   // Calculate Y position of the "X" marker on the curve
-  const nowYCurve = toY(days[nowIdx].daylightHr);
+  // FIX: Use safeNowIdx to prevent accessing undefined array elements
+  const nowYCurve = toY(days[safeNowIdx].daylightHr);
 
   // Palette (aligned with Tide chart tones)
   const COL_BG = "#1B1B2E";
@@ -174,7 +175,6 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         />
 
         {/* "X" marker at intersection of "Now" line and curve */}
-        {/* Render a simple 'x' using a text element. Adjust font-size if needed. */}
         <text
           x={nowX}
           y={nowYCurve}
