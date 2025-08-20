@@ -282,7 +282,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           whiteSpace: "normal",
         }}
       >
-        Summer<br />Solstice<br />(max)
+        Summer<br />Solstice
       </div>
       <div
         ref={equinoxRef}
@@ -298,7 +298,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           whiteSpace: "normal",
         }}
       >
-        Equinox<br />(~12h)
+        Equinox
       </div>
       <div
         ref={winterRef}
@@ -314,7 +314,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           whiteSpace: "normal",
         }}
       >
-        Winter<br />Solstice<br />(min)
+        Winter<br />Solstice
       </div>
     </div>
   );
