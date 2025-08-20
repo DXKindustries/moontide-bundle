@@ -65,7 +65,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   // These govern rendered size and padding around the SVG so labels
   // do not collide (addresses the “Now label cramped at top” issue).
   const SVG_HEIGHT_PX = 160;
-  const TOP_PAD_PX = 20; // CHANGE: Reduced padding for a more compact look
+  const TOP_PAD_PX = 32; // Increased top padding so "Now" label can float above chart
   const BOTTOM_PAD_PX = 18; // CHANGE: Reduced bottom padding
   const LEFT_LABEL_COL_PX = 80; // CHANGE: Reduced label column width
   const RIGHT_PAD_PX = 8;
@@ -91,6 +91,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
   // Clamp "now" to [0, total] for safety
   const nowX = Math.min(Math.max(nowIdx, 0), total);
+  const nowY = lerpY(nowX); // Y-position where the red line intersects the curve
 
   // Palette (aligned with Tide chart tones)
   const COL_BG = "#1B1B2E";
@@ -172,11 +173,26 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         />
       </svg>
 
+      {/* Intersection marker where red line meets yellow curve */}
+      <div
+        style={{
+          position: "absolute",
+          top: labelTop(nowY),
+          left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
+          transform: "translate(-50%, -50%)",
+          color: COL_NOW,
+          pointerEvents: "none",
+          fontSize: 12,
+        }}
+      >
+        ×
+      </div>
+
       {/* "Now" label — centered over the red line, above the plot area */}
       <div
         style={{
           position: "absolute",
-          top: 6,
+          top: 4,
           left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
           transform: "translate(-50%, 0)",
           color: COL_NOW,
@@ -221,41 +237,50 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 4,
           top: labelTop(guideY.summer),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          width: LEFT_LABEL_COL_PX - 8,
+          fontSize: 8,
+          lineHeight: 1.1,
+          textAlign: "left",
+          whiteSpace: "normal",
         }}
       >
-        Summer Solstice (max)
+        Summer<br />Solstice<br />(max)
       </div>
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 4,
           top: labelTop(guideY.equinox),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          width: LEFT_LABEL_COL_PX - 8,
+          fontSize: 8,
+          lineHeight: 1.1,
+          textAlign: "left",
+          whiteSpace: "normal",
         }}
       >
-        Equinox (~12h)
+        Equinox<br />(~12h)
       </div>
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 4,
           top: labelTop(guideY.winter),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
-          whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          width: LEFT_LABEL_COL_PX - 8,
+          fontSize: 8,
+          lineHeight: 1.1,
+          textAlign: "left",
+          whiteSpace: "normal",
         }}
       >
-        Winter Solstice (min)
+        Winter<br />Solstice<br />(min)
       </div>
     </div>
   );
