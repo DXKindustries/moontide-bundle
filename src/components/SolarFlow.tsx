@@ -62,17 +62,17 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
   } as const;
 
   // ----- Geometry / layout --------------------------------------------------
-  // These govern rendered size and padding around the SVG so labels
-  // do not collide (addresses the “Now label cramped at top” issue).
-  const SVG_HEIGHT_PX = 160;
-  const TOP_PAD_PX = 20; // CHANGE: Reduced padding for a more compact look
-  const BOTTOM_PAD_PX = 18; // CHANGE: Reduced bottom padding
-  const LEFT_LABEL_COL_PX = 80; // CHANGE: Reduced label column width
+  // INCREASED SVG_HEIGHT_PX significantly to stretch the Y-axis
+  const SVG_HEIGHT_PX = 200; // Increased height for more vertical space
+  const TOP_PAD_PX = 36; // Increased top padding for "Now" label to float above
+  const BOTTOM_PAD_PX = 28; // Increased bottom padding for month labels
+  const LEFT_LABEL_COL_PX = 96; // Adjusted width for stacked labels
   const RIGHT_PAD_PX = 8;
 
   // Helper maps a Y in viewBox space → pixel offset within the container.
+  // Adjusted calculation to account for new padding.
   const labelTop = (yView: number) =>
-    TOP_PAD_PX + (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX); // CHANGE: Corrected math to account for padding
+    TOP_PAD_PX + (yView / chartHeight) * (SVG_HEIGHT_PX - TOP_PAD_PX - BOTTOM_PAD_PX);
 
   // Month ticks: June start → Sep (autumn) → Dec (winter) → Mar (spring) → next June
   const months = [
@@ -91,14 +91,16 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
 
   // Clamp "now" to [0, total] for safety
   const nowX = Math.min(Math.max(nowIdx, 0), total);
+  // Calculate Y position of the "X" marker on the curve
+  const nowYCurve = toY(days[nowIdx].daylightHr);
 
   // Palette (aligned with Tide chart tones)
   const COL_BG = "#1B1B2E";
   const COL_GRID = "#646464";
   const COL_LINE = "#FFFF00";
   const COL_NOW = "#FF3B30"; // slightly softer than pure red
-  const COL_TEXT = "rgba(255,255,255,0.88)";
-  const COL_TEXT_MUTE = "rgba(255,255,255,0.70)";
+  const COL_TEXT = "rgba(255,255,255,0.92)"; // Slightly brighter text
+  const COL_TEXT_MUTE = "rgba(255,255,255,0.60)"; // Slightly more muted for secondary labels
 
   // ----- Render -------------------------------------------------------------
   return (
@@ -108,7 +110,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         width: "100%",
         background: COL_BG,
         color: COL_TEXT,
-        fontSize: 10, // CHANGE: Reduced font size for better mobile display
+        fontSize: 10, // Reduced base font size for the container
         lineHeight: 1.2,
         padding: `${TOP_PAD_PX}px ${RIGHT_PAD_PX}px ${BOTTOM_PAD_PX}px ${LEFT_LABEL_COL_PX}px`,
         overflow: "visible",
@@ -132,7 +134,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
             y1={0}
             y2={chartHeight}
             stroke={COL_GRID}
-            strokeWidth={1.0} // CHANGE: Increased stroke width for better visibility
+            strokeWidth={1.0} // Increased stroke width for better visibility
             strokeDasharray="3 3"
           />
         ))}
@@ -146,7 +148,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
             y1={y}
             y2={y}
             stroke={COL_GRID}
-            strokeWidth={1.0} // CHANGE: Increased stroke width for better visibility
+            strokeWidth={1.0} // Increased stroke width for better visibility
             strokeDasharray="3 3"
           />
         ))}
@@ -156,7 +158,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           d={pathD}
           fill="none"
           stroke={COL_LINE}
-          strokeWidth={1.4} // CHANGE: Reduced stroke width for a cleaner, thinner line
+          strokeWidth={1.4} // Reduced stroke width for a cleaner, thinner line
           vectorEffect="non-scaling-stroke"
         />
 
@@ -170,13 +172,28 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           strokeWidth={1.4}
           strokeDasharray="6 6"
         />
+
+        {/* "X" marker at intersection of "Now" line and curve */}
+        {/* Render a simple 'x' using a text element. Adjust font-size if needed. */}
+        <text
+          x={nowX}
+          y={nowYCurve}
+          fill={COL_NOW}
+          textAnchor="middle" // Center the 'x' horizontally
+          dominantBaseline="middle" // Center the 'x' vertically
+          fontSize="10" // Smaller font for 'x'
+          fontWeight="bold"
+          pointerEvents="none"
+        >
+          X
+        </text>
       </svg>
 
       {/* "Now" label — centered over the red line, above the plot area */}
       <div
         style={{
           position: "absolute",
-          top: 6,
+          top: 8, // Adjusted top for better floating appearance
           left: `calc(${LEFT_LABEL_COL_PX}px + ${(nowX / total) * 100}%)`,
           transform: "translate(-50%, 0)",
           color: COL_NOW,
@@ -184,7 +201,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           letterSpacing: 0.2,
           textShadow: "0 0 2px rgba(0,0,0,0.35)",
           pointerEvents: "none",
-          fontSize: 10, // CHANGE: Reduced font size to match chart labels
+          fontSize: 10, // Matching chart labels
         }}
       >
         Now
@@ -196,7 +213,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
           position: "absolute",
           left: LEFT_LABEL_COL_PX,
           right: RIGHT_PAD_PX,
-          bottom: 2,
+          bottom: 8, // Adjusted bottom for better alignment
           height: 16,
         }}
       >
@@ -208,7 +225,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
               left: `${(m.idx / total) * 100}%`,
               transform: "translateX(-50%)",
               color: COL_TEXT_MUTE,
-              fontSize: 10, // CHANGE: Reduced font size for better mobile display
+              fontSize: 10, // Reduced font size for better mobile display
               whiteSpace: "nowrap",
             }}
           >
@@ -218,15 +235,18 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       </div>
 
       {/* Left-side guide labels (aligned with guide lines) */}
+      {/* Positioned using absolute `top` based on `labelTop` helper, with reduced font size */}
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 10, // Reduced left padding
           top: labelTop(guideY.summer),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
+          fontSize: 10, // Reduced font size
+          lineHeight: 1.1, // Adjusted line height for stacking
           whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          textAlign: "right", // Align text to the right for a cleaner look next to the chart
         }}
       >
         Summer Solstice (max)
@@ -234,12 +254,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 10, // Reduced left padding
           top: labelTop(guideY.equinox),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
+          fontSize: 10, // Reduced font size
+          lineHeight: 1.1, // Adjusted line height for stacking
           whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          textAlign: "right",
         }}
       >
         Equinox (~12h)
@@ -247,12 +269,14 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
       <div
         style={{
           position: "absolute",
-          left: 8, // CHANGE: Reduced left padding
+          left: 10, // Reduced left padding
           top: labelTop(guideY.winter),
           transform: "translateY(-50%)",
           color: COL_TEXT_MUTE,
+          fontSize: 10, // Reduced font size
+          lineHeight: 1.1, // Adjusted line height for stacking
           whiteSpace: "nowrap",
-          fontSize: 10, // CHANGE: Reduced font size
+          textAlign: "right",
         }}
       >
         Winter Solstice (min)
