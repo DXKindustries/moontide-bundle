@@ -1,5 +1,6 @@
 import React from 'react';
 import SettingsItem from './SettingsItem';
+import { Button } from '@/components/ui/button';
 import { FileText, Mail, Globe } from 'lucide-react';
 
 const SettingsList = () => {
@@ -41,6 +42,17 @@ const SettingsList = () => {
           )
         }
       />
+      <div className="p-4 text-center space-y-2">
+        <p className="text-sm text-gray-400">
+          For more information, detailed instructions, and the latest updates, visit our website.
+        </p>
+        <Button
+          variant="link"
+          onClick={() => window.open('https://moontide.site', '_blank')}
+        >
+          Visit moontide.site
+        </Button>
+      </div>
     </div>
   );
 };
