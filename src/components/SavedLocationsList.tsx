@@ -198,7 +198,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
               <MapPin className="h-4 w-4 mt-0.5 text-primary" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <div className="font-medium text-sm truncate">
+                  <div className="font-medium text-xs sm:text-sm whitespace-normal leading-tight">
                     {getLocationDisplayName(currentLocData)}
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
                   <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <div className="font-medium text-sm truncate">
+                      <div className="font-medium text-xs sm:text-sm whitespace-normal leading-tight">
                         {getLocationDisplayName(location)}
                       </div>
                       <div className="flex items-center gap-1">
