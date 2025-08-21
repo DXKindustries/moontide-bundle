@@ -59,6 +59,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
   const [radius, setRadius] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showTidesPressed, setShowTidesPressed] = useState(false);
 
   const { setSelectedStation: saveStation, setCurrentLocation, selectedState, setSelectedState } = useLocationState();
   const navigate = useNavigate();
@@ -82,9 +83,10 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
     setFavoriteStates(getFavoriteStates());
   };
 
-  // Reset radius filter when the selected station changes
+  // Reset radius filter and button state when the selected station changes
   useEffect(() => {
     setRadius(null);
+    setShowTidesPressed(false);
   }, [selectedStation]);
 
   useEffect(() => {
@@ -125,6 +127,7 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
 
   const handleContinue = async () => {
     if (!selectedStation) return;
+    setShowTidesPressed(true);
     const station: Station = {
       id: selectedStation.id,
       name: selectedStation.name,
@@ -346,7 +349,12 @@ const LocationOnboardingStep1 = ({ onStationSelect }: LocationOnboardingStep1Pro
         </div>
 
         <div className="sticky bottom-0 bg-background pt-2 space-y-2">
-          <Button disabled={!selectedStation} onClick={handleContinue} className="w-full">
+          <Button
+            disabled={!selectedStation}
+            onClick={handleContinue}
+            className="w-full"
+            variant={showTidesPressed ? 'default' : 'outline'}
+          >
             Show Tides
           </Button>
           <Button variant="outline" onClick={goToTideScreen} className="w-full">
