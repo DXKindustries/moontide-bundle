@@ -120,8 +120,15 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   const matchesState = (loc: LocationData | null): boolean => {
     if (!stateFilter) return true;
-    const stationState = loc?.stationId ? stationStates[loc.stationId] : undefined;
-    const state = (stationState || loc?.state || loc?.userSelectedState || '').toUpperCase();
+    const state = (
+      loc?.userSelectedState ||
+      (loc?.stationId ? stationStates[loc.stationId] : undefined) ||
+      loc?.state ||
+      ''
+    )
+      .toString()
+      .trim()
+      .toUpperCase();
     return state === stateFilter.toUpperCase();
   };
 
