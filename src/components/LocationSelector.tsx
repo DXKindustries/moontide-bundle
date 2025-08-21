@@ -110,12 +110,20 @@ export default function LocationSelector({
     const history = locationStorage.getLocationHistory();
     const set = new Set<string>();
     favs.forEach((s) => set.add(s));
-    history.forEach((h) => h.state && set.add(h.state));
-    if (currentLocation?.state) set.add(currentLocation.state);
+    history.forEach((h) => {
+      if (h.userSelectedState) set.add(h.userSelectedState);
+      else if (h.state) set.add(h.state);
+    });
+
+    const currentState =
+      currentLocation?.userSelectedState ||
+      currentLocation?.cityState?.split(",").pop()?.trim();
+    if (currentState) set.add(currentState);
+
     const list = Array.from(set);
     setAvailableStates(list);
     if (!selectedState && list.length > 0) {
-      setSelectedState(currentLocation?.state || list[0]);
+      setSelectedState(currentState || list[0]);
     }
   }, [currentLocation, isOpen]);
 
