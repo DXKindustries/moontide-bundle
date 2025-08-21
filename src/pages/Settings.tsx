@@ -17,9 +17,9 @@ const Settings = () => {
     <div className="relative h-screen flex flex-col">
       <StarsBackdrop />
       <SettingsHeader onBackPress={handleBackPress} />
-      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-8 relative z-10">
+      <div className="flex-1 overflow-y-auto px-4 pt-6 pb-8 relative z-10 space-y-6">
         <SettingsList />
-        <div className="mt-12 text-center space-y-2">
+        <div className="text-center space-y-2">
           <p className="text-sm text-gray-400">
             For more information, detailed instructions, and the latest updates, visit our website.
           </p>
