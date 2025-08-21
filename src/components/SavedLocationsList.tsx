@@ -219,7 +219,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
       {stateFilteredHistory.length > 0 && (
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-1">Location History</div>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto">
             {stateFilteredHistory.map((location, index) => (
               <div
                 key={`${location.stationId}-${index}`}
