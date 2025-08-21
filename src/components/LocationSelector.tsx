@@ -145,7 +145,8 @@ export default function LocationSelector({
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-[90vw] max-w-md p-0 bg-background border shadow-lg z-50 sm:w-80">
+      {/* Ensure the location dropdown overlays all content like the "Next Phase" section */}
+      <DropdownMenuContent className="w-[90vw] max-w-md p-0 bg-background border shadow-lg z-[100] sm:w-80">
         <div className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium">Select Location</h3>
