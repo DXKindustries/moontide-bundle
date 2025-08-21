@@ -8,6 +8,9 @@ import { LocationData } from '@/types/locationTypes';
 import SavedLocationsList from './SavedLocationsList';
 import { Station } from '@/services/tide/stationService';
 import { useNavigate } from 'react-router-dom';
+import { getFavoriteStates } from '@/utils/stateFavorites';
+import { locationStorage } from '@/utils/locationStorage';
+import { useLocationState } from '@/hooks/useLocationState';
 const NUMERIC_ID_RE = /^\d+$/;
 
 // Keep the SavedLocation interface for backward compatibility
@@ -40,6 +43,9 @@ export default function LocationSelector({
   buttonClassName?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { currentLocation } = useLocationState();
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [selectedState, setSelectedState] = useState<string>('');
 
   // Handle forceOpen prop
   useEffect(() => {
@@ -98,6 +104,21 @@ export default function LocationSelector({
     navigate('/location-onboarding-step1');
   };
 
+  // Load available states when the menu opens or current location changes
+  useEffect(() => {
+    const favs = getFavoriteStates();
+    const history = locationStorage.getLocationHistory();
+    const set = new Set<string>();
+    favs.forEach((s) => set.add(s));
+    history.forEach((h) => h.state && set.add(h.state));
+    if (currentLocation?.state) set.add(currentLocation.state);
+    const list = Array.from(set);
+    setAvailableStates(list);
+    if (!selectedState && list.length > 0) {
+      setSelectedState(currentLocation?.state || list[0]);
+    }
+  }, [currentLocation, isOpen]);
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -130,9 +151,24 @@ export default function LocationSelector({
               Add New
             </Button>
           </div>
+          {availableStates.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {availableStates.map((st) => (
+                <Button
+                  key={st}
+                  size="sm"
+                  variant={selectedState === st ? 'default' : 'outline'}
+                  onClick={() => setSelectedState(st)}
+                >
+                  {st}
+                </Button>
+              ))}
+            </div>
+          )}
           <SavedLocationsList
             onLocationSelect={handleSavedLocationSelect}
             showEmpty={true}
+            stateFilter={selectedState}
           />
         </div>
       </DropdownMenuContent>
