@@ -65,7 +65,7 @@ const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
         <span className="text-muted-foreground">Moonset</span>
         <span className="font-semibold">{formatIsoToAmPm(moonset)}</span>
       </div>
-      <div className="flex items-center justify-between py-1">
+      <div className="flex flex-col items-center py-1">
         <span className="text-muted-foreground">Next Phase</span>
         <span className="font-semibold">{nextPhaseInfo}</span>
       </div>
