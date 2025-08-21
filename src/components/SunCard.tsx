@@ -32,7 +32,12 @@ const SunCard: React.FC<SunCardProps> = ({ lat, lng, date, zipCode }) => {
         boxShadow: "0 0 0 1px rgba(255,255,255,0.04) inset",
       }}
     >
-      <div style={{ padding: "2px 8px 10px 8px" }}>
+      <div
+        style={{
+          padding: "2px 8px 10px 8px",
+          textAlign: "center",
+        }}
+      >
         <div
           style={{
             fontSize: 20,

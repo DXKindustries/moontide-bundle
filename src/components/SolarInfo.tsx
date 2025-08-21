@@ -64,7 +64,11 @@ const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
 
       {solarTimes.changeSinceSolstice && (
         <div className="mt-3 text-center text-[11px]">
-          <div className="text-muted-foreground">Since Jun 21 (Summer Solstice)</div>
+          <div className="text-muted-foreground">
+            Since June 21
+            <br />
+            (Summer Solstice)
+          </div>
           <div
             className={`font-semibold ${
               solarTimes.changeSinceSolstice.startsWith('-')
