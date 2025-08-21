@@ -120,13 +120,14 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   const matchesState = (loc: LocationData | null): boolean => {
     if (!stateFilter) return true;
-    const state = (loc?.state || loc?.userSelectedState || '').toUpperCase();
+    const stationState = loc?.stationId ? stationStates[loc.stationId] : undefined;
+    const state = (stationState || loc?.state || loc?.userSelectedState || '').toUpperCase();
     return state === stateFilter.toUpperCase();
   };
 
   const stateFilteredHistory = useMemo(
     () => filteredHistory.filter((h) => matchesState(h)),
-    [filteredHistory, stateFilter],
+    [filteredHistory, stateFilter, stationStates],
   );
 
   const currentLocData = useMemo(
