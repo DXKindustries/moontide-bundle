@@ -45,7 +45,7 @@ const SolarInfo = ({ solarTimes, zipCode }: SolarInfoProps) => {
 
         {/* Change from Previous Day */}
         {solarTimes.changeFromPrevious && (
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-1 col-span-2 sm:col-span-1 whitespace-nowrap">
             <span className="text-muted-foreground">Change</span>
             <span
               className={`font-semibold ${
