@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { TidePoint, TideCycle } from '@/services/tide/types';
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
-import { formatIsoToAmPm, parseIsoAsLocal, formatDateTimeAsLocalIso } from '@/utils/dateTimeUtils';
+import { formatIsoToAmPm, parseIsoAsLocal, formatDateTimeAsLocalIso, formatApiDate } from '@/utils/dateTimeUtils';
 
 type TideChartProps = {
   curve: TidePoint[]; // continuous six-minute data
@@ -63,6 +63,7 @@ const TideChart = ({
   startOfDay.setHours(0, 0, 0, 0);
   const endOfRange = new Date(startOfDay);
   endOfRange.setHours(endOfRange.getHours() + 30);
+  const formattedDate = formatApiDate(date);
 
   const tickValues: number[] = [];
   for (let h = 0; h <= 30; h += 6) {
@@ -166,7 +167,7 @@ const TideChart = ({
           </Badge>
         )}
         <CardTitle className="text-lg sm:text-2xl whitespace-nowrap">Tide Forecast</CardTitle>
-        <p className="text-moon-blue text-sm whitespace-nowrap">{date}</p>
+        <p className="text-moon-blue text-sm whitespace-nowrap">{formattedDate}</p>
         <LocationDisplay
           currentLocation={currentLocation || null}
           stationName={stationName || null}
