@@ -18,9 +18,10 @@ import { formatLocationSubtext } from '@/utils/locationFormatting';
 interface SavedLocationsListProps {
   onLocationSelect: (location: LocationData) => void;
   showEmpty?: boolean;
+  stateFilter?: string;
 }
 
-export default function SavedLocationsList({ onLocationSelect, showEmpty = false }: SavedLocationsListProps) {
+export default function SavedLocationsList({ onLocationSelect, showEmpty = false, stateFilter }: SavedLocationsListProps) {
   const [locationHistory, setLocationHistory] = useState(locationStorage.getLocationHistory());
   const [deletingLocation, setDeletingLocation] = useState<LocationData | null>(null);
   const { currentLocation, setCurrentLocation, setSelectedStation } = useLocationState();
@@ -117,6 +118,17 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     });
   }, [locationHistory, currentLocation]);
 
+  const matchesState = (loc: LocationData | null): boolean => {
+    if (!stateFilter) return true;
+    const state = (loc?.state || loc?.userSelectedState || '').toUpperCase();
+    return state === stateFilter.toUpperCase();
+  };
+
+  const stateFilteredHistory = useMemo(
+    () => filteredHistory.filter((h) => matchesState(h)),
+    [filteredHistory, stateFilter],
+  );
+
   const currentLocData = useMemo(
     () => (currentLocation ? toLocationData(currentLocation) : null),
     [currentLocation],
@@ -155,7 +167,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     return formatLocationSubtext(location, stationStates);
   };
 
-  if (!currentLocData && filteredHistory.length === 0 && showEmpty) {
+  if (!matchesState(currentLocData) && stateFilteredHistory.length === 0 && showEmpty) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -167,7 +179,7 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
 
   return (
     <>
-      {currentLocData && (
+      {currentLocData && matchesState(currentLocData) && (
         <div className="mb-3">
           <div className="text-xs font-medium text-muted-foreground mb-1">Current Location</div>
           <div
@@ -196,11 +208,11 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
           </div>
         </div>
       )}
-      {filteredHistory.length > 0 && (
+      {stateFilteredHistory.length > 0 && (
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-1">Location History</div>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {filteredHistory.map((location, index) => (
+            {stateFilteredHistory.map((location, index) => (
               <div
                 key={`${location.stationId}-${index}`}
                 className="w-full justify-start h-auto p-3 text-left border rounded-lg cursor-pointer transition-colors border-border hover:bg-accent"
