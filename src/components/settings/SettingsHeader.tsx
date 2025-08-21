@@ -13,15 +13,15 @@ const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
   };
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-center p-4 border-b border-gray-700 bg-background/90 backdrop-blur-sm shadow-md">
+    <div className="sticky top-0 z-50 flex flex-col p-4 space-y-2 border-b border-gray-700 bg-background/90 backdrop-blur-sm shadow-md">
       <Button
         variant="ghost"
         onClick={handleBackClick}
-        className="absolute left-4 text-white hover:bg-gray-700 flex items-center gap-1"
+        className="self-start text-white hover:bg-gray-700 flex items-center gap-1"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Dashboard
       </Button>
-      <h1 className="text-xl font-semibold text-white">Settings</h1>
+      <h1 className="w-full text-center text-xl font-semibold text-white">Settings</h1>
     </div>
   );
 };
