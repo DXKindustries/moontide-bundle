@@ -272,7 +272,7 @@ const SolarFlow: React.FC<SolarFlowProps> = ({ lat, lng, date }) => {
         style={{
           position: "absolute",
           left: 0,
-          bottom: 0,
+          bottom: 18,
           paddingLeft: 4,
           color: COL_TEXT_MUTE,
           width: LEFT_LABEL_COL_PX,
