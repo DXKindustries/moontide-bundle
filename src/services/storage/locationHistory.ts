@@ -81,7 +81,7 @@ export function saveLocationHistory(item: Station | LocationHistoryEntry): void 
     return;
   }
   const entry = normalizeStation(item);
-  const next  = [entry, ...getLocationHistory().filter(h => h.stationId !== entry.stationId)];
+  const next  = [entry, ...getLocationHistory().filter(h => h.stationId !== entry.stationId)].slice(0, 100);
   safeLocalStorage.set(LOCATION_HISTORY_KEY, next);
 }
 
