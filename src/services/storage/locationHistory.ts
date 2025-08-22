@@ -81,8 +81,7 @@ export function saveLocationHistory(item: Station | LocationHistoryEntry): void 
     return;
   }
   const entry = normalizeStation(item);
-  const next  = [entry, ...getLocationHistory().filter(h => h.stationId !== entry.stationId)]
-                  .slice(0, 10);
+  const next  = [entry, ...getLocationHistory().filter(h => h.stationId !== entry.stationId)].slice(0, 100);
   safeLocalStorage.set(LOCATION_HISTORY_KEY, next);
 }
 
@@ -105,8 +104,7 @@ export function saveStationHistory(item: Station | LocationHistoryEntry): void {
     return;
   }
   const entry = normalizeStation(item);
-  const next  = [entry, ...getStationHistory().filter(s => s.stationId !== entry.stationId)]
-                  .slice(0, 10);
+  const next  = [entry, ...getStationHistory().filter(s => s.stationId !== entry.stationId)];
   safeLocalStorage.set(STATION_HISTORY_KEY, next);
 }
 
@@ -139,7 +137,7 @@ export function clearStationHistory(): void {
       }
     });
 
-    safeLocalStorage.set(key, Array.from(map.values()).slice(0, 10));
+    safeLocalStorage.set(key, Array.from(map.values()));
   };
 
   scrub(LOCATION_HISTORY_KEY);
