@@ -89,9 +89,14 @@ export const useTideData = ({ location, station }: UseTideDataParams): UseTideDa
     }
 
     if (cached) {
+      const todayStr = getCurrentIsoDateString();
       setTideData(cached.tideData);
       setTideEvents(cached.tideEvents);
-      setWeeklyForecast(cached.weeklyForecast);
+      setWeeklyForecast(
+        (cached.weeklyForecast || [])
+          .filter((day) => day.date >= todayStr)
+          .slice(0, 7)
+      );
       setStationName(cached.stationName);
       setStationId(cached.stationId);
       if (cached.expiresAt < Date.now()) {
