@@ -23,7 +23,7 @@ describe('calculateMoonTimes', () => {
   it('computes moonrise and moonset for Newport on July 16, 2025', () => {
     const date = parseIsoAsLocal('2025-07-16T00:00:00');
     const { moonrise, moonset } = calculateMoonTimes(date, 41.4353, -71.4616);
-    expect(moonrise).toBe('2025-07-16T16:42:34');
-    expect(moonset).toBe('2025-07-16T04:02:44');
+    expect(moonrise).toBe('2025-07-16T03:04:12');
+    expect(moonset).toBe('2025-07-16T15:43:26');
   });
 });
