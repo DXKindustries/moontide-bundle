@@ -132,8 +132,25 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     return state === stateFilter.toUpperCase();
   };
 
+  const getLocationDisplayName = (location: LocationData | null): string => {
+    if (!location) return 'Unknown Location';
+
+    if (location.nickname) return location.nickname;
+    if (location.stationName) return location.stationName;
+    return `${location.city}, ${location.state}`;
+  };
+
   const stateFilteredHistory = useMemo(
-    () => filteredHistory.filter((h) => matchesState(h)),
+    () =>
+      filteredHistory
+        .filter((h) => matchesState(h))
+        .sort((a, b) =>
+          getLocationDisplayName(a).localeCompare(
+            getLocationDisplayName(b),
+            undefined,
+            { sensitivity: 'base' },
+          ),
+        ),
     [filteredHistory, stateFilter, stationStates],
   );
 
@@ -155,14 +172,6 @@ export default function SavedLocationsList({ onLocationSelect, showEmpty = false
     if (hours > 0) return `${hours}h ago`;
     if (minutes > 0) return `${minutes}m ago`;
     return 'Just now';
-  };
-
-  const getLocationDisplayName = (location: LocationData | null): string => {
-    if (!location) return 'Unknown Location';
-
-    if (location.nickname) return location.nickname;
-    if (location.stationName) return location.stationName;
-    return `${location.city}, ${location.state}`;
   };
 
   const getLocationSubtext = (location: LocationData): string => {
