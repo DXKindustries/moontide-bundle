@@ -27,6 +27,11 @@ jobs:
 
       - name: Install Android SDK
         uses: android-actions/setup-android@v2
+        
+      - name: Reconstruct upload keystore
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
       - name: Build AAB
         run: npm run android:release
