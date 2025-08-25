@@ -26,6 +26,7 @@ android {
         release {
             def ksPath = System.getenv("ANDROID_KEYSTORE_PATH")
             if (ksPath != null && new File(ksPath).exists()) {
+                println("Signing with keystore: " + ksPath)
                 storeFile file(ksPath)
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
@@ -38,6 +39,7 @@ android {
 
     buildTypes {
         release {
+            // keep existing release settings (minify, shrinker, proguard, etc.)
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
