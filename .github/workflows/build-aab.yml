@@ -33,6 +33,15 @@ jobs:
           mkdir -p android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
+      - name: Debug keystore presence
+        run: |
+          ls -lh android/app || true
+          if [ -s android/app/upload-keystore.jks ]; then
+            echo "Keystore OK"
+          else
+            echo "Keystore MISSING"; exit 1
+          fi
+
       - name: Export signing env
         run: |
           echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
