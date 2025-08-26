@@ -49,8 +49,13 @@ jobs:
           echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "ANDROID_KEYSTORE_PATH=$GITHUB_WORKSPACE/android/app/upload-keystore.jks" >> $GITHUB_ENV
 
+      - name: Signing report
+        working-directory: android
+        run: ./gradlew :app:signingReport --no-daemon
+
       - name: Build AAB
-        run: npm run android:release
+        working-directory: android
+        run: ./gradlew clean :app:bundleRelease --no-daemon
 
       - name: Upload AAB as artifact
         uses: actions/upload-artifact@v4
