@@ -26,12 +26,13 @@ android {
         release {
             def ksPath = System.getenv("ANDROID_KEYSTORE_PATH")
             if (ksPath != null && new File(ksPath).exists()) {
+                logger.lifecycle("Signing with keystore: " + ksPath)
                 storeFile file(ksPath)
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword System.getenv("ANDROID_KEY_PASSWORD")
             } else {
-                println("WARNING: ANDROID_KEYSTORE_PATH not set or file missing; release will be unsigned.")
+                logger.lifecycle("WARNING: ANDROID_KEYSTORE_PATH not set or file missing; release will be unsigned.")
             }
         }
     }
