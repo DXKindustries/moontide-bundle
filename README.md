@@ -93,18 +93,9 @@ Follow these steps to produce a debug build of the Android application:
    ```sh
    npm run build
    ```
-3. Add the Android platform if it doesn't already exist:
-   ```sh
-   npx cap add android
-   ```
-4. Sync Capacitor files:
-   ```sh
-   npx cap sync android
-   ```
-5. Build the APK:
+3. Build the APK:
    ```sh
    cd android && ./gradlew assembleDebug
-   ```
 
 The generated APK can be found at
 `android/app/build/outputs/apk/debug/app-debug.apk`.
