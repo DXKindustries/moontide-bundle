@@ -94,9 +94,8 @@ Follow these steps to produce a debug build of the Android application:
    npm run build
    ```
 3. Build the APK:
-    ```sh
-    cd android && ./gradlew assembleDebug
-    ```
+   ```sh
+   cd android && ./gradlew assembleDebug
 
 The generated APK can be found at
 `android/app/build/outputs/apk/debug/app-debug.apk`.
