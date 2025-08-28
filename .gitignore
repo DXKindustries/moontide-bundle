@@ -10,3 +10,4 @@ keystore.jks
 
 # Keystore properties file - contains sensitive credentials
 /android/keystore.properties
+cmdline-tools.zip
