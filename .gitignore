@@ -1,6 +1,8 @@
 node_modules/
 dist/
 android/app/build/
+android/app/src/main/assets/*
+!android/app/src/main/assets/.keep
 
 # Keystore file - contains sensitive credentials
 keystore.jks
