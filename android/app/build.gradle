@@ -7,10 +7,10 @@ android {
         keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
     }
 
-    namespace "com.example.moontide"
+    namespace "com.slicktimesavers.moontide"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.example.moontide"
+        applicationId "com.slicktimesavers.moontide"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
