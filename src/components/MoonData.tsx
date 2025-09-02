@@ -1,23 +1,11 @@
 import React from 'react';
 import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
-import { getFullMoonName } from '@/utils/lunarUtils';
-import { FULL_MOON_DATES_UTC } from '@/utils/moonEphemeris';
+import { findNextFullMoon, getFullMoonName } from '@/utils/lunarUtils';
 
 type MoonDataProps = {
   illumination: number;
   moonrise: string;
   moonset: string;
-};
-
-const findNextFullMoon = (currentDate: Date) => {
-  const now = currentDate.getTime();
-  for (const dateStr of FULL_MOON_DATES_UTC) {
-    const fullMoon = new Date(`${dateStr}T00:00:00Z`);
-    if (fullMoon.getTime() > now) {
-      return fullMoon;
-    }
-  }
-  return null;
 };
 
 const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {

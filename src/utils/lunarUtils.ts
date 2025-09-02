@@ -1,3 +1,5 @@
+import { Moon } from 'lunarphase-js';
+import { formatDateTimeAsLocalIso } from "./dateTimeUtils";
 
 // Lunar calculation utilities
 
@@ -32,6 +34,9 @@ export const isFullMoon = (phase: string): boolean => {
 };
 
 export const getMoonEmoji = (phase: string): string => {
+  // lunarphase-js uses "New" for "New Moon", so we handle that.
+  if (phase === "New") return "🌑";
+
   switch (phase) {
     case "New Moon":
       return "🌑";
@@ -54,113 +59,40 @@ export const getMoonEmoji = (phase: string): string => {
   }
 };
 
-// Find the most recent new moon date on or before the given date
-export const findMostRecentNewMoon = (date: Date): Date => {
-  const target = date.getTime();
-  for (let i = NEW_MOON_DATES_UTC.length - 1; i >= 0; i--) {
-    const nm = new Date(`${NEW_MOON_DATES_UTC[i]}T00:00:00Z`);
-    if (nm.getTime() <= target) {
-      return nm;
-    }
-  }
-  // Fallback to earliest known new moon if none found
-  return new Date(`${NEW_MOON_DATES_UTC[0]}T00:00:00Z`);
-};
-
-// More accurate moon phase calculation using a known lunar cycle reference
-
+/**
+ * Calculates the moon phase and illumination for a given date.
+ * @param date The date to calculate the moon phase for.
+ * @returns An object with the phase name and illumination percentage.
+ */
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
-  // For full moon, check against the exact date from ephemeris for accuracy
-  if (isDateFullMoon(date)) {
-    return { phase: "Full Moon", illumination: 100 };
-  }
-  // Also check for new moon for the same accuracy
-  if (isDateNewMoon(date)) {
-    return { phase: "New Moon", illumination: 0 };
-  }
-
-  const MS_PER_DAY = 1000 * 60 * 60 * 24;
-  // Ephemeris anchor: most recent known new moon before or on the date
-  const lastNewMoon = findMostRecentNewMoon(date);
-  const lastIndex = NEW_MOON_DATES_UTC.indexOf(lastNewMoon.toISOString().slice(0, 10));
-  const nextIndex = Math.min(lastIndex + 1, NEW_MOON_DATES_UTC.length - 1);
-  const nextNewMoon = new Date(`${NEW_MOON_DATES_UTC[nextIndex]}T00:00:00Z`);
-
-  // Dynamic cycle parameters
-  const daysSinceNewMoon = (date.getTime() - lastNewMoon.getTime()) / MS_PER_DAY;
-  const cycleLength = (nextNewMoon.getTime() - lastNewMoon.getTime()) / MS_PER_DAY;
-
-  // Position in cycle as a fraction (0-1)
-  const cyclePosition = daysSinceNewMoon / cycleLength;
-  
-  // Calculate illumination percentage (0-100)
-  const illuminationDecimal = (1 - Math.cos(cyclePosition * 2 * Math.PI)) / 2;
+  const phaseName = Moon.lunarPhase(date);
+  const agePercent = Moon.lunarAgePercent(date);
+  // Illumination formula based on cycle position
+  const illuminationDecimal = (1 - Math.cos(agePercent * 2 * Math.PI)) / 2;
   const illumination = Math.round(illuminationDecimal * 100);
-  
-  // Determine phase with refined waning boundaries
-  let phase: string;
 
-  if (cyclePosition < 0.1875) {
-    phase = "Waxing Crescent";
-  } else if (cyclePosition < 0.3125) {
-    phase = "First Quarter";
-  } else if (cyclePosition < 0.5) {
-    phase = "Waxing Gibbous";
-  } else {
-    const isWaning = cyclePosition >= 0.5;
-    const nearLastQuarter = Math.abs(cyclePosition - 0.75) <= 0.01;
-    const illuminationNearHalf = isWaning && Math.abs(illumination - 50) <= 5;
+  // The library returns "New" but the app uses "New Moon".
+  const correctedPhaseName = phaseName === 'New' ? 'New Moon' : phaseName;
 
-    if (nearLastQuarter || illuminationNearHalf) {
-      phase = "Last Quarter";
-    } else if (cyclePosition < 0.74) {
-      phase = "Waning Gibbous";
-    } else {
-      phase = "Waning Crescent";
+  return { phase: correctedPhaseName, illumination };
+};
+
+/**
+ * Finds the date of the next full moon after a given date.
+ * @param startDate The date to start searching from.
+ * @returns A Date object for the next full moon, or null if none is found within 35 days.
+ */
+export const findNextFullMoon = (startDate: Date): Date | null => {
+    let d = new Date(startDate);
+    for (let i = 0; i < 35; i++) {
+        d.setDate(d.getDate() + 1);
+        if (Moon.lunarPhase(d) === 'Full') {
+            // Set to midnight UTC for consistency
+            return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+        }
     }
-  }
-
-  return { phase, illumination };
-};
-
-import { formatDateTimeAsLocalIso } from "./dateTimeUtils";
-import { FULL_MOON_SET, NEW_MOON_SET, NEW_MOON_DATES_UTC } from "./moonEphemeris";
-
-// Replace isDateFullMoon and isDateNewMoon with accurate table lookups
-/**
- * Checks if the given date is a "full moon day" (matches our ephemeris, within +/- 1 day).
- * This is MUCH more accurate than algorithmic calculation for calendar indicators!
- */
-export const isDateFullMoon = (date: Date): boolean => {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  // Form YYYY-MM-DD (UTC, to match ephemeris)
-  const utcYear = date.getUTCFullYear();
-  const utcMonth = pad(date.getUTCMonth() + 1);
-  const utcDay = pad(date.getUTCDate());
-
-  const yyyymmdd = `${utcYear}-${utcMonth}-${utcDay}`;
-  // Optionally, allow ±1 day margin (covers time zone edge cases)
-  if (FULL_MOON_SET.has(yyyymmdd)) return true;
-  // You can uncomment below to show dot also the day before/after the true full moon,
-  // which is sometimes done to reflect local time variation:
-  // if (FULL_MOON_SET.has(getAdjacentDate(yyyymmdd, -1))) return true;
-  // if (FULL_MOON_SET.has(getAdjacentDate(yyyymmdd, 1))) return true;
-  return false;
-};
-
-/**
- * Checks if the given date is a "new moon day" (matches our ephemeris, within +/- 1 day).
- */
-export const isDateNewMoon = (date: Date): boolean => {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  const utcYear = date.getUTCFullYear();
-  const utcMonth = pad(date.getUTCMonth() + 1);
-  const utcDay = pad(date.getUTCDate());
-  const yyyymmdd = `${utcYear}-${utcMonth}-${utcDay}`;
-  if (NEW_MOON_SET.has(yyyymmdd)) return true;
-  // Optionally ±1 day logic, see above comments.
-  return false;
-};
+    return null;
+}
 
 // Calculate moonrise and moonset times for a given date and location.
 // Algorithm adapted from the SunCalc library (https://github.com/mourner/suncalc)
