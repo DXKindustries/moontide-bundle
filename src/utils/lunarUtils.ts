@@ -69,10 +69,15 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 
 // More accurate moon phase calculation using a known lunar cycle reference
 
-export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
-  // For full moon, check against the exact date from ephemeris for accuracy
+export const calculateMoonPhase = (
+  date: Date
+): { phase: string; illumination: number } => {
+  // For full/new moon, check against the exact date from ephemeris for accuracy
   if (isDateFullMoon(date)) {
     return { phase: "Full Moon", illumination: 100 };
+  }
+  if (isDateNewMoon(date)) {
+    return { phase: "New Moon", illumination: 0 };
   }
 
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -96,16 +101,14 @@ export const calculateMoonPhase = (date: Date): { phase: string; illumination: n
   // Determine phase with refined waning boundaries
   let phase: string;
 
-  if (cyclePosition < 0.0625) {
-    phase = "New Moon";
-  } else if (cyclePosition < 0.1875) {
+  if (cyclePosition < 0.1875) {
     phase = "Waxing Crescent";
   } else if (cyclePosition < 0.3125) {
     phase = "First Quarter";
-  } else if (cyclePosition < 0.4375) {
+  } else if (cyclePosition < 0.5) {
     phase = "Waxing Gibbous";
   } else if (cyclePosition < 0.5625) {
-    phase = "Full Moon";
+    phase = "Waning Gibbous";
   } else {
     const isWaning = cyclePosition >= 0.5;
     const nearLastQuarter = Math.abs(cyclePosition - 0.75) <= 0.01;
