@@ -16,7 +16,7 @@ export const FULL_MOON_NAMES: Record<number, FullMoonName> = {
   6: { name: "Strawberry Moon", description: "When strawberries are harvested" },
   7: { name: "Buck Moon", description: "When male deer grow new antlers" },
   8: { name: "Sturgeon Moon", description: "When sturgeon fish are caught" },
-  9: { name: "Harvest Moon", description: "The full moon nearest autumn equinox" },
+  9: { name: "Corn Moon", description: "Relates to when corn is harvested" },
   10: { name: "Hunter's Moon", description: "When hunters prepare for winter" },
   11: { name: "Beaver Moon", description: "When beavers build winter dams" },
   12: { name: "Cold Moon", description: "The long nights of winter" }
@@ -70,6 +70,11 @@ export const findMostRecentNewMoon = (date: Date): Date => {
 // More accurate moon phase calculation using a known lunar cycle reference
 
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
+  // For full moon, check against the exact date from ephemeris for accuracy
+  if (isDateFullMoon(date)) {
+    return { phase: "Full Moon", illumination: 100 };
+  }
+
   const MS_PER_DAY = 1000 * 60 * 60 * 24;
   // Ephemeris anchor: most recent known new moon before or on the date
   const lastNewMoon = findMostRecentNewMoon(date);
