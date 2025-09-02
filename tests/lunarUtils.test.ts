@@ -36,7 +36,7 @@ describe('getFullMoonName', () => {
   });
 });
 
-describe('calculateMoonPhase with full moon fix', () => {
+describe('calculateMoonPhase with precise phase checks', () => {
   it('correctly identifies a full moon on the exact date', () => {
     const date = parseIsoAsLocal('2025-09-07T00:00:00');
     const result = calculateMoonPhase(date);
@@ -49,5 +49,26 @@ describe('calculateMoonPhase with full moon fix', () => {
     const result = calculateMoonPhase(date);
     expect(result.phase).not.toBe('Full Moon');
     expect(result.phase).toBe('Waxing Gibbous');
+  });
+
+  it('correctly identifies a new moon on the exact date', () => {
+    const date = parseIsoAsLocal('2025-09-22T00:00:00');
+    const result = calculateMoonPhase(date);
+    expect(result.phase).toBe('New Moon');
+    expect(result.illumination).toBe(0);
+  });
+
+  it('does not identify the day after a new moon as a new moon', () => {
+    const date = parseIsoAsLocal('2025-09-23T00:00:00');
+    const result = calculateMoonPhase(date);
+    expect(result.phase).not.toBe('New Moon');
+    expect(result.phase).toBe('Waxing Crescent');
+  });
+
+  it('does not identify the day before a new moon as a new moon', () => {
+    const date = parseIsoAsLocal('2025-09-21T00:00:00');
+    const result = calculateMoonPhase(date);
+    expect(result.phase).not.toBe('New Moon');
+    expect(result.phase).toBe('Waning Crescent');
   });
 });
