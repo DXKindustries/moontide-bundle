@@ -1,4 +1,4 @@
-import { Moon } from 'lunarphase-js';
+import { EventFinder, AstroEvent } from '@tubular/astronomy';
 import { formatDateTimeAsLocalIso } from "./dateTimeUtils";
 
 // Lunar calculation utilities
@@ -13,7 +13,7 @@ export const FULL_MOON_NAMES: Record<number, FullMoonName> = {
   1: { name: "Wolf Moon", description: "Named after howling wolves in winter" },
   2: { name: "Snow Moon", description: "Named for heavy snowfall" },
   3: { name: "Worm Moon", description: "When earthworms emerge as soil thaws" },
-  4: { name: "Pink Moon", description: "Named after early spring flowers" },
+  4. { name: "Pink Moon", description: "Named after early spring flowers" },
   5: { name: "Flower Moon", description: "When flowers bloom abundantly" },
   6: { name: "Strawberry Moon", description: "When strawberries are harvested" },
   7: { name: "Buck Moon", description: "When male deer grow new antlers" },
@@ -34,9 +34,6 @@ export const isFullMoon = (phase: string): boolean => {
 };
 
 export const getMoonEmoji = (phase: string): string => {
-  // lunarphase-js uses "New" for "New Moon", so we handle that.
-  if (phase === "New") return "🌑";
-
   switch (phase) {
     case "New Moon":
       return "🌑";
@@ -59,48 +56,106 @@ export const getMoonEmoji = (phase: string): string => {
   }
 };
 
-/**
- * Calculates the moon phase and illumination for a given date.
- * @param date The date to calculate the moon phase for.
- * @returns An object with the phase name and illumination percentage.
- */
+const eventFinder = new EventFinder();
+
+// Cache for storing moon phase events to avoid recalculating
+const phaseCache = new Map<string, AstroEvent[]>();
+
+function getCachedLunarPhases(year: number, month: number): AstroEvent[] {
+    const key = `${year}-${month}`;
+    if (phaseCache.has(key)) {
+        return phaseCache.get(key)!;
+    }
+    const events = eventFinder.getLunarPhasesForMonth(year, month);
+    phaseCache.set(key, events);
+    return events;
+}
+
 export const calculateMoonPhase = (date: Date): { phase: string; illumination: number } => {
-  const phaseName = Moon.lunarPhase(date);
-  const agePercent = Moon.lunarAgePercent(date);
-  // Illumination formula based on cycle position
-  const illuminationDecimal = (1 - Math.cos(agePercent * 2 * Math.PI)) / 2;
-  const illumination = Math.round(illuminationDecimal * 100);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1; // 1-based month
 
-  // The library returns "New" but the app uses "New Moon".
-  const correctedPhaseName = phaseName === 'New' ? 'New Moon' : phaseName;
+    // Get events for the current, previous, and next months to find the bracketing events
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
 
-  return { phase: correctedPhaseName, illumination };
+    const allEvents = [
+        ...getCachedLunarPhases(prevYear, prevMonth),
+        ...getCachedLunarPhases(year, month),
+        ...getCachedLunarPhases(nextYear, nextMonth)
+    ].sort((a, b) => a.jdu - b.jdu);
+
+    let prevEvent: AstroEvent | null = null;
+    let nextEvent: AstroEvent | null = null;
+
+    for (const event of allEvents) {
+        if (event.eventTime.getTime() <= date.getTime()) {
+            prevEvent = event;
+        } else {
+            nextEvent = event;
+            break;
+        }
+    }
+
+    if (!prevEvent || !nextEvent) {
+        // Should not happen with the 3-month window
+        return { phase: 'Unknown', illumination: 50 };
+    }
+
+    // Check if the current date is the day of a primary phase
+    const day = date.getDate();
+    const prevEventDay = prevEvent.eventTime.getDate();
+    if (prevEvent.eventTime.getFullYear() === year && prevEvent.eventTime.getMonth() + 1 === month && prevEventDay === day) {
+        return { phase: prevEvent.eventText, illumination: prevEvent.eventText === 'New Moon' ? 0 : prevEvent.eventText === 'Full Moon' ? 100 : 50 };
+    }
+
+    const totalDuration = nextEvent.jdu - prevEvent.jdu;
+    const elapsedDuration = (date.getTime() / 86400000 + 2440587.5) - prevEvent.jdu;
+    const cyclePos = elapsedDuration / totalDuration;
+
+    let phase: string;
+
+    if (prevEvent.eventText === 'New Moon') phase = 'Waxing Crescent';
+    else if (prevEvent.eventText === 'First Quarter') phase = 'Waxing Gibbous';
+    else if (prevEvent.eventText === 'Full Moon') phase = 'Waning Gibbous';
+    else phase = 'Waning Crescent';
+
+    // Illumination calculation based on position in the quarter-cycle
+    const illumination = Math.round(50 * (1 - Math.cos(cyclePos * Math.PI) * (prevEvent.eventText.includes('New') || prevEvent.eventText.includes('First') ? 1 : -1)));
+
+    return { phase, illumination };
 };
 
-/**
- * Finds the date of the next full moon after a given date.
- * @param startDate The date to start searching from.
- * @returns A Date object for the next full moon, or null if none is found within 35 days.
- */
 export const findNextFullMoon = (startDate: Date): Date | null => {
-    let d = new Date(startDate);
-    for (let i = 0; i < 35; i++) {
-        d.setDate(d.getDate() + 1);
-        if (Moon.lunarPhase(d) === 'Full') {
-            // Set to midnight UTC for consistency
-            return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+    let year = startDate.getFullYear();
+    let month = startDate.getMonth() + 1;
+
+    for (let i = 0; i < 12; i++) { // Search up to a year ahead
+        const phases = getCachedLunarPhases(year, month);
+        for (const phase of phases) {
+            if (phase.eventText === 'Full Moon' && phase.eventTime.getTime() > startDate.getTime()) {
+                return phase.eventTime;
+            }
+        }
+        month++;
+        if (month > 12) {
+            month = 1;
+            year++;
         }
     }
     return null;
-}
+};
 
 // Calculate moonrise and moonset times for a given date and location.
-// Algorithm adapted from the SunCalc library (https://github.com/mourner/suncalc)
+// This function is from the original code and is preserved.
 export const calculateMoonTimes = (
   date: Date,
   lat: number = 41.4353,
   lng: number = -71.4616
 ): { moonrise: string; moonset: string } => {
+  // ... (original code preserved)
   const t = new Date(date);
   t.setHours(0, 0, 0, 0);
 

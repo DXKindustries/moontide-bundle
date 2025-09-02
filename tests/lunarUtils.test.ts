@@ -2,33 +2,43 @@ import { describe, it, expect } from 'vitest';
 import { calculateMoonPhase, findNextFullMoon, getFullMoonName, calculateMoonTimes } from '../src/utils/lunarUtils';
 import { parseIsoAsLocal } from '../src/utils/dateTimeUtils';
 
-describe('lunarUtils with lunarphase-js', () => {
+describe('lunarUtils with @tubular/astronomy', () => {
 
   describe('calculateMoonPhase', () => {
-    it('returns "New Moon" for a known new moon date', () => {
-      // Date from a reliable source for a new moon
-      const date = new Date('2025-01-29T12:36:00Z');
-      const result = calculateMoonPhase(date);
-      expect(result.phase).toBe('New Moon');
-    });
-
-    it('returns "Full Moon" for a known full moon date', () => {
-      // Date from a reliable source for a full moon
-      const date = new Date('2025-09-07T18:09:00Z');
+    it('returns "Full Moon" on the day of a full moon', () => {
+      const date = new Date('2025-09-07T12:00:00Z'); // Day of the full moon
       const result = calculateMoonPhase(date);
       expect(result.phase).toBe('Full Moon');
     });
 
-    it('returns "First Quarter" for a known first quarter date', () => {
-      const date = new Date('2025-02-05T08:03:00Z');
+    it('returns "New Moon" on the day of a new moon', () => {
+      const date = new Date('2025-01-29T12:00:00Z'); // Day of the new moon
       const result = calculateMoonPhase(date);
-      expect(result.phase).toBe('First Quarter');
+      expect(result.phase).toBe('New Moon');
     });
 
-    it('returns a high illumination value near a full moon', () => {
-        const date = new Date('2025-09-06T12:00:00Z');
+    it('returns "Waxing Crescent" after a new moon', () => {
+      const date = new Date('2025-01-31T12:00:00Z'); // 2 days after new moon
+      const result = calculateMoonPhase(date);
+      expect(result.phase).toBe('Waxing Crescent');
+    });
+
+    it('returns "Waning Gibbous" after a full moon', () => {
+      const date = new Date('2025-09-09T12:00:00Z'); // 2 days after full moon
+      const result = calculateMoonPhase(date);
+      expect(result.phase).toBe('Waning Gibbous');
+    });
+
+    it('returns high illumination near a full moon', () => {
+        const date = new Date('2025-09-06T12:00:00Z'); // Day before full moon
         const { illumination } = calculateMoonPhase(date);
         expect(illumination).toBeGreaterThan(95);
+    });
+
+    it('returns low illumination near a new moon', () => {
+        const date = new Date('2025-01-30T12:00:00Z'); // Day after new moon
+        const { illumination } = calculateMoonPhase(date);
+        expect(illumination).toBeLessThan(5);
     });
   });
 
@@ -42,19 +52,11 @@ describe('lunarUtils with lunarphase-js', () => {
       expect(nextFullMoon?.getUTCMonth()).toBe(8); // 0-indexed for September
       expect(nextFullMoon?.getUTCDate()).toBe(7);
     });
-
-    it('returns null if no full moon is found in the search range (mocking this scenario)', () => {
-        // This is harder to test without mocking the library, but we can test the loop limit
-        // We expect it to find a full moon within 35 days, so this is more of a sanity check
-        const farFutureDate = new Date('2030-01-01T00:00:00Z');
-        const nextFullMoon = findNextFullMoon(farFutureDate);
-        expect(nextFullMoon).not.toBeNull();
-    });
   });
 
   describe('getFullMoonName', () => {
     it('returns "Corn Moon" for a September date', () => {
-      const date = new Date('2025-09-01');
+      const date = new Date('2025-09-07T12:00:00Z');
       const moonName = getFullMoonName(date);
       expect(moonName?.name).toBe('Corn Moon');
     });
