@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { formatIsoToAmPm } from '@/utils/dateTimeUtils';
-import { calculateMoonPhase } from '@/utils/lunarUtils';
+import { getFullMoonName } from '@/utils/lunarUtils';
+import { FULL_MOON_DATES_UTC } from '@/utils/moonEphemeris';
 
 type MoonDataProps = {
   illumination: number;
@@ -9,47 +9,36 @@ type MoonDataProps = {
   moonset: string;
 };
 
-const getNextPhaseInfo = (currentPhase: string, currentDate: Date) => {
-  const phases = [
-    "New Moon", "Waxing Crescent", "First Quarter", "Waxing Gibbous",
-    "Full Moon", "Waning Gibbous", "Last Quarter", "Waning Crescent"
-  ];
-  
-  const currentIndex = phases.indexOf(currentPhase);
-  if (currentIndex === -1) return "Unknown";
-  
-  const nextIndex = (currentIndex + 1) % phases.length;
-  const nextPhase = phases[nextIndex];
-  
-  // Calculate actual days to next phase by checking each upcoming day
-  let daysToNext = 1;
-  const checkDate = new Date(currentDate);
-  
-  // Check up to 30 days ahead to find the next phase change
-  for (let i = 1; i <= 30; i++) {
-    checkDate.setDate(currentDate.getDate() + i);
-    const futurePhase = calculateMoonPhase(checkDate).phase;
-    
-    if (futurePhase === nextPhase) {
-      daysToNext = i;
-      break;
+const findNextFullMoon = (currentDate: Date) => {
+  const now = currentDate.getTime();
+  for (const dateStr of FULL_MOON_DATES_UTC) {
+    const fullMoon = new Date(`${dateStr}T00:00:00Z`);
+    if (fullMoon.getTime() > now) {
+      return fullMoon;
     }
   }
-  
-  return `${nextPhase} in ${daysToNext} day${daysToNext !== 1 ? 's' : ''}`;
+  return null;
 };
 
 const MoonData = ({ illumination, moonrise, moonset }: MoonDataProps) => {
-  // Calculate current moon phase for today
-  const today = React.useMemo(() => new Date(), []);
-  const currentMoonData = React.useMemo(
-    () => calculateMoonPhase(today),
-    [today]
-  );
-  const nextPhaseInfo = React.useMemo(
-    () => getNextPhaseInfo(currentMoonData.phase, today),
-    [currentMoonData.phase, today]
-  );
+  const nextFullMoonDate = React.useMemo(() => findNextFullMoon(new Date()), []);
+
+  let nextPhaseInfo = "Not available";
+  if (nextFullMoonDate) {
+    // Use UTC for an accurate day difference calculation
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const daysUntil = Math.round((nextFullMoonDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const fullMoonName = getFullMoonName(nextFullMoonDate)?.name || "Full Moon";
+
+    if (daysUntil >= 0) {
+        if (daysUntil === 0) {
+            nextPhaseInfo = `${fullMoonName} today`;
+        } else {
+            nextPhaseInfo = `${fullMoonName} in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
+        }
+    }
+  }
 
   return (
     <div className="w-full text-sm divide-y divide-muted/30">

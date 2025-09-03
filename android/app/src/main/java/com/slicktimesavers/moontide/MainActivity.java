@@ -1,4 +1,4 @@
-package com.example.moontide;
+package com.slicktimesavers.moontide;
 
 import com.getcapacitor.BridgeActivity;
 
