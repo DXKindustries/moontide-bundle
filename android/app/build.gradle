@@ -4,7 +4,7 @@ import java.io.FileOutputStream
 
 apply plugin: 'com.android.application'
 
-def versionPropsFile = rootProject.file('../version.properties')
+def versionPropsFile = rootProject.file('version.properties')
 def Properties versionProps = new Properties()
 def currentVersionCode
 
