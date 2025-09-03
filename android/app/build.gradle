@@ -4,7 +4,7 @@ import java.io.FileOutputStream
 
 apply plugin: 'com.android.application'
 
-def getVersionCode() {
+int getVersionCode() {
     def versionPropsFile = new File(rootProject.projectDir, 'version.properties')
     Properties versionProps = new Properties()
     int code
@@ -18,10 +18,11 @@ def getVersionCode() {
         versionProps.store(new FileOutputStream(versionPropsFile), null)
     }
 
-    if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }) {
+    if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') } && !project.hasProperty('versionCodeIncremented')) {
         code++
         versionProps['VERSION_CODE'] = code.toString()
         versionProps.store(new FileOutputStream(versionPropsFile), null)
+        project.ext.versionCodeIncremented = true
     }
 
     return code
@@ -40,7 +41,7 @@ android {
         applicationId "com.slicktimesavers.moontide"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode getVersionCode()
+        versionCode = getVersionCode()
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
