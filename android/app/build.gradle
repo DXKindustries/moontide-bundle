@@ -1,4 +1,29 @@
+import java.util.Properties
+import java.io.FileInputStream
+import java.io.FileOutputStream
+
 apply plugin: 'com.android.application'
+
+def versionPropsFile = rootProject.file('../version.properties')
+def Properties versionProps = new Properties()
+def currentVersionCode
+
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+    currentVersionCode = versionProps['VERSION_CODE'].toInteger()
+} else {
+    currentVersionCode = 2
+    versionProps['VERSION_CODE'] = currentVersionCode.toString()
+    versionProps.store(new FileOutputStream(versionPropsFile), null)
+}
+
+def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+
+if (isReleaseBuild) {
+    currentVersionCode++
+    versionProps['VERSION_CODE'] = currentVersionCode.toString()
+    versionProps.store(new FileOutputStream(versionPropsFile), null)
+}
 
 android {
     def keystorePropertiesFile = rootProject.file('keystore.properties')
@@ -13,7 +38,7 @@ android {
         applicationId "com.slicktimesavers.moontide"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode currentVersionCode
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
