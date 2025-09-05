@@ -14,39 +14,51 @@ jobs:
       # 1) Check out source
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2) Set up Node 20
+      # 2) Increment version
+      - name: Increment version and push
+        run: |
+          chmod +x ./scripts/increment_version.sh
+          ./scripts/increment_version.sh
+
+      # 3) Set up Node 20
       - name: Set up Node 20
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # 3) Install dependencies
+      # 4) Install dependencies
       - name: Install deps
         run: npm ci
 
-      # 4) Set up JDK for Android build
+      # 5) Build web app
+      - name: Build web app
+        run: npm run build
+
+      # 6) Set up JDK for Android build
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # 5) Set up Android SDK
+      # 7) Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
 
-      # 6) Reconstruct upload keystore
+      # 8) Reconstruct upload keystore
       - name: Reconstruct upload keystore
         run: |
           mkdir -p android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
-      # 7) Build Android debug APK
+      # 9) Build Android debug APK
       - name: Build Android APK (debug)
         run: npm run android:debug
 
-      # 8) Build Android AAB (release)
+      # 10) Build Android AAB (release)
       - name: Build Android AAB (release)
         env:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -55,7 +67,7 @@ jobs:
           ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-keystore.jks
         run: npm run android:release
 
-      # 9) Upload build artifacts
+      # 11) Upload build artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
