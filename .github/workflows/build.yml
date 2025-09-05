@@ -1,4 +1,4 @@
-name: Build Production
+name: Build Android Artifacts
 
 on:
   push:
@@ -7,46 +7,57 @@ on:
 
 jobs:
   build:
-    name: Build Web App
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Check out source
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2) Set up Node 20
-      - name: Set up Node 20
-        uses: actions/setup-node@v3
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
 
-      # 3) Install dependencies
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
-      # 4) Build production
-      - name: Build production
+      - name: Build web assets
         run: npm run build
 
-      # 5) Set up JDK for Android build
-      - name: Set up JDK 21
+      - name: Sync Capacitor assets
+        run: npx cap copy && npx cap sync android
+
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # 6) Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
 
-      # 7) Build Android debug APK
-      - name: Build Android APK
-        run: npm run android:debug
+      - name: Reconstruct upload keystore
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
-      # 8) Upload debug APK artifact
-      - name: Upload app-debug.apk
+      - name: Build Android artifacts
+        working-directory: android
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-keystore.jks
+        run: ./gradlew assembleDebug bundleRelease
+
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
