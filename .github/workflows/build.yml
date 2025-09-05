@@ -1,4 +1,4 @@
-name: Build Production
+name: Build Android
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Web App
+    name: Build Android Artifacts
     runs-on: ubuntu-latest
 
     steps:
@@ -25,28 +25,41 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      # 4) Build production
-      - name: Build production
-        run: npm run build
-
-      # 5) Set up JDK for Android build
+      # 4) Set up JDK for Android build
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      # 6) Set up Android SDK
+      # 5) Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
 
+      # 6) Reconstruct upload keystore
+      - name: Reconstruct upload keystore
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
       # 7) Build Android debug APK
-      - name: Build Android APK
+      - name: Build Android APK (debug)
         run: npm run android:debug
 
-      # 8) Upload debug APK artifact
-      - name: Upload app-debug.apk
+      # 8) Build Android AAB (release)
+      - name: Build Android AAB (release)
+        env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/upload-keystore.jks
+        run: npm run android:release
+
+      # 9) Upload build artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: android-builds
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/bundle/release/app-release.aab
