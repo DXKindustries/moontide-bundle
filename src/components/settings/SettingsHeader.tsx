@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 
 type SettingsHeaderProps = {
   onBackPress: () => void;
+  appVersion: string;
 };
 
-const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
+const SettingsHeader = ({ onBackPress, appVersion }: SettingsHeaderProps) => {
   const handleBackClick = () => {
     onBackPress();
   };
@@ -15,6 +16,7 @@ const SettingsHeader = ({ onBackPress }: SettingsHeaderProps) => {
   return (
     <div className="sticky top-0 z-50 flex flex-col p-4 space-y-2 border-b border-gray-700 bg-background/90 backdrop-blur-sm shadow-md">
       <h1 className="w-full text-center text-xl font-semibold text-white">Settings</h1>
+      <p className="w-full text-center text-sm text-gray-400">Version {appVersion}</p>
       <Button
         variant="ghost"
         onClick={handleBackClick}
