@@ -54,13 +54,7 @@ jobs:
           mkdir -p android/app
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
 
-      # 9) Print version for debugging
-      - name: Print version for debugging
-        run: |
-          echo "Contents of android/version.properties:"
-          cat android/version.properties
-
-      # 10) Build Android debug APK
+      # 9) Build Android debug APK
       - name: Build Android APK (debug)
         run: npm run android:debug
 
