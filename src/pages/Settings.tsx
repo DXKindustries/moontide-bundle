@@ -7,7 +7,7 @@ import SettingsList from '@/components/settings/SettingsList';
 import versionFile from '../../android/version.properties?raw';
 
 const match = versionFile.match(/VERSION_CODE=(\d+)/);
-const appVersion = `1.0.${match ? Number(match[1]) + 1 : 1}`;
+const appVersion = `1.0.${match ? Number(match[1]) : 1}`;
 
 const Settings = () => {
   const navigate = useNavigate();
