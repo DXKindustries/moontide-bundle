@@ -136,7 +136,7 @@ export const getSolarEvents = (date: Date): SolarEvent | null => {
     }
     // Autumn Equinox: September 22, 2025 (exact date only)
     if (month === 9 && day === 22) {
-      return { name: "Autumn Equinox", emoji: "🍂", description: "First day of autumn - equal day and night" };
+      return { name: "Autumn Equinox", emoji: "🍂", description: "First day of autumn equal day and night" };
     }
     // Winter Solstice: December 21, 2025 (exact date only)
     if (month === 12 && day === 21) {
