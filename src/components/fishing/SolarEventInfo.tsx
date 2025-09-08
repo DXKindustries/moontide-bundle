@@ -14,13 +14,24 @@ const SolarEventInfo: React.FC<SolarEventInfoProps> = ({ selectedDate }) => {
   const { event, date } = nextEvent;
   const today = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
   const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  const whenText = daysUntil === 0 ? 'today' : `in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
 
   return (
     <div className="p-4 rounded-md bg-orange-500/10 border border-orange-500/20 w-full max-w-sm">
       <div className="flex items-start gap-2 mb-2">
         <span className="text-2xl">{event.emoji}</span>
-        <h3 className="text-base font-medium text-orange-100 leading-tight flex-1">{event.name} {whenText}</h3>
+        <div className="flex-1 text-center">
+          <div className="text-sm font-medium text-orange-100 leading-tight">{event.name}</div>
+          {daysUntil === 0 ? (
+            <div className="text-xs font-medium text-orange-100 leading-tight">today</div>
+          ) : (
+            <>
+              <div className="text-xs font-medium text-orange-100 leading-tight">in</div>
+              <div className="text-xs font-medium text-orange-100 leading-tight">
+                {daysUntil} day{daysUntil !== 1 ? 's' : ''}
+              </div>
+            </>
+          )}
+        </div>
       </div>
       <p className="text-sm text-orange-200 leading-tight mt-1">{event.description}</p>
     </div>
