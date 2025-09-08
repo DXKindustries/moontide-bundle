@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getFullMoonName, isFullMoon, calculateMoonPhase } from '@/utils/lunarUtils';
-import { getSolarEvents } from '@/utils/solarUtils';
 import FullMoonBanner from './FullMoonBanner';
 import MoonVisual from './MoonVisual';
 import MoonData from './MoonData';
@@ -59,8 +58,6 @@ const MoonPhase = ({
   const lat = currentLocation?.lat ?? 41.4353; // Default to Newport, RI
   const lng = currentLocation?.lng ?? -71.4616;
 
-  const solarEvent = getSolarEvents(currentDate);
-
   return (
     <div className="w-full">
       <Card className={cn("overflow-hidden bg-card/50 backdrop-blur-md", className)}>
@@ -82,7 +79,7 @@ const MoonPhase = ({
 
           <div className="border-t border-muted pt-4 w-full space-y-4">
             <SunCard lat={lat} lng={lng} date={currentDate} zipCode={currentLocation?.zipCode} />
-            {solarEvent && <SolarEventInfo selectedDate={currentDate} />}
+            <SolarEventInfo selectedDate={currentDate} />
           </div>
         </CardContent>
       </Card>

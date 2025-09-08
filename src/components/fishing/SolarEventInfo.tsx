@@ -1,23 +1,28 @@
 
 import React from 'react';
-import { getSolarEvents } from '@/utils/solarUtils';
+import { findNextSolarEvent } from '@/utils/solarUtils';
 
 type SolarEventInfoProps = {
   selectedDate: Date;
 };
 
 const SolarEventInfo: React.FC<SolarEventInfoProps> = ({ selectedDate }) => {
-  const solarEvent = getSolarEvents(selectedDate);
-  
-  if (!solarEvent) return null;
+  const nextEvent = React.useMemo(() => findNextSolarEvent(selectedDate), [selectedDate]);
+
+  if (!nextEvent) return null;
+
+  const { event, date } = nextEvent;
+  const today = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+  const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const whenText = daysUntil === 0 ? 'today' : `in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
 
   return (
     <div className="p-4 rounded-md bg-orange-500/10 border border-orange-500/20">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-2xl">{solarEvent.emoji}</span>
-        <h3 className="text-lg font-medium text-orange-100">{solarEvent.name}</h3>
+        <span className="text-2xl">{event.emoji}</span>
+        <h3 className="text-lg font-medium text-orange-100">{event.name} {whenText}</h3>
       </div>
-      <p className="text-orange-200">{solarEvent.description}</p>
+      <p className="text-orange-200">{event.description}</p>
     </div>
   );
 };

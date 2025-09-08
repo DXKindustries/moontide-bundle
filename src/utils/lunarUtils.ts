@@ -67,6 +67,30 @@ export const findMostRecentNewMoon = (date: Date): Date => {
   return new Date(`${NEW_MOON_DATES_UTC[0]}T00:00:00Z`);
 };
 
+// Find the next full moon after the given date
+export const findNextFullMoon = (currentDate: Date): Date | null => {
+  const now = currentDate.getTime();
+  for (const dateStr of FULL_MOON_DATES_UTC) {
+    const fullMoon = new Date(`${dateStr}T00:00:00Z`);
+    if (fullMoon.getTime() > now) {
+      return fullMoon;
+    }
+  }
+  return null;
+};
+
+// Find the next new moon after the given date
+export const findNextNewMoon = (currentDate: Date): Date | null => {
+  const now = currentDate.getTime();
+  for (const dateStr of NEW_MOON_DATES_UTC) {
+    const newMoon = new Date(`${dateStr}T00:00:00Z`);
+    if (newMoon.getTime() > now) {
+      return newMoon;
+    }
+  }
+  return null;
+};
+
 // More accurate moon phase calculation using a known lunar cycle reference
 
 export const calculateMoonPhase = (
@@ -127,7 +151,7 @@ export const calculateMoonPhase = (
 };
 
 import { formatDateTimeAsLocalIso } from "./dateTimeUtils";
-import { FULL_MOON_SET, NEW_MOON_SET, NEW_MOON_DATES_UTC } from "./moonEphemeris";
+import { FULL_MOON_SET, FULL_MOON_DATES_UTC, NEW_MOON_SET, NEW_MOON_DATES_UTC } from "./moonEphemeris";
 
 // Replace isDateFullMoon and isDateNewMoon with accurate table lookups
 /**

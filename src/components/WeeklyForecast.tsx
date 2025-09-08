@@ -6,7 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Info } from "lucide-react";
 import LocationDisplay from './LocationDisplay';
 import { SavedLocation } from './LocationSelector';
-import { getFullMoonName, isFullMoon } from '@/utils/lunarUtils';
+import { getFullMoonName, isFullMoon, isDateNewMoon } from '@/utils/lunarUtils';
+import { getSolarEvents } from '@/utils/solarUtils';
 import { formatApiDate, formatIsoToAmPm } from '@/utils/dateTimeUtils';
 import { TideCycle } from '@/services/tide/types';
 import { Badge } from "@/components/ui/badge";
@@ -132,10 +133,12 @@ const WeeklyForecast = ({
             </div>
           ) : (
             forecast.map((day, index) => {
-              // Parse the date to get full moon name if applicable
+              // Parse the date to get lunar and solar events
               const dayDate = new Date(formatApiDate(day.date));
               const fullMoonName = isFullMoon(day.moonPhase) ? getFullMoonName(dayDate) : null;
-              
+              const isNewMoonDay = isDateNewMoon(dayDate);
+              const solarEvent = getSolarEvents(dayDate);
+
               return (
                 <div
                   key={index}
@@ -158,13 +161,16 @@ const WeeklyForecast = ({
                     <div className={`w-8 h-8 rounded-full ${getMoonPhaseVisual(day.moonPhase)}`}></div>
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground">Moon Phase</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-sm ${isNewMoonDay || fullMoonName ? 'text-yellow-400 font-medium' : ''}`}>
                           {day.moonPhase}
-                          {fullMoonName && (
-                            <span className="text-yellow-400 font-medium"> – {fullMoonName.name}</span>
-                          )}
+                          {fullMoonName && ` – ${fullMoonName.name}`}
                         </span>
+                        {solarEvent && (
+                          <Badge variant="outline" className="bg-orange-500/20 text-orange-100 border-orange-500/30">
+                            {solarEvent.name}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
