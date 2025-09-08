@@ -177,3 +177,18 @@ export const getSolarEvents = (date: Date): SolarEvent | null => {
 
   return null;
 };
+
+// Find the next solar event after the given date
+export const findNextSolarEvent = (
+  date: Date
+): { event: SolarEvent; date: Date } | null => {
+  for (let i = 0; i < 365 * 3; i++) {
+    const next = new Date(date);
+    next.setDate(next.getDate() + i);
+    const event = getSolarEvents(next);
+    if (event) {
+      return { event, date: next };
+    }
+  }
+  return null;
+};
