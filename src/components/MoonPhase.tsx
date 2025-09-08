@@ -77,9 +77,10 @@ const MoonPhase = ({
             moonset={moonset}
           />
 
-          <div className="border-t border-muted pt-4 w-full space-y-4">
+          <SolarEventInfo selectedDate={currentDate} />
+
+          <div className="border-t border-muted pt-4 w-full">
             <SunCard lat={lat} lng={lng} date={currentDate} zipCode={currentLocation?.zipCode} />
-            <SolarEventInfo selectedDate={currentDate} />
           </div>
         </CardContent>
       </Card>
